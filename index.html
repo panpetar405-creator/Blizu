@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="sr"><head><meta charset="utf-8"><title>BLIZU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3556"><link rel="manifest" href="manifest.json">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f3f6fa;--card:#fff;--ink:#0b2a45;--mut:#5b6e82;--navy:#0b3556;--y:#ffcb2e;--soft:#fff6d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a1724;--card:#12263a;--ink:#eaf2fa;--mut:#9fb4c8;--soft:#2a2a1c}}
+:root[data-theme="dark"]{--bg:#0a1724;--card:#12263a;--ink:#eaf2fa;--mut:#9fb4c8;--soft:#2a2a1c}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0 auto;max-width:480px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+.hide{display:none}
+.gate{background:linear-gradient(160deg,#0b3556,#0e6a8f 65%,#2aa7b8);color:#fff;min-height:100vh;padding:30px 22px}
+.logo{font-weight:900;letter-spacing:2px;font-size:26px}.logo i{color:var(--y);font-style:normal}
+.gate{position:relative;overflow:hidden}.gate>div,.gate>h1,.gate>p,.gate>button{position:relative}.gb{position:absolute;left:0;bottom:0;width:100%;height:52%;-webkit-mask-image:linear-gradient(transparent,#000 40%);mask-image:linear-gradient(transparent,#000 40%)}
+.gate h1{font-size:34px;line-height:1.1;margin:50px 0 10px}.gate p{opacity:.9}
+.btn{background:var(--y);color:#0b2a45;border:0;border-radius:26px;padding:14px 18px;font-weight:800;font-size:16px;cursor:pointer;width:100%}
+.btn.o{background:none;color:#fff;border:2px solid #fff8}.btn.s{padding:9px 14px;font-size:14px;width:auto}.btn.done{background:var(--navy);color:#fff}
+.cities{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.msg{font-size:13px;margin-top:12px;min-height:18px;color:#ffe9a0}
+.top{background:var(--navy);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.top b{flex:1;font-size:17px}.top small{display:block;font-weight:400;opacity:.8;font-size:12px}
+.top button{background:#ffffff22;border:0;color:#fff;border-radius:18px;padding:8px 12px;font-weight:700;cursor:pointer}
+.sun{background:var(--soft);margin:14px;border-radius:20px;padding:14px 16px}.sun b{font-size:18px;display:block}.sun span{color:var(--mut);font-size:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 14px}
+.chip{flex:none;border:2px solid transparent;background:var(--card);color:var(--ink);border-radius:18px;padding:9px 13px;font-weight:700;cursor:pointer}.chip.on{border-color:var(--y)}
+.card{background:var(--card);margin:12px 14px;border-radius:20px;display:flex;gap:12px;padding:10px;box-shadow:0 2px 10px #0000000f}
+.th{width:84px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:32px;min-height:84px;cursor:pointer}
+.card h3{margin:2px 0 3px;font-size:16px;cursor:pointer}.card p{margin:0 0 8px;color:var(--mut);font-size:13px}
+.hero{height:200px;display:flex;justify-content:space-between;padding:16px}.hero button{background:#fffd;border:0;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer}
+.body{background:var(--bg);margin-top:-22px;border-radius:24px 24px 0 0;padding:20px 16px 30px;position:relative}
+.body h1{margin:0 0 6px;font-size:25px}.meta{color:var(--mut);font-size:14px}
+.row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #8884}.row i{font-style:normal;font-size:22px}.row small{display:block;color:var(--mut)}
+a.btn{display:block;text-align:center;text-decoration:none;background:var(--navy);color:#fff;margin-top:12px}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);display:flex;border-top:1px solid #8883;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav button{flex:1;background:none;border:0;color:var(--mut);padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer}.nav button b{display:block;font-size:20px}.nav button.on{color:var(--navy)}
+@media (prefers-color-scheme:dark){.nav button.on{color:var(--y)}}
+.note{color:var(--mut);font-size:12px;text-align:center;padding:14px 20px}
+.hero2{background:linear-gradient(160deg,#0b3556,#0e6a8f 65%,#2aa7b8);color:#fff;padding:20px 20px 56px;border-radius:0 0 28px 28px}
+.hero2{position:relative;overflow:hidden}.hero2>div,.hero2>h1,.hero2>p{position:relative}.hb{position:absolute;inset:0;width:100%;height:100%}
+.hero2 h1{font-size:36px;line-height:1.05;margin:26px 0 8px}.hero2 h1 span{color:var(--y)}.hero2 p{margin:0;opacity:.9;font-size:15px}
+.srch{display:flex;align-items:center;gap:8px;background:var(--card);margin:-30px 16px 0;padding:8px 8px 8px 16px;border-radius:40px;box-shadow:0 8px 24px #0003;position:relative}
+.srch span{flex:1;font-weight:700;min-width:0}
+.cg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:16px 14px 4px}
+.cc{background:var(--card);border:2px solid transparent;border-radius:16px;padding:10px 2px;text-align:center;font-size:11px;font-weight:700;color:var(--ink);cursor:pointer}.cc b{display:block;font-size:24px;margin-bottom:2px}.cc.on{border-color:var(--y)}
+.pl{background:var(--navy);color:#fff;margin:12px 14px;border-radius:20px;padding:14px 16px}
+.pl .hd{display:flex;align-items:center;gap:10px;cursor:pointer}.pl .hd div{flex:1}.pl .hd small{opacity:.8;display:block}
+.pl .chips{padding:12px 0 0}.pl .chip{background:none;color:#fff;border-color:#fff6}.pl .chip.on{background:var(--y);color:#0b2a45;border-color:var(--y)}
+.h2t{font-size:18px;font-weight:800;margin:14px 16px 0}
+.pl2{background:var(--card);margin:12px 14px 0;border-radius:20px;padding:12px;box-shadow:0 2px 10px #0000000f}#radar{display:block;width:100%;max-width:340px;margin:0 auto;color:var(--ink)}#radar circle.d{cursor:pointer}.meta2{text-align:center;color:var(--mut);font-size:13px;margin-top:4px}.card.sel{box-shadow:0 0 0 2px var(--y)}
+</style></head><body>
+<div id="gate" class="gate"><svg class="gb" id="gb" viewBox="0 0 400 330" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+ <div class="logo">BLI<i>●</i>ZU</div>
+ <h1>Stigao si.<br>Šta <span style="color:var(--y)">sada?</span></h1>
+ <p>Daćemo ti predloge prema tvojoj stvarnoj lokaciji.</p>
+ <button class="btn" onclick="gps()">📍 Koristi moju lokaciju</button>
+ <div class="msg" id="msg"></div>
+ <p style="margin:14px 0 0">Ili izaberi ručno:</p><div class="cities" id="cl"></div>
+ <p style="font-size:12px;opacity:.75;margin-top:22px">🔒 Lokacija se koristi samo na uređaju i ne čuva se.</p>
+</div>
+<div id="app" class="hide">
+ 
+ <div id="tabHome"><div class="hero2"><svg class="hb" viewBox="0 0 400 330" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b3556"/><stop offset=".6" stop-color="#2a7fa8"/><stop offset="1" stop-color="#ffb36b"/></linearGradient><linearGradient id="se" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0a35e"/><stop offset=".35" stop-color="#1f7ba3"/><stop offset="1" stop-color="#0b4468"/></linearGradient><linearGradient id="ov" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0b3556" stop-opacity=".78"/><stop offset=".65" stop-color="#0b3556" stop-opacity=".25"/><stop offset="1" stop-color="#0b3556" stop-opacity=".05"/></linearGradient></defs><rect width="400" height="205" fill="url(#sk)"/><circle cx="300" cy="168" r="32" fill="#ffd27a" opacity=".95"/><path d="M0 175L60 122L120 152L190 96L262 150L332 118L400 160V210H0Z" fill="#2a6f98" opacity=".8"/><path d="M0 195L80 152L150 187L230 142L320 187L400 168V215H0Z" fill="#174a6e"/><rect y="200" width="400" height="130" fill="url(#se)"/><g fill="#ffd27a" opacity=".5"><rect x="270" y="208" width="60" height="2"/><rect x="280" y="216" width="40" height="2"/><rect x="287" y="224" width="26" height="2"/></g><path d="M220 218Q300 192 400 202V240H220Z" fill="#7d5f47"/><g><rect x="330" y="148" width="14" height="62" fill="#ead9ba"/><path d="M327 148L337 128L347 148Z" fill="#b5533a"/><rect x="300" y="186" width="28" height="26" fill="#f1e2c6"/><path d="M297 186L314 172L331 186Z" fill="#c4623f"/><rect x="346" y="180" width="30" height="32" fill="#efdcbc"/><path d="M343 180L361 165L379 180Z" fill="#c4623f"/><rect x="268" y="196" width="24" height="18" fill="#f1e2c6"/><path d="M265 196L280 185L295 196Z" fill="#c4623f"/><rect x="376" y="184" width="24" height="28" fill="#f1e2c6"/></g><path d="M150 262h40l-6 10h-28z" fill="#f4efe6"/><path d="M168 240v22" stroke="#f4efe6" stroke-width="2"/><path d="M168 242l16 16h-16z" fill="#ffcb2e"/><rect width="400" height="330" fill="url(#ov)"/></svg><div class="logo">BLI<i>●</i>ZU</div><h1>Stigao si.<br>Šta <span>sada?</span></h1><p>Otkrij najbolje u blizini – hrana, atrakcije, događaji i još mnogo toga.</p></div><div class="srch">📍<span id="where"></span><button class="btn s" onclick="show('gate')">Promeni</button></div><div class="cg" id="cat"></div><div class="chips" id="rad" style="margin-top:10px"></div><div class="chips" id="vw" style="margin-top:10px"></div><div id="radw" class="pl2 hide"><svg id="radar" viewBox="0 0 200 200" role="group" aria-label="Radar okoline"></svg><div class="meta2" id="rcount"></div></div><div class="pl"><div class="hd" onclick="pl()"><span>⏱</span><div><b>Sklopi mi nešto sada</b><small>Reci koliko vremena imaš.</small></div><span id="arr">›</span></div><div class="chips hide" id="hrs"></div></div><div class="h2t" id="ttl"></div>
+ <div id="list"></div></div>
+ <div id="tabSaved" class="hide"><div class="sun"><b>Moji planovi</b><span>Sačuvano na ovom uređaju.</span></div><div id="slist"></div></div>
+ <div class="note">Demo podaci – mesta i koordinate su približni.</div>
+ <div class="nav"><button id="n1" class="on" onclick="tab(1)"><b>🏠</b>Početna</button><button id="n2" onclick="tab(2)"><b>❤️</b>Planovi</button></div>
+</div>
+<div id="det" class="hide"></div>
+<script>
+// ===== BAZA MESTA (šema): id, city, name, cat, emoji, grad., coord[lat,lng], hours(min), sub, open, desc, book(opciono afilijatni link) =====
+var CITY={tivat:{n:"Tivat",c:[42.4364,18.6961]},kotor:{n:"Kotor",c:[42.4247,18.7712]},budva:{n:"Budva",c:[42.2864,18.84]},hn:{n:"Herceg Novi",c:[42.4531,18.5375]}};
+var P=[
+{id:"t1",city:"tivat",n:"Konoba Galija",k:"jesti",e:"🍽",g:"#c9772d,#7a3a12",c:[42.4352,18.6935],h:1,s:"Mediteranska • €€ • ⭐ 4.8",hr:"08:00 – 23:00",d:"Konoba sa terasom i pogledom na more. Lokalni specijaliteti."},
+{id:"t2",city:"tivat",n:"Šetalište Pine",k:"videti",e:"🌲",g:"#2a9d6f,#0b3556",c:[42.4375,18.699],h:1,s:"Šetnja uz obalu • besplatno • ⭐ 4.6",hr:"Non-stop",d:"Senovita šetnja uz more, idealna pred zalazak sunca."},
+{id:"t3",city:"tivat",n:"Solila – rezervat prirode",k:"videti",e:"🦩",g:"#4aa3a0,#1b4d6b",c:[42.4265,18.6835],h:2,s:"Priroda • ptice • ⭐ 4.7",hr:"09:00 – 17:00",d:"Stara solana i stanište ptica selica."},
+{id:"t4",city:"tivat",n:"Gradska plaža",k:"odmoriti",e:"🏖",g:"#2aa7b8,#0b3556",c:[42.4345,18.699],h:2,s:"Plaža • ležaljke i bar • ⭐ 4.5",hr:"09:00 – 20:00",d:"Kupanje i odmor u centru grada."},
+{id:"t5",city:"tivat",n:"Koncert na rivi",k:"dogadjaji",e:"🎵",g:"#7b3fe4,#ff4d8d",c:[42.4358,18.6955],h:2,s:"Događaj • večeras 20:00 • od 15 €",hr:"Počinje u 20:00",d:"Muzika uživo uz more."},
+{id:"k1",city:"kotor",n:"Stari grad Kotor",k:"videti",e:"🏰",g:"#ff9a5a,#6b3b8f",c:[42.4247,18.7712],h:2,s:"UNESCO • šetnja • ⭐ 4.8",hr:"Non-stop",d:"Uske ulice, trgovi i crkve unutar zidina."},
+{id:"k2",city:"kotor",n:"Tvrđava Sv. Ivan",k:"videti",e:"⛰",g:"#c79a3a,#5a3b16",c:[42.4263,18.7745],h:3,s:"Uspon • pogled • ⭐ 4.9",hr:"08:00 – 20:00",d:"Oko 1350 stepenika do najlepšeg pogleda na zaliv."},
+{id:"k3",city:"kotor",n:"Konoba u Starom gradu",k:"jesti",e:"🍴",g:"#c9772d,#7a3a12",c:[42.4251,18.77],h:1,s:"Riblja kuhinja • €€ • ⭐ 4.6",hr:"11:00 – 23:00",d:"Sveža riba i domaća vina."},
+{id:"k4",city:"kotor",n:"Plaža Dobrota",k:"odmoriti",e:"🏖",g:"#2aa7b8,#0b3556",c:[42.441,18.76],h:2,s:"Kameni žal • ⭐ 4.4",hr:"Non-stop",d:"Mirno kupanje uz obalu zaliva."},
+{id:"b1",city:"budva",n:"Stari grad Budva",k:"videti",e:"🏛",g:"#ff9a5a,#6b3b8f",c:[42.279,18.837],h:2,s:"Citadela • šetnja • ⭐ 4.7",hr:"Non-stop",d:"Zidine na moru i uski kameni sokaci."},
+{id:"b2",city:"budva",n:"Plaža Mogren",k:"odmoriti",e:"🏝",g:"#2aa7b8,#0b3556",c:[42.276,18.834],h:3,s:"Plaža • ⭐ 4.6",hr:"Non-stop",d:"Dve plaže ispod starog grada."},
+{id:"b3",city:"budva",n:"Konoba na rivi",k:"jesti",e:"🐟",g:"#c9772d,#7a3a12",c:[42.287,18.839],h:1,s:"Morski plodovi • €€ • ⭐ 4.5",hr:"10:00 – 00:00",d:"Terasa na samoj rivi."},
+{id:"h1",city:"hn",n:"Kanli kula",k:"videti",e:"🏯",g:"#c79a3a,#5a3b16",c:[42.4548,18.5342],h:1,s:"Tvrđava • ⭐ 4.6",hr:"10:00 – 22:00",d:"Pogled na Boku i festivalska scena."},
+{id:"h2",city:"hn",n:"Šetalište Pet Danica",k:"odmoriti",e:"🌅",g:"#2a9d6f,#0b3556",c:[42.4505,18.5325],h:2,s:"Šetnja uz more • ⭐ 4.7",hr:"Non-stop",d:"Najduže šetalište u Boki, sa plažama i kafićima."},
+{id:"t6",city:"tivat",n:"Taksi stanica Tivat",k:"prevoz",e:"🚕",g:"#e0a800,#7a5a00",c:[42.4358,18.6965],h:1,s:"Taksi • ~10 min do aerodroma",hr:"Non-stop",d:"Taksi stajalište u centru. Dogovori cenu unapred."},
+{id:"t7",city:"tivat",n:"Rent-a-bike Pine",k:"prevoz",e:"🚲",g:"#2a9d6f,#0b3556",c:[42.437,18.6985],h:1,s:"Bicikli po satu • €",hr:"09:00 – 20:00",d:"Iznajmi bicikl i vozi duž obale."},
+{id:"k5",city:"kotor",n:"Autobuska stanica Kotor",k:"prevoz",e:"🚌",g:"#4a6fa5,#0b3556",c:[42.4285,18.769],h:1,s:"Autobus • linije duž Boke",hr:"05:00 – 22:00",d:"Polasci ka Tivtu, Budvi i Herceg Novom."},
+{id:"b4",city:"budva",n:"Autobuska stanica Budva",k:"prevoz",e:"🚌",g:"#4a6fa5,#0b3556",c:[42.2895,18.85],h:1,s:"Autobus • lokalne i dalje linije",hr:"05:00 – 23:00",d:"Veze ka Kotoru, Tivtu i Podgorici."},
+{id:"h3",city:"hn",n:"Taksi Herceg Novi",k:"prevoz",e:"🚕",g:"#e0a800,#7a5a00",c:[42.453,18.537],h:1,s:"Taksi • centar grada",hr:"Non-stop",d:"Taksi stajalište kod rive."}];
+var CT=[["jesti","🍴","Jesti"],["videti","🏛","Videti"],["dogadjaji","🎵","Događaji"],["odmoriti","🏖","Odmoriti"],["prevoz","🚕","Prevoz"]];
+var me=null,cityKey=null,H=3,R=5,cat="sve",V="lista",sel=null,heading=null,lastL=[],gpsOn=false,saved={};
+try{saved=JSON.parse(localStorage.getItem("blizu_saved")||"{}")}catch(e){}
+function $(i){return document.getElementById(i)}
+function show(v){["gate","app","det"].forEach(function(x){$(x).classList.toggle("hide",x!=v)});window.scrollTo(0,0)}
+function tab(n){$("tabHome").classList.toggle("hide",n!=1);$("tabSaved").classList.toggle("hide",n!=2);$("n1").classList.toggle("on",n==1);$("n2").classList.toggle("on",n==2);render()}
+function km(a,b){var r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 12742*Math.asin(Math.sqrt(x))}
+function nearest(pos){var b=null,bd=1e9;for(var k in CITY){var d=km(pos,CITY[k].c);if(d<bd){bd=d;b=k}}return[b,bd]}
+$("cl").innerHTML=Object.keys(CITY).map(function(k){return '<button class="btn o s" onclick="pick(\''+k+'\')">'+CITY[k].n+'</button>'}).join("");
+function pick(k){cityKey=k;me=CITY[k].c;gpsOn=false;start()}
+function gps(){
+ $("msg").textContent="Tražim tvoju lokaciju…";
+ if(!navigator.geolocation){$("msg").textContent="Uređaj ne podržava lokaciju – izaberi grad ručno.";return}
+ navigator.geolocation.getCurrentPosition(function(p){
+  var pos=[p.coords.latitude,p.coords.longitude],n=nearest(pos);me=pos;gpsOn=true;
+  if(n[1]>40){$("msg").textContent="Nisi blizu podržanog grada (najbliži: "+CITY[n[0]].n+", "+Math.round(n[1])+" km). Izaberi ručno.";return}
+  cityKey=n[0];start()
+ },function(){$("msg").textContent="Lokacija nije dostupna – izaberi grad ručno."},{enableHighAccuracy:true,timeout:10000})}
+function start(){show("app");hrs();cats();rad();vw();render()}
+function rad(){var o=[[0.5,"🚶 10 min · 500 m"],[5,"🚗 15 min · 5 km"],[0,"🗺 Bez ograničenja"]];$("rad").innerHTML=o.map(function(x){return '<button class="chip '+(R==x[0]?"on":"")+'" onclick="R='+x[0]+';rad();render()">'+x[1]+'</button>'}).join("")}
+function hrs(){$("hrs").innerHTML=[1,2,3,5].map(function(h){return '<button class="chip '+(H==h?"on":"")+'" onclick="H='+h+';hrs();render()">'+(h==1?"1 sat":h==5?"5 sati+":h+" sata")+'</button>'}).join("")}
+var KC={jesti:"#D8503F",videti:"#5E9E2E",dogadjaji:"#A85BC9",odmoriti:"#1C8FBF",prevoz:"#D98A12"};
+function brg(a,b){var r=Math.PI/180,f1=a[0]*r,f2=b[0]*r,dl=(b[1]-a[1])*r,y=Math.sin(dl)*Math.cos(f2),x=Math.cos(f1)*Math.sin(f2)-Math.sin(f1)*Math.cos(f2)*Math.cos(dl);return(Math.atan2(y,x)/r+360)%360}
+function vw(){$("radw").classList.toggle("hide",V!="radar");$("vw").innerHTML=[["lista","📋 Lista"],["radar","📡 Radar"]].map(function(o){return '<button class="chip '+(V==o[0]?"on":"")+'" onclick="V=\''+o[0]+'\';vw();render()">'+o[1]+'</button>'}).join("")+(V=="radar"?'<button class="chip '+(heading!=null?"on":"")+'" onclick="compass()">🧭 Kompas</button>':"")}
+function compass(){if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission){DeviceOrientationEvent.requestPermission().then(function(s){if(s=="granted")lis()}).catch(function(){})}else lis()}
+function lis(){window.addEventListener("deviceorientationabsolute",oh,true);window.addEventListener("deviceorientation",oh,true)}
+function oh(e){var h=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.absolute&&e.alpha!=null?360-e.alpha:null);if(h==null)return;var f=heading==null;heading=h;if(f)vw();if(V=="radar")drawRadar(lastL)}
+function selp(id){sel=sel==id?null:id;render();var c=$("c_"+id);if(c&&sel)c.scrollIntoView({behavior:"smooth",block:"center"})}
+function drawRadar(L){lastL=L;var el=$("radar");if(!el||!me)return;var Rm=R==0?Math.max(1,Math.max.apply(null,L.map(dist).concat([1]))):R,rot=heading||0,h="",S=82;
+ [1/3,2/3,1].forEach(function(f){h+='<circle cx="100" cy="100" r="'+S*f+'" fill="none" stroke="currentColor" opacity=".25"/><text x="100" y="'+(100-S*f-2)+'" font-size="7" text-anchor="middle" fill="currentColor" opacity=".7">'+fmt(Rm*f)+'</text>'});
+ var na=-rot*Math.PI/180;h+='<text x="'+(100+93*Math.sin(na)).toFixed(1)+'" y="'+(100-93*Math.cos(na)+3).toFixed(1)+'" font-size="9" font-weight="800" text-anchor="middle" fill="#d9a400">S</text>';
+ L.forEach(function(p){var a=(brg(me,p.c)-rot)*Math.PI/180,r=Math.min(dist(p),Rm)/Rm*S,x=100+r*Math.sin(a),y=100-r*Math.cos(a);h+='<circle class="d" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(sel==p.id?8.5:6.5)+'" fill="'+(KC[p.k]||"#888")+'" stroke="'+(sel==p.id?"currentColor":"#fff")+'" stroke-width="2" onclick="selp(\''+p.id+'\')"><title>'+p.n+', '+fmt(dist(p))+'</title></circle>'});
+ h+='<circle cx="100" cy="100" r="5.5" fill="#ffcb2e" stroke="currentColor" stroke-width="1.5"/>';
+ if(heading!=null)h+='<path d="M100 8l-5 9h10z" fill="currentColor"/>';
+ el.innerHTML=h;$("rcount").textContent=L.length+(L.length==1?" mesto":" mesta")+" · "+(R==0?"cela regija":"do "+fmt(R))+(heading==null?" · gore je sever (S)":" · gore je smer u kom gledaš")}
+function pl(){var h=$("hrs");h.classList.toggle("hide");$("arr").textContent=h.classList.contains("hide")?"›":"⌄"}
+function cats(){$("cat").innerHTML=CT.map(function(c){return '<button class="cc '+(cat==c[0]?"on":"")+'" onclick="cat=cat==\''+c[0]+'\'?\'sve\':\''+c[0]+'\';cats();render()"><b>'+c[1]+'</b>'+c[2]+'</button>'}).join("")}
+function dist(p){return km(me,p.c)}
+function fmt(d){return d<1?Math.round(d*1000)+" m":d.toFixed(1).replace(".",",")+" km"}
+function walk(d){return d<=1.5?"🚶 ~"+Math.max(1,Math.round(d/4.5*60))+" min":"🚗 ~"+Math.max(2,Math.round(d/35*60))+" min"}
+function card(p){var d=dist(p);return '<div class="card'+(sel==p.id?' sel':'')+'" id="c_'+p.id+'"><div class="th" style="background:linear-gradient(135deg,'+p.g+')" onclick="det(\''+p.id+'\')">'+p.e+'</div><div style="flex:1"><h3 onclick="det(\''+p.id+'\')">'+p.n+'</h3><p>'+p.s+'<br>'+fmt(d)+' · '+walk(d)+'</p><button class="btn s '+(saved[p.id]?"done":"")+'" onclick="sv(\''+p.id+'\')">'+(saved[p.id]?"✓ Sklopljeno":"Sklopi")+'</button></div></div>'}
+function render(){
+ var C=CITY[cityKey];if(!C||!me)return;
+ $("where").textContent=(gpsOn?"Tvoja lokacija · ":"")+C.n+", Crna Gora";
+ $("ttl").textContent=(cat=="sve"?"U blizini":CT.filter(function(c){return c[0]==cat})[0][2])+" · "+(H==1?"1 sat":H==5?"5+ sati":H+" sata")+" · "+(R==0?"cela regija":R<1?"do 500 m":"do "+R+" km");
+ var L=P.filter(function(p){return (R==0||dist(p)<=R)&&(cat=="sve"||p.k==cat)&&p.h<=H}).sort(function(a,b){return dist(a)-dist(b)});
+ $("list").innerHTML=L.length?L.map(card).join(""):'<p style="padding:20px;color:var(--mut)">Nema mesta za taj filter – proširi radijus, dodaj vremena ili izaberi drugu kategoriju.</p>';
+ drawRadar(L);var S=P.filter(function(p){return saved[p.id]}).sort(function(a,b){return dist(a)-dist(b)});
+ $("slist").innerHTML=S.length?S.map(card).join(""):'<p style="padding:20px;color:var(--mut)">Još nema sačuvanih mesta. Tapni „Sklopi" na nekom mestu.</p>'}
+function sv(id){saved[id]=!saved[id];try{localStorage.setItem("blizu_saved",JSON.stringify(saved))}catch(e){}render();if(!$("det").classList.contains("hide"))det(id)}
+function det(id){var p=P.filter(function(x){return x.id==id})[0],d=dist(p);show("det");
+ $("det").innerHTML='<div class="hero" style="background:linear-gradient(135deg,'+p.g+')"><button onclick="show(\'app\')">←</button><span style="font-size:56px;align-self:center">'+p.e+'</span><button onclick="sv(\''+id+'\')">'+(saved[id]?"❤️":"🤍")+'</button></div><div class="body"><h1>'+p.n+'</h1><div class="meta">'+p.s+'</div><div class="meta" style="margin-top:6px">📍 '+fmt(d)+' od tebe · '+walk(d)+'</div><p>'+p.d+'</p><div class="row"><i>🕘</i><div><small>Radno vreme</small>'+p.hr+'</div></div><div class="row"><i>🧭</i><div><small>Grad</small>'+CITY[p.city].n+', Crna Gora</div></div><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='+p.c[0]+','+p.c[1]+'&travelmode='+(d<=1.5?"walking":"driving")+'">Vodi me do tamo</a></div>'}
+try{$("gb").innerHTML=document.querySelector(".hb").innerHTML.replace(/id="(sk|se|ov)"/g,'id="$1g"').replace(/url\(#(sk|se|ov)\)/g,'url(#$1g)')}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}}
+</script></body></html>
