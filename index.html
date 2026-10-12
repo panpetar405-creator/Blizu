@@ -137,9 +137,11 @@ body{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 // ===== BAZA MESTA (šema): id, city, name, cat, emoji, grad., coord[lat,lng], hours(min), sub, open, desc, book(opciono afilijatni link) =====
 function ic(n,z,f){return'<svg class="ic'+(f?' fill':'')+'" width="'+z+'" height="'+z+'"><use href="#i-'+n+'"/></svg>'}
 var KN={jesti:"Hrana",videti:"Znamenitost",dogadjaji:"Izlazak",odmoriti:"Odmor",prevoz:"Prevoz",info:"Info"},PH={};try{PH=JSON.parse(localStorage.getItem("blizu_ph")||"{}")}catch(e){}
-function phOk(p){return/^(videti|odmoriti|dogadjaji)$/.test(p.k)}
-function phGet(p,cb){if(p.img)return cb(p.img);if(PH[p.id]!==undefined)return cb(PH[p.id]);
- fetch("https://sr.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.c[0]+"%7C"+p.c[1]+"&ggsradius=120&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query&&j.query.pages,u=q?(q[Object.keys(q)[0]].thumbnail||{}).source||0:0;PH[p.id]=u;try{localStorage.setItem("blizu_ph",JSON.stringify(PH))}catch(e){}cb(u)}).catch(function(){cb(0)})}
+function cmn(c,rad,lim,cb){fetch("https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+c[0]+"%7C"+c[1]+"&ggsradius="+rad+"&ggsnamespace=6&ggslimit="+lim+"&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=640&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query?Object.keys(j.query.pages).map(function(k){return j.query.pages[k]}):[];q=q.filter(function(x){var i=(x.imageinfo||[])[0];return i&&i.mime=="image/jpeg"&&!/logo|map|flag|plan|coat|icon|sign|menu/i.test(x.title)}).sort(function(a,b){return a.index-b.index});var i=q[0]&&q[0].imageinfo[0];cb(i?i.thumburl:0)}).catch(function(){cb(0)})}
+function phSave(p,u,cb){PH[p.id]=u;try{localStorage.setItem("blizu_ph",JSON.stringify(PH))}catch(e){}cb(u)}
+function phOk(p){return/^(videti|odmoriti|dogadjaji|jesti)$/.test(p.k)}
+function phGet(p,cb){if(p.img)return cb(p.img);if(PH[p.id]!==undefined)return cb(PH[p.id]);if(p.k=="jesti")return cmn(p.c,40,8,function(u){phSave(p,u,cb)});
+ fetch("https://sr.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.c[0]+"%7C"+p.c[1]+"&ggsradius=120&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query&&j.query.pages,u=q?(q[Object.keys(q)[0]].thumbnail||{}).source||0:0;if(u)phSave(p,u,cb);else cmn(p.c,80,8,function(v){phSave(p,v,cb)})}).catch(function(){cb(0)})}
 var IO=window.IntersectionObserver&&new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;IO.unobserve(e.target);var id=e.target.dataset.pid,p=P.filter(function(x){return x.id==id})[0]||SI[id];if(p&&phOk(p))phGet(p,function(u){if(!u)return;var im=new Image();im.onload=function(){e.target.style.backgroundImage="url("+u+")";e.target.classList.add("ph")};im.src=u})})},{rootMargin:"200px"});
 function lazyPh(){if(IO)document.querySelectorAll(".th[data-pid]").forEach(function(t){IO.observe(t)})}
 function detPh(p){if(!phOk(p))return;phGet(p,function(u){var h=document.querySelector("#det .hero");if(u&&h){h.style.backgroundImage="url("+u+")";var b=h.querySelector(".big");if(b)b.style.display="none"}})}
@@ -174,12 +176,12 @@ function rev(c){fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2
 var ST;function srch(q){clearTimeout(ST);var o=$("sres");if(q.trim().length<2){o.innerHTML="";return}ST=setTimeout(function(){fetch("https://geocoding-api.open-meteo.com/v1/search?count=6&language=sr&name="+encodeURIComponent(q.trim())).then(function(r){return r.json()}).then(function(j){var r=window._SR=j.results||[];o.innerHTML=r.length?r.map(function(x,i){return'<button class="btn o s" onclick="pickR('+i+')">'+E(x.name)+'<small>'+E([x.admin1,x.country].filter(Boolean).join(", "))+'</small></button>'}).join(""):"<p>Nema rezultata.</p>"}).catch(function(){o.innerHTML="<p>Pretraga nije dostupna.</p>"})},350)}
 function pickR(i){var x=window._SR[i];me=[x.latitude,x.longitude];gpsOn=false;PLACE={n:x.name,cn:x.country||"",cc:x.country_code||"",c:me};start()}
 var HC={};try{HC=JSON.parse(localStorage.getItem("blizu_hero")||"{}")}catch(e){}
-function heroPh(){var h=$("hp");if(!h)return;h.classList.remove("on");var n=PLACE.n,key=n+"|"+PLACE.cn;if(!n||n=="Tvoja okolina")return;
+function heroPh(){var h=$("hp");if(!h)return;h.classList.remove("on");var n=PLACE.n,key=n+"|"+PLACE.cn;if(!n)return;if(n=="Tvoja okolina")return cmn(PLACE.c,3000,8,set);
  function set(u){if(u&&key==PLACE.n+"|"+PLACE.cn){var im=new Image();im.onload=function(){h.style.backgroundImage="url("+u+")";h.classList.add("on")};im.src=u}}
  function fin(u){HC[key]=u;try{localStorage.setItem("blizu_hero",JSON.stringify(HC))}catch(e){}set(u)}
  function go(lg,cb){fetch("https://"+lg+".wikipedia.org/w/api.php?action=query&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1000&titles="+encodeURIComponent(n)+"&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query.pages;cb((q[Object.keys(q)[0]].thumbnail||{}).source||0)}).catch(function(){cb(0)})}
  var l=window.BLIZU_HERO;if(l&&l[n])return set(l[n]);if(HC[key]!==undefined)return set(HC[key]);
- go("sr",function(u){if(u)fin(u);else go("en",fin)})}
+ go("sr",function(u){if(u)fin(u);else go("en",function(v){if(v)fin(v);else cmn(PLACE.c,3000,8,fin)})})}
 function start(){show("app");hrs();cats();rad();vw();load();heroPh()}
 function rad(){var o=[[0.5,"10 min · 500 m"],[5,"15 min · 5 km"],[0,"Bez ograničenja"]];$("rad").innerHTML=o.map(function(x){return '<button class="chip '+(R==x[0]?"on":"")+'" onclick="R='+x[0]+';rad();load()">'+x[1]+'</button>'}).join("")}
 function hrs(){$("hrs").innerHTML=[1,2,3,5].map(function(h){return '<button class="chip '+(H==h?"on":"")+'" onclick="H='+h+';hrs();render()">'+(h==1?"1 sat":h==5?"5 sati+":h+" sata")+'</button>'}).join("")}
