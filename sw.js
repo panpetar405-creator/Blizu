@@ -1,3 +1,13 @@
-const C="blizu-v1",F=["./","index.html","manifest.json","icon.svg"];
-self.addEventListener("install",e=>e.waitUntil(caches.open(C).then(c=>c.addAll(F))));
-self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+const C = "blizu-v2";
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (e) =>
+  e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C).map((x) => caches.delete(x)))).then(() => self.clients.claim()))
+);
+// mreža prvo (uvek najnovija verzija), keš kao rezerva kad nema interneta
+self.addEventListener("fetch", (e) => {
+  const r = e.request;
+  if (r.method !== "GET" || new URL(r.url).origin !== location.origin) return;
+  e.respondWith(
+    fetch(r).then((res) => { const cp = res.clone(); caches.open(C).then((c) => c.put(r, cp)); return res; }).catch(() => caches.match(r))
+  );
+});
