@@ -787,7 +787,7 @@ var TL=[["hrana","Hrana","jesti","#f08a00"],["kafa","Kafa","kafa","#d9822b"],["a
 var TG={hrana:{i:"jesti"},kafa:{i:"jesti",f:/kafi|cafe|caff|kafa|coffee|slasti|sladoled|ice/i},atr:{i:"videti"},more:{i:"odmoriti"},kultura:{i:"mix",t:["kultura"]},priroda:{i:"mix",t:["priroda"]},por:{i:"mix",t:["priroda","hrana"]},par:{i:"mix",t:["hrana","kultura"]}};
 function cats(){$("cat").innerHTML=TL.map(function(c){return'<button class="cc" style="--c:'+c[3]+'" onclick="tileGo(\''+c[0]+'\')"><b>'+ic(c[2],38)+"</b>"+c[1]+"</button>"}).join("");tchR()}
 function tileGo(k){if(k=="dog")return openEv();var g=TG[k];planCfg.interest=g.i;planCfg.tags=(g.t||[]).slice();window.PF=g.f||null;window.MOOD=k;RB="gen";
- if(!P.length){toast(busy?"Učitavam mjesta u blizini…":"Nema učitanih mjesta. Provjeri lokaciju.");return}
+ if(!P.length){if(!busy){toast("Mjesta se nisu učitala. Pokušavam ponovo…");load()}else toast("Učitavam mjesta u blizini…");return}
  makePlan();if($("planres").classList.contains("hide")&&window.PF){window.PF=null;makePlan()}
  if($("planres").classList.contains("hide"))toast("Nijesmo našli stanice za ovaj izbor. Probaj duže vrijeme ili drugu temu.")}
 function wxLoad(){try{fetch("https://api.open-meteo.com/v1/forecast?latitude="+me[0].toFixed(3)+"&longitude="+me[1].toFixed(3)+"&current=temperature_2m&timezone=auto").then(function(r){return r.json()}).then(function(j){$("wxt").textContent=Math.round(j.current.temperature_2m)+"°C"}).catch(function(){})}catch(e){}}
