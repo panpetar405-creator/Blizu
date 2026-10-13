@@ -12,7 +12,14 @@ const CITIES = {
 const CRON_CITY = { "0 3 * * *": "tivat", "10 3 * * *": "kotor", "20 3 * * *": "budva", "30 3 * * *": "hn" };
 const COVER_M = 15000; // radijus oko centra grada koji se unapred povlači
 const ORIGINS = ["https://panpetar405-creator.github.io"];
-const OVP = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
+const OVP = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+];
+const OVP_TIMEOUT_MS = 20000; // koliko čekamo jedan Overpass server prije nego pređemo na sljedeći
+const NEAR_FALLBACK_KM = 35; // ako uživo ne uspije, koristimo snimljene podatke najbližeg grada u ovom krugu
 
 const QF = {
   jesti: 'nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream)$"][name];',
@@ -52,11 +59,25 @@ function query(A, cats, limit) {
   return "[out:json][timeout:60];(" + cats.map((k) => QF[k].replace(/@/g, A)).join("") + ");out center tags " + limit + ";";
 }
 async function overpass(q) {
-  for (const u of OVP) {
-    try {
-      const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" } });
-      if (r.ok) return ((await r.json()).elements || []).map(slim);
-    } catch (e) {}
+  for (let round = 0; round < 2; round++) {
+    for (const u of OVP) {
+      const ac = new AbortController();
+      const tm = setTimeout(() => ac.abort(), OVP_TIMEOUT_MS);
+      try {
+        const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ac.signal });
+        if (r.ok) {
+          const j = await r.json();
+          // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
+          if (!(j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length)) {
+            return (j.elements || []).map(slim);
+          }
+        }
+      } catch (e) {
+      } finally {
+        clearTimeout(tm);
+      }
+    }
+    if (round === 0) await sleep(1500);
   }
   throw new Error("overpass");
 }
@@ -66,7 +87,7 @@ async function refreshCity(env, id) {
   const res = {};
   for (const k of CATS) {
     try {
-      const els = await overpass(query(A, [k], 3000));
+      const els = await overpass(query(A, [k], 3000)); // overpass() sam pokušava sve servere dva puta
       await env.PLACES.put(`c:${id}:${k}`, JSON.stringify({ t: Date.now(), els }));
       res[k] = els.length;
     } catch (e) { res[k] = "greska"; }
@@ -157,8 +178,26 @@ export default {
     try {
       const els = await overpass(query(`(around:${r},${lat},${lng})`, cats, cat === "sve" ? 400 : 300));
       await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: 21600 });
+      await env.PLACES.put("stale:" + key, JSON.stringify(els), { expirationTtl: 604800 }); // 7 dana, samo za slučaj kvara
       return json({ elements: els, source: "live" }, req);
-    } catch (e) { return json({ error: "upstream" }, req, 502); }
+    } catch (e) {
+      // 3) uživo ne radi: stariji keš za istu lokaciju
+      const old = await env.PLACES.get("stale:" + key, "json");
+      if (old && old.length) return json({ elements: old, source: "stale" }, req);
+      // 4) najbliži unaprijed povučen grad (djelimičan odgovor je bolji od greške)
+      let best = null, bd = 1e9;
+      for (const [id, c] of Object.entries(CITIES)) { const d = km([lat, lng], c); if (d < bd) { bd = d; best = id; } }
+      if (best && bd <= NEAR_FALLBACK_KM) {
+        const out = [];
+        for (const k of cats) {
+          const d = await env.PLACES.get(`c:${best}:${k}`, "json");
+          if (!d) continue;
+          for (const el of d.els) { const p = pos(el); if (p && km([lat, lng], p) * 1000 <= r) out.push(el); }
+        }
+        if (out.length) return json({ elements: out, source: "kv-near" }, req);
+      }
+      return json({ error: "upstream" }, req, 502);
+    }
   },
 
   async scheduled(event, env, ctx) {
