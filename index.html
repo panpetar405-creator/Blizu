@@ -264,7 +264,7 @@ body{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 .prem{margin-left:auto;background:#f5b942;color:#4a3000;font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;font-style:normal}
 .mdh{padding:14px 16px 0;font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center}.mdh a{font-size:13px;color:var(--sea);font-weight:700;text-decoration:none}
 .ptc{padding:8px 20px}.ptl{list-style:none;padding:0;margin:18px 0}.ptl li{padding:12px 0 12px 34px;position:relative;font-weight:600;border-top:1px solid var(--line)}.ptl li::before{content:"✓";position:absolute;left:0;top:11px;width:22px;height:22px;border-radius:50%;background:var(--sea);color:#fff;font-size:13px;text-align:center;line-height:22px}
-#fdl .fi{gap:14px;padding:12px 16px;border-top:0;position:relative;align-items:center}
+#fdl .fi{border:0!important;box-shadow:none;gap:14px;padding:12px 16px;position:relative;align-items:center}
 #fdl .fi+.fi::before{content:"";position:absolute;left:102px;right:16px;top:0;height:1px;background:var(--line)}
 #fdl .fi .th{width:72px;height:72px;min-height:72px;flex:none;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;background-size:cover;background-position:center}
 #fdl .fi .th.logo{border:1px solid var(--line)}#fdl .fi .th.ph .mono{display:none}
@@ -564,8 +564,8 @@ function rtShow(p){var v=RT[p.id];if(!v||!v.r)return;document.querySelectorAll('
 function rtPhoto(p){var v=RT[p.id];if(!v||!v.ph)return;var u=window.BLIZU_API+"/api/photo?ref="+encodeURIComponent(v.ph);document.querySelectorAll('.th[data-pid="'+p.id+'"]').forEach(function(t){if(t.classList.contains("gp"))return;var im=new Image();im.referrerPolicy="origin";im.onload=function(){t.style.backgroundImage="url("+u+")";t.classList.add("ph","gp")};im.src=u})}
 function rtVis(p){var f=function(){rtShow(p);rtPhoto(p)};if(RT[p.id]!==undefined)return f();rtGet(p,f)}
 function rtFill(a){if(!window.BLIZU_API)return;var pend=0,srt=FF=="best"||FF=="price";a.forEach(function(p){rtShow(p);if(RT[p.id]!==undefined)return;pend++;rtGet(p,function(){rtShow(p);if(--pend==0&&srt&&!$("food").classList.contains("hide"))fdRender()})})}
-var MC=[["#e8a87c","#c2703d"],["#7fb7a4","#3d7f6b"],["#8fa8d6","#4a69a6"],["#d69ab0","#a5506e"],["#c9b458","#8f7d1f"],["#9d8fd1","#5e4fa3"]];
-function mcol(n){var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return MC[h%MC.length]}
+var MCOL=[["#e8a87c","#c2703d"],["#7fb7a4","#3d7f6b"],["#8fa8d6","#4a69a6"],["#d69ab0","#a5506e"],["#c9b458","#8f7d1f"],["#9d8fd1","#5e4fa3"]];
+function mcol(n){var h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;return MCOL[h%MCOL.length]}
 var CU={regional:"domaća kuhinja",local:"domaća kuhinja",balkan:"balkanska",italian:"italijanska",pizza:"pizza",burger:"burgeri",seafood:"riba i plodovi mora",fish:"riba",steak_house:"roštilj",grill:"roštilj",kebab:"kebab",chinese:"kineska",mediterranean:"mediteranska",coffee_shop:"kafa",ice_cream:"sladoled",sandwich:"sendviči",international:"internacionalna",french:"francuska",indian:"indijska",japanese:"japanska",sushi:"suši"};
 function fkind(p){var a=String(p.s||"").split("•"),t=a[0].trim(),c=(a[1]||"").split(/[;,]/).map(function(x){return CU[x.trim().toLowerCase().replace(/ /g,"_")]}).filter(Boolean).slice(0,2);return E(t)+(c.length?" · "+c.join(", "):"")}
 function fdRender(){var ch=[["near","Najbliži"],["open","Otvoreno sada"],["rest","Restorani"],["caf","Kafići"],["bar","Barovi"]];if(window.BLIZU_API&&RTOK){ch.unshift(["best","Najbolje ocijenjeni"]);ch.splice(2,0,["price","Cijena"])}
