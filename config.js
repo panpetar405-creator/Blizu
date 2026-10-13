@@ -1,6 +1,6 @@
 // Adresa tvog Workera (opciono), npr. "https://blizu-api.TVOJE-IME.workers.dev"
 // Ostavi prazno ako ne koristiš Worker (aplikacija tada zove OpenStreetMap direktno).
-window.BLIZU_API = "";
+window.BLIZU_API = "https://blizu-api.panpetar405.workers.dev";
 // Opciono: vlastite naslovne fotografije po nazivu mjesta (imaju prednost nad Wikipedijom).
 // window.BLIZU_HERO = { "Beograd":"img/beograd.jpg", "Kotor":"img/kotor.jpg" };
 
