@@ -76,7 +76,7 @@ async function refreshCity(env, id) {
 }
 
 async function enrich(env, name, lat, lng) {
-  const key = `g:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
+  const key = `g2:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
   const hit = await env.PLACES.get(key, "json");
   if (hit) return hit;
   const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
@@ -84,14 +84,14 @@ async function enrich(env, name, lat, lng) {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": env.GOOGLE_KEY,
-      "X-Goog-FieldMask": "places.id,places.location,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours.weekdayDescriptions",
+      "X-Goog-FieldMask": "places.id,places.location,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours.weekdayDescriptions,places.photos.name,places.photos.authorAttributions.displayName",
     },
     body: JSON.stringify({ textQuery: name, maxResultCount: 1, languageCode: "sr-Latn", locationBias: { circle: { center: { latitude: lat, longitude: lng }, radius: 150 } } }),
   });
   if (!r.ok) throw new Error("google");
   const p = ((await r.json()).places || [])[0];
   const ok = p && p.location && km([lat, lng], [p.location.latitude, p.location.longitude]) < 0.2;
-  const out = ok ? { rating: p.rating || null, n: p.userRatingCount || 0, price: p.priceLevel || null, hours: (p.regularOpeningHours || {}).weekdayDescriptions || null, gid: p.id } : { none: true };
+  const out = ok ? { rating: p.rating || null, n: p.userRatingCount || 0, price: p.priceLevel || null, hours: (p.regularOpeningHours || {}).weekdayDescriptions || null, gid: p.id, photo: ((p.photos || [])[0] || {}).name || null, by: ((((p.photos || [])[0] || {}).authorAttributions || [])[0] || {}).displayName || "" } : { none: true };
   await env.PLACES.put(key, JSON.stringify(out), { expirationTtl: 2592000 }); // 30 dana (Google uslovi)
   return out;
 }
@@ -114,6 +114,20 @@ export default {
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
       try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream" }, req, 502); }
+    }
+    if (url.pathname === "/api/photo") {
+      const ref = url.searchParams.get("ref") || "";
+      const rf = req.headers.get("Referer") || "";
+      if (!env.GOOGLE_KEY || !/^places\/[\w-]+\/photos\/[\w-]+$/.test(ref) || !ORIGINS.some((o) => rf.startsWith(o))) return new Response("forbidden", { status: 403 });
+      const ck = new Request(url.origin + "/api/photo?ref=" + encodeURIComponent(ref));
+      let res = await caches.default.match(ck);
+      if (!res) {
+        const g = await fetch(`https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${env.GOOGLE_KEY}`);
+        if (!g.ok) return new Response("upstream", { status: 502 });
+        res = new Response(g.body, { headers: { "Content-Type": g.headers.get("Content-Type") || "image/jpeg", "Cache-Control": "public, max-age=86400" } });
+        await caches.default.put(ck, res.clone());
+      }
+      return res;
     }
     if (url.pathname !== "/api/places") return json({ name: "BLIZU API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
 
