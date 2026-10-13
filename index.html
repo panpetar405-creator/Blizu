@@ -496,125 +496,98 @@ a.erow{color:#fff;text-decoration:none}a.erow .ic{color:#cfe0e7}
 .mfab{width:62px;height:62px;right:4px;top:-84px}
 
 </style><style id="v3h">.rbar h1{font-size:18px;flex:1;text-align:center;line-height:1.2}</style>
-<style id="blizu-redesign-2026">
-/* BLIZU — redizajn prema referentnom mobilnom konceptu */
-:root{
- --bl-navy:#062d3b;--bl-navy2:#083e50;--bl-teal:#0d6578;--bl-yellow:#ffc928;
- --bl-white:#fff;--bl-muted:#a8c0c9;--bl-line:#ffffff18;
- --bg:var(--bl-navy);--card:#fff;--ink:#092d3a;--mut:#657780;--navy:var(--bl-navy);--y:var(--bl-yellow);
-}
-html,body{background:var(--bl-navy)!important}
-body{max-width:480px;color:#fff;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));}
-button,input{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
-
-/* START / gate */
-#gate.gate{background:#062d3b!important;min-height:100svh;padding:18px 22px max(18px,env(safe-area-inset-bottom,0px));}
-#gate .gph{filter:saturate(1.05) contrast(1.03)}
-#gate .gsh{background:linear-gradient(180deg,#031c2a22 0,#031c2a10 28%,#031a27aa 62%,#03141cf5 100%)!important}
-#gate .glogo{margin-top:30px;font-size:29px;letter-spacing:-.03em;text-shadow:0 2px 10px #0008}
-#gate .glogo svg{width:38px;height:44px}
-#gate .gtxt{margin-bottom:2px}
-#gate h1{font-size:39px;line-height:1.02;letter-spacing:-.04em;margin-bottom:12px}
-#gate h1 em{font-style:normal;color:var(--bl-yellow)}
-#gate .gsub{font-size:15px;line-height:1.45;margin-bottom:22px}
-#gate .btn.pri{background:var(--bl-yellow)!important;color:#092d3a!important;box-shadow:0 10px 28px -10px #ffc928bb!important}
-#gate .btn.sec{background:#061d2a66!important;border:1.5px solid #fff!important}
-#gate .gwords{font-size:14px;display:flex;justify-content:center;gap:12px;align-items:center;margin:18px 0 0;color:#dce9ed}
-#gate .gwords i{width:4px;height:4px;border-radius:50%;background:#8aa4ad;display:block}
-
-/* HOME */
-#app{background:var(--bl-navy)!important;min-height:100svh}
-#tabHome{background:linear-gradient(180deg,#062d3b 0%,#062d3b 70%,#062735 100%)!important;color:#fff;min-height:100svh;padding-bottom:92px}
-#tabHome .hb2{padding:calc(11px + env(safe-area-inset-top,0px)) 16px 4px;position:sticky;top:0;z-index:4;background:#062d3bf4;backdrop-filter:blur(12px)}
-#tabHome .hbtn{color:#fff;background:transparent;border:0}
-#tabHome .tlogo{color:#fff;font-size:20px;letter-spacing:-.03em}
-#tabHome .tlogo svg{width:25px}
-#tabHome .hrow{padding:10px 16px 0}
-#tabHome .city{background:#0b4a5e;border:1px solid #397284;color:#fff;padding:8px 12px}
-#tabHome .wx{color:#fff;font-weight:700}
-#tabHome .wx .ic{color:var(--bl-yellow)}
-#tabHome .q1{font-size:22px;line-height:1.15;letter-spacing:-.02em;margin:18px 18px 12px;color:#fff}
-#tabHome .q2{margin-top:18px}
-#tabHome .tch{grid-template-columns:1fr 1fr;gap:10px;padding:0 18px}
-#tabHome .tc{height:48px;border:1px solid #2e7183;background:#0c4b60;color:#fff;border-radius:26px;font-size:15px;box-shadow:none}
-#tabHome .tc.on{background:var(--bl-yellow);border-color:var(--bl-yellow);color:#082c3a;box-shadow:0 8px 20px -10px #ffc928aa}
+<style id="blizu-redesign-final">
+/* BLIZU — screenshot-faithful mobile redesign */
+:root{--bz-bg:#f5f3f5;--bz-navy:#062f3d;--bz-deep:#052632;--bz-yellow:#ffc400;--bz-white:#fff;--bz-muted:#6f7278;--bz-line:#d9d9de;--bz-radius:20px}
+html{background:var(--bz-deep)!important}
+body{max-width:480px;background:var(--bz-bg)!important;color:#111!important;overflow-x:hidden}
+/* Intro / splash */
+#gate.gate{background:#082d3b!important;padding:18px 16px max(20px,env(safe-area-inset-bottom))!important}
+#gate .gbg{display:none!important}
+#gate .gph{background-image:url("img/redesign/kotor-hero.jpg")!important;background-position:center top!important;background-size:cover!important;opacity:1!important}
+#gate .gsh{background:linear-gradient(180deg,#061d2988 0%,#061d2908 27%,#061d2900 45%,#061d29c7 70%,#061d29fa 100%)!important}
+#gate .glogo{margin-top:8.5vh!important;font-size:54px!important;letter-spacing:-1px!important;gap:6px!important}
+#gate .glogo svg{width:50px!important;height:58px!important}
+#gate .gtxt{margin-bottom:0!important}
+#gate h1{font-size:37px!important;line-height:1.05!important;margin-bottom:12px!important}
+#gate h1 em{color:var(--bz-yellow)!important}
+#gate .gsub{font-size:16px!important;line-height:1.35!important;margin-bottom:25px!important}
+#gate .btn.pri{background:var(--bz-yellow)!important;color:#071f29!important;height:54px!important}
+#gate .btn.sec{background:#061d2990!important;border-color:#fff!important;height:54px!important}
+#gate .btn.sec .ic{color:#fff!important}
+#gate .gwords{margin:25px 0 5px!important;font-size:15px!important;color:#aab9bf!important}
+/* Main home */
+#tabHome{background:linear-gradient(180deg,#073444 0%,#062b38 48%,#052631 100%)!important;color:#fff!important;padding-bottom:105px!important;min-height:100svh}
+#tabHome .hb2{padding:10px 14px 2px!important}
+#tabHome .hbtn{color:#fff!important;width:42px;height:42px}
+#tabHome .tlogo{font-size:25px!important;letter-spacing:-.4px!important;color:#fff!important}
+#tabHome .hrow{padding:8px 18px 0!important}
+#tabHome .city{background:#104858!important;border:1px solid #2b6676!important;color:#fff!important}
+#tabHome .city .ic.fill{color:var(--bz-yellow)!important;fill:var(--bz-yellow)!important}
+#tabHome .wx{color:#fff!important}.wx .ic{color:var(--bz-yellow)!important}
+#tabHome .q1{font-size:26px!important;line-height:1.12!important;margin:25px 18px 13px!important;color:#fff!important}
+#tabHome .q1.q2{margin-top:27px!important}
+#tabHome .tch{grid-template-columns:1fr 1fr!important;gap:10px!important;padding:0 18px!important}
+#tabHome .tc{height:49px!important;border-radius:25px!important;background:#125367!important;border:1px solid #2e7182!important;color:#fff!important;font-size:15px!important;box-shadow:none!important}
+#tabHome .tc.on{background:var(--bz-yellow)!important;border-color:var(--bz-yellow)!important;color:#07242d!important}
 #tabHome .tc.full{grid-column:1/-1}
-#tabHome .cg{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;padding:0 16px!important;overflow:visible!important}
-#tabHome .cc{min-width:0!important;height:82px;border-radius:16px!important;border:1px solid #dfe5e7!important;background:#fff!important;color:#1a2730!important;box-shadow:none!important;padding:9px 4px 8px!important;font-size:11px!important}
-#tabHome .cc b{width:40px;height:40px;border-radius:13px;background:color-mix(in srgb,var(--c) 13%,#fff)!important;color:var(--c)!important;margin:0 auto 5px!important;display:grid!important;place-items:center!important}
-#tabHome .cc.on{background:#fff!important;transform:none!important;box-shadow:0 0 0 2px var(--bl-yellow)!important}
-#tabHome .cc.on b{background:var(--c)!important;color:#fff!important}
-#tabHome .disc{margin:16px 16px 0;width:calc(100% - 32px);height:50px;border-radius:25px;background:#0b4b60;border-color:#2e7183;color:#fff;font-size:14px}
-#tabHome .disc .ic:first-child{color:var(--bl-yellow)}
-
-/* bottom navigation */
-#app>.nav,#disc>.nav{background:#062735f7!important;border-top:1px solid #ffffff18!important;backdrop-filter:blur(14px);padding-top:5px}
-#app>.nav button,#disc>.nav button{color:#a9bdc5!important;padding:7px 4px 9px;font-size:11px}
-#app>.nav button b,#disc>.nav button b{font-size:20px}
-#app>.nav button.on,#disc>.nav button.on{color:var(--bl-yellow)!important}
-#app>.nav button.on .ic,#disc>.nav button.on .ic{color:var(--bl-yellow)!important}
-
-/* DISCOVER / lists */
-#disc,#food,#ev,#tabSaved{background:#f5f6f7!important;color:var(--ink)!important;min-height:100svh}
-#disc .dh,#food .rh,#ev .rh,#tabSaved .dh{background:var(--bl-navy);color:#fff;border:0;padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px}
-#disc .hbtn,#food .rb,#ev .rb,#tabSaved .hbtn{color:#fff;background:transparent}
-#disc .dchips{background:#f5f6f7;padding:12px 16px 4px}
-#disc .card{margin:10px 16px;border-radius:18px;background:#fff;border:1px solid #dfe5e8;box-shadow:0 5px 16px #092d3a12}
-#disc .add{background:#eef2f3}
-
-/* PLAN RESULT */
-#planres{background:#f5f6f7!important;color:var(--ink)!important;min-height:100svh}
-#planres .rbar{position:absolute;background:transparent!important;color:#fff!important;padding-top:calc(10px + env(safe-area-inset-top,0px));z-index:5}
-#planres .rbar h1{color:#fff;text-shadow:0 1px 8px #0008}
-#planres .rhero{height:250px;background:#062d3b}
-#planres .rhero .pshade{background:linear-gradient(180deg,#03141c88 0,#03141c22 35%,#03141cd9 100%)}
-#planres .rtx{left:18px;right:18px;bottom:22px}
-#planres .rtx b{font-size:24px}
-#planres .rtx p{font-size:14px;line-height:1.35}
-#planres #resList{background:#fff;border-radius:26px 26px 0 0;margin-top:-22px;position:relative;padding-top:8px;z-index:2}
-#planres .rs{padding:10px 16px;gap:12px}
-#planres .rs .th{width:64px;height:64px;min-height:64px;border-radius:50%!important}
-#planres .rmin{font-size:12px;color:#f0a000}
-#planres .rsb b{font-size:15px}
-#planres .rsb p{font-size:12.5px}
-#planres .rs>.ic{color:#0b3543}
-#planres #resBar{background:#fff!important;border-top:1px solid #e3e7e9}
-#planres .btn.pgo{background:var(--bl-yellow)!important;color:#092d3a!important;box-shadow:none}
-
-/* MAP */
-#map{background:#0c3542!important}
-#map .mtop b{background:#fff;color:#092d3a}
-#map .mtop button{background:#fff;color:#092d3a}
-#map .msheet{background:#f5f6f7}
-#map .mbt .btn{background:#e9edf0;color:#092d3a}
-#map .mbt .mh{background:#e9edf0;color:#092d3a}
-
-/* PROFILE */
-#tabProfile{background:#f5f6f7!important;color:var(--ink)!important;min-height:100svh}
-#tabProfile .pfhero{height:235px}
-#tabProfile .pfcard{margin:-28px 14px 0;background:#fff;border:1px solid #e1e6e8;box-shadow:0 8px 24px #092d3a12}
-#tabProfile .pfl{background:#fff;margin:10px 14px;border-radius:18px;overflow:hidden}
-#tabProfile .pfr{border-color:#e7ebed;padding:15px 14px;color:var(--ink)}
-#tabProfile .pfr .ic{color:#60727b}
-#tabProfile .pfr:first-child .ic:first-child{color:var(--bl-yellow)}
-
-/* DETAILS */
-#det{background:#f5f6f7!important;color:var(--ink)!important;min-height:100svh}
-#det .hero{height:260px;background-size:cover!important;background-position:center!important}
-#det .body{margin-top:-28px;border-radius:28px 28px 0 0;background:#fff;color:var(--ink);padding:22px 18px 120px}
-#det .body h1{font-size:26px}
-#det .body .btn{background:var(--bl-yellow);color:#092d3a}
-
-/* forms / secondary screens */
-#plan,#man,#partners,#priv,#multi{background:#f5f6f7!important;color:var(--ink)!important}
-#plan .phero{height:235px}
-#plan .psheet{background:#f5f6f7}
-#plan .prow{background:#fff;border-color:#e0e6e8}
-#plan .btn.pgo{background:var(--bl-yellow)!important;color:#092d3a!important;box-shadow:none}
-
-@media(max-width:360px){
- #tabHome .q1{font-size:20px}.tc{font-size:14px!important}.cc{height:76px!important}
-}
+#tabHome .cg{grid-template-columns:repeat(3,1fr)!important;gap:9px!important;padding:0 18px!important}
+#tabHome .cc{min-height:91px!important;border-radius:17px!important;background:#fff!important;color:#172b33!important;box-shadow:0 4px 12px #0004!important;font-size:13px!important}
+#tabHome .cc b{font-size:30px!important;margin-bottom:4px!important}
+#tabHome .disc{margin:18px 18px 0!important;width:calc(100% - 36px)!important;height:51px!important;background:#104858!important;border-color:#2d7180!important;border-radius:18px!important}
+#tabHome .disc .ic:first-child{color:var(--bz-yellow)!important}
+/* Bottom nav exactly like reference */
+body.hm .nav{background:#fff!important;border-top:1px solid #e4e5e8!important;padding:4px 2px max(2px,env(safe-area-inset-bottom))!important}
+body.hm .nav button{color:#647078!important;font-size:11px!important;font-weight:700!important;padding:6px 2px!important}
+body.hm .nav button.on{color:#f2b900!important}
+body.hm .nav button b{font-size:21px!important;margin-bottom:2px}
+/* Plan */
+#planres{background:#f8f7f8!important}
+#planres .rbar{background:#062f3d!important;color:#fff!important;padding-top:calc(9px + env(safe-area-inset-top))!important}
+#planres .rbar h1{font-size:17px!important}
+#planres .rhero{height:200px!important}
+#planres .rtx{left:18px!important;bottom:22px!important}
+#planres .rtx b{font-size:24px!important}
+#planres .rs{margin:0 14px!important;padding:13px 4px!important;border-bottom:1px solid #dedee3!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;display:flex!important;align-items:center!important;gap:12px!important}
+#planres .rs .th{width:70px!important;height:70px!important;min-height:70px!important;border-radius:50%!important;background-size:cover!important}
+#planres .rsb{padding:0!important;flex:1!important}
+#planres .rmin{color:#f0a900!important;font-weight:800!important;font-size:12px!important}
+#planres .rsb>b{font-size:14px!important;color:#111!important}
+#planres .rsb p{font-size:11.5px!important;color:#777!important;margin:3px 0 0!important}
+#planres #resBar{background:linear-gradient(transparent,#f8f7f8 35%)!important;padding-top:28px!important}
+#planres #resBar .rtot{color:#333!important;text-align:center!important;margin-bottom:9px!important}
+#planres #resBar .btn{background:var(--bz-yellow)!important;color:#10252d!important;border-radius:28px!important}
+/* Map result */
+#resmap{margin:8px 14px 110px!important;border-radius:20px!important}
+/* Detail */
+#det .hero{height:300px!important;background-position:center!important;background-size:cover!important}
+#det .body{background:#fff!important;border-radius:26px 26px 0 0!important;margin-top:-28px!important;padding:22px 18px 35px!important}
+#det .body h1{font-size:26px!important}
+/* Discover */
+#disc{background:#f7f7f8!important}
+#disc .dh{background:#062f3d!important}
+#disc .dc.on{background:var(--bz-yellow)!important;color:#10252d!important}
+#list .card.pc .th{height:170px!important;min-height:170px!important}
+/* Saved */
+#tabSaved{background:#f7f7f8!important;min-height:100vh!important}
+#tabSaved .dh{background:#062f3d!important;color:#fff!important}
+#tabSaved .dchips{background:#062f3d!important}
+#tabSaved .dc.on{background:var(--bz-yellow)!important;color:#10252d!important}
+/* Profile */
+#tabProfile{background:#f7f6f7!important;min-height:100vh!important}
+#tabProfile .pfhero{height:230px!important}
+#tabProfile .pfcard{margin:-28px 14px 0!important;border-radius:20px!important}
+#tabProfile .pfl{margin-top:8px!important;background:#fff!important}
+#tabProfile .pfr{padding:17px 16px!important;font-size:15px!important}
+/* Plan setup */
+#plan .phero{height:220px!important}
+#plan .psheet{background:#fff!important}
+#plan .pgo{background:var(--bz-yellow)!important;color:#10252d!important}
+/* local fallback photos for screens in the reference */
+#plan #gph2{background-image:url("img/redesign/plan-hero.jpg")!important;background-size:cover!important;background-position:center!important;opacity:1!important}
+#tabProfile #gph3{background-image:url("img/redesign/saved-hero.jpg")!important;background-size:cover!important;background-position:center!important;opacity:1!important}
+#planres #gph4{background-image:url("img/redesign/plan-hero.jpg")!important;background-size:cover!important;background-position:center!important;opacity:1!important}
+@media(min-width:700px){body{box-shadow:0 0 60px #0004}.gate,#app,#map,#det,#disc,#ev,#food,#plan,#planres,#multi,#partners,#priv,#man{border-left:1px solid #ddd;border-right:1px solid #ddd}}
 </style>
 </head><body class="hm"><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-jesti" viewBox="0 0 24 24"><path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2M6 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></symbol><symbol id="i-videti" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3 3 8h18z"/></symbol><symbol id="i-dogadjaji" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="i-odmoriti" viewBox="0 0 24 24"><path d="M2 8c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 14c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 20c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2"/></symbol><symbol id="i-prevoz" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4h-2a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3zM3 13h18"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 17v3a2 2 0 0 1-2.2 2A19 19 0 0 1 2 4.2 2 2 0 0 1 4 2h3l2 5-2.5 1.5a14 14 0 0 0 6 6L16 12l5 2z"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v10h14V10"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 2v5M7 12l3-3 3 1 3 3"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4H3zM7 17v2M17 17v2"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol><symbol id="i-kafa" viewBox="0 0 24 24"><path d="M5 8h11v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zM16 9h2a2.5 2.5 0 0 1 0 5h-2M8 3v2M12 3v2M4 21h13"/></symbol><symbol id="i-atr" viewBox="0 0 24 24"><path d="M4 17a3 3 0 0 0 6 0V8H7l-3 5zM20 17a3 3 0 0 1-6 0V8h3l3 5zM10 11h4M7 5h0M17 5h0"/></symbol><symbol id="i-more" viewBox="0 0 24 24"><path d="M12 21c0-5 .5-8 1.5-11M13.5 10C11 7 7 7 5 9c3-.5 5 .5 8.5 1zM13.5 10c1-3.5 4.5-5 7-3.5-3 0-5 1.5-7 3.5zM13.5 10c3 .5 5.5 3 5.5 5.5-2-2-4-3-5.5-5.5zM13.5 10c-3 1-4.5 3.5-4 6 1-2.5 2.5-4 4-6zM6 21h12"/></symbol><symbol id="i-kult" viewBox="0 0 24 24"><path d="M4 21h16M6 21V10M10 21V10M14 21V10M18 21V10M3 9l9-5 9 5z"/></symbol><symbol id="i-prir" viewBox="0 0 24 24"><path d="M2 20l7-13 4 7 2.5-4L22 20zM9 7l-2 3.5"/></symbol><symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16M8.5 14.5h2M13.5 14.5h2M8.5 17.5h2"/></symbol><symbol id="i-por" viewBox="0 0 24 24"><circle cx="8" cy="6" r="2.3"/><circle cx="16.5" cy="8" r="2"/><circle cx="12" cy="14" r="1.6"/><path d="M3.5 20v-5a4.5 4.5 0 0 1 9 0v5M13.5 20v-3a3.2 3.2 0 0 1 6.5 0v3"/></symbol><symbol id="i-bm" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1.6"/><rect x="14" y="4" width="6" height="6" rx="1.6"/><rect x="4" y="14" width="6" height="6" rx="1.6"/><rect x="14" y="14" width="6" height="6" rx="1.6"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M5 12v8h14v-8"/></symbol><symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.200 6.400 20.200l1.100-6.200L3 9.600l6.200-.9z"/></symbol><symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900l2.100 2.100M17 17l2.100 2.100M4.900 19.100 7 17M17 7l2.100-2.100"/></symbol></defs></svg>
 <div id="gate" class="gate"><svg class="gbg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
