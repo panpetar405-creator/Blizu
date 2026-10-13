@@ -1,6 +1,6 @@
 // BLIZU API – Cloudflare Worker
 // Dnevno povlači podatke iz OpenStreetMap-a (cron), čuva ih u KV i služi aplikaciji.
-// Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN.
+// Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN, secret GOOGLE_KEY (Places API New).
 
 const CITIES = {
   tivat: [42.4364, 18.6961],
@@ -75,6 +75,27 @@ async function refreshCity(env, id) {
   return res;
 }
 
+async function enrich(env, name, lat, lng) {
+  const key = `g:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
+  const hit = await env.PLACES.get(key, "json");
+  if (hit) return hit;
+  const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": env.GOOGLE_KEY,
+      "X-Goog-FieldMask": "places.id,places.location,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours.weekdayDescriptions",
+    },
+    body: JSON.stringify({ textQuery: name, maxResultCount: 1, languageCode: "sr-Latn", locationBias: { circle: { center: { latitude: lat, longitude: lng }, radius: 150 } } }),
+  });
+  if (!r.ok) throw new Error("google");
+  const p = ((await r.json()).places || [])[0];
+  const ok = p && p.location && km([lat, lng], [p.location.latitude, p.location.longitude]) < 0.2;
+  const out = ok ? { rating: p.rating || null, n: p.userRatingCount || 0, price: p.priceLevel || null, hours: (p.regularOpeningHours || {}).weekdayDescriptions || null, gid: p.id } : { none: true };
+  await env.PLACES.put(key, JSON.stringify(out), { expirationTtl: 2592000 }); // 30 dana (Google uslovi)
+  return out;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -86,6 +107,13 @@ export default {
       if (!env.REFRESH_TOKEN || url.searchParams.get("token") !== env.REFRESH_TOKEN) return json({ error: "forbidden" }, req, 403);
       if (!CITIES[city]) return json({ error: "city?", cities: Object.keys(CITIES) }, req, 400);
       return json({ city, result: await refreshCity(env, city) }, req);
+    }
+    if (url.pathname === "/api/enrich") {
+      if (!ORIGINS.includes(req.headers.get("Origin")) || !env.GOOGLE_KEY) return json({ error: "forbidden" }, req, 403);
+      const name = (url.searchParams.get("name") || "").slice(0, 80);
+      const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
+      if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
+      try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname !== "/api/places") return json({ name: "BLIZU API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
 
