@@ -9,3 +9,6 @@ window.BLIZU_API = "https://blizu-api.panpetar405.workers.dev";
 //   { title:"Festival vina Kotor", city:"Kotor", date:"2026-10-17", time:"18:00", place:"Stari grad", price:0, img:"img/festival.jpg", lat:42.4247, lng:18.7712 },
 //   { title:"Koncert klasične muzike", city:"Kotor", date:"2026-10-18", time:"20:00", place:"Katedrala Svetog Tripuna", price:12 }
 // ];
+
+// Opciono: e-mail na koji stižu upiti lokalnih partnera (ekran "Za lokalne partnere").
+window.BLIZU_PARTNER_MAIL = "";
