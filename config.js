@@ -12,3 +12,6 @@ window.BLIZU_API = "https://blizu-api.panpetar405.workers.dev";
 
 // Opciono: e-mail na koji stižu upiti lokalnih partnera (ekran "Za lokalne partnere").
 window.BLIZU_PARTNER_MAIL = "";
+
+// Opciono: vlastita slika za određeno mjesto. Ključ = naziv malim slovima, bez kvačica (Babić -> "babic").
+window.BLIZU_IMG = { "babic": "img/babic.png" };
