@@ -143,6 +143,27 @@ body{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 #list .th{width:64px;min-height:64px;height:64px;border-radius:14px}
 #list .kl,#list .pr .pill:nth-child(2){display:none}#list .cb{padding-right:34px}#list .add{top:50%;margin-top:-17px}
 .nav{z-index:20}
+</style><style id="hero5">
+#plan{min-height:100vh;background:var(--card)}
+.phero{position:relative;height:215px;overflow:hidden;background:#0b2f3c;color:#fff}
+#pph,#pph .pbg,#plan .gph,.pshade{position:absolute;inset:0;width:100%;height:100%}
+#plan .gph{background-size:cover;background-position:center;opacity:0;transition:opacity .8s}#plan .gph.on{opacity:1}
+.pshade{background:linear-gradient(180deg,#04141c77,#04141c00 38%,#04141cd0)}
+.pback{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:14px;width:40px;height:40px;border-radius:50%;border:0;background:#04141c66;color:#fff;display:grid;place-items:center;backdrop-filter:blur(6px);cursor:pointer}
+.ptxt{position:absolute;left:20px;right:20px;bottom:44px;animation:up .6s var(--ease) both}
+.ptxt h1{margin:0 0 6px;font-size:26px;font-weight:800;text-shadow:0 2px 12px #0008}.ptxt p{margin:0;font-size:14px;line-height:1.4;opacity:.92;text-shadow:0 1px 8px #0009}
+.psheet{position:relative;margin-top:-26px;background:var(--card);border-radius:26px 26px 0 0;padding:18px 16px 30px;color:var(--ink)}
+.prow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:transform .15s}.prow:active{transform:scale(.98)}
+.prow>.ic:first-child{color:var(--mut)}.prow .pt{flex:1;display:flex;flex-direction:column;gap:2px}.prow small{font-size:12px;color:var(--mut)}.prow b{font-size:15px;font-weight:800}.prow>.ic:last-child{color:var(--mut)}
+.pint{border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin:2px 0 18px}.pint small{font-size:12px;color:var(--mut);font-weight:700}
+.pch{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.ichip{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:20px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}.ichip.on{background:color-mix(in srgb,var(--sea) 16%,transparent);border-color:var(--sea);color:var(--sea)}
+#plan .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}
+#plan #planResult .btn{background:var(--navy);color:#fff;box-shadow:none}#plan #planResult .btn.s{background:var(--sea)}
+#planResult{margin-top:6px}
+.psel{position:fixed;inset:0;z-index:60;background:#04141c99;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}.psel.open{opacity:1;pointer-events:auto}
+.psh{width:100%;max-width:480px;background:var(--card);color:var(--ink);border-radius:26px 26px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom,0px))}
+.pshh{display:flex;align-items:center;justify-content:space-between;font-size:18px;margin-bottom:10px}.pshh button{width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.popt{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-weight:700;font-size:16px;padding:14px 4px;border-top:1px solid var(--line);cursor:pointer}.popt i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line)}.popt.on i{border:6px solid var(--sea)}
 </style></head><body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-jesti" viewBox="0 0 24 24"><path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2M6 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></symbol><symbol id="i-videti" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3 3 8h18z"/></symbol><symbol id="i-dogadjaji" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="i-odmoriti" viewBox="0 0 24 24"><path d="M2 8c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 14c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 20c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2"/></symbol><symbol id="i-prevoz" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4h-2a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3zM3 13h18"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 17v3a2 2 0 0 1-2.2 2A19 19 0 0 1 2 4.2 2 2 0 0 1 4 2h3l2 5-2.5 1.5a14 14 0 0 0 6 6L16 12l5 2z"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v10h14V10"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 2v5M7 12l3-3 3 1 3 3"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4H3zM7 17v2M17 17v2"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol></defs></svg>
 <div id="gate" class="gate"><svg class="gbg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
 <linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d3550"/><stop offset=".55" stop-color="#2d6a86"/><stop offset="1" stop-color="#eaa66b"/></linearGradient>
@@ -175,25 +196,18 @@ body{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 <label class="sf"><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" type="search" placeholder="Pretraži u blizini…" oninput="Q=this.value;render()" autocomplete="off"></label>
 <div class="cg" id="cat"></div><div class="chips" id="rad" style="margin-top:4px"></div><div class="hide"><div id="vw"></div><div id="radw" class="pl2 hide"><svg id="radar" viewBox="0 0 200 200"></svg><div class="meta2" id="rcount"></div></div></div>
 <div id="mini" onclick="openMap(lastL,'Mapa u blizini',false)"><div id="minic"></div><button class="mb" onclick="event.stopPropagation();openMap(lastL,'Mapa u blizini',false)"><svg class="ic" width="14" height="14"><use href="#i-pin"/></svg>Moje lokacije</button></div>
-<div class="h2r"><div class="h2t" id="ttl"></div><button id="all" class="hide" onclick="ALL=!ALL;render()">Vidi sve</button></div>
+<div class="pl"><div class="hd" onclick="pl()"><span><svg class="ic" width="20" height="20"><use href="#i-timer"/></svg></span><div><b>Sklopi mi nešto sada</b><small id="pls">Reci koliko vremena imaš.</small></div><span id="arr">›</span></div><div class="chips hide" id="hrs"></div></div><div class="h2r"><div class="h2t" id="ttl"></div><button id="all" class="hide" onclick="ALL=!ALL;render()">Vidi sve</button></div>
 
- <div class="note" id="st"></div><div id="em" class="hide"></div><div id="list"></div><div class="pl"><div class="hd" onclick="pl()"><span><svg class="ic" width="20" height="20"><use href="#i-timer"/></svg></span><div><b>Sklopi mi nešto sada</b><small id="pls">Reci koliko vremena imaš.</small></div><span id="arr">›</span></div><div class="chips hide" id="hrs"></div></div><div id="planner" class="pl2 hide">
- <h3 style="margin:2px 0 12px">Sklopi plan po svojoj mjeri</h3>
- <label style="display:block;font-size:13px;font-weight:800;margin:10px 0 6px">Koliko vremena imaš?</label>
- <div class="chips" style="padding:0"><button class="chip on" data-time="1" onclick="planTime(1,this)">1 sat</button><button class="chip" data-time="2" onclick="planTime(2,this)">2 sata</button><button class="chip" data-time="3" onclick="planTime(3,this)">3 sata</button><button class="chip" data-time="5" onclick="planTime(5,this)">5+ sati</button></div>
- <label style="display:block;font-size:13px;font-weight:800;margin:14px 0 6px">Budžet po osobi</label>
- <div class="chips" style="padding:0"><button class="chip on" data-budget="0" onclick="planBudget(0,this)">Besplatno</button><button class="chip" data-budget="10" onclick="planBudget(10,this)">Do 10 €</button><button class="chip" data-budget="20" onclick="planBudget(20,this)">Do 20 €</button><button class="chip" data-budget="50" onclick="planBudget(50,this)">Do 50 €</button></div>
- <label style="display:block;font-size:13px;font-weight:800;margin:14px 0 6px">Šta ti se radi?</label>
- <div class="chips" style="padding:0;flex-wrap:wrap"><button class="chip on" data-interest="mix" onclick="planInterest('mix',this)">Iznenadi me</button><button class="chip" data-interest="jesti" onclick="planInterest('jesti',this)">Hrana</button><button class="chip" data-interest="videti" onclick="planInterest('videti',this)">Otkrivanje</button><button class="chip" data-interest="odmoriti" onclick="planInterest('odmoriti',this)">Odmor</button></div>
- <label style="display:block;font-size:13px;font-weight:800;margin:14px 0 6px">Kretanje</label><div class="chips" style="padding:0"><button class="chip on" data-move="walk" onclick="planMove('walk',this)">Pješke</button><button class="chip" data-move="car" onclick="planMove('car',this)">Autom</button></div>
- <button class="btn" style="margin-top:18px" onclick="makePlan()"><svg class="ic" width="18" height="18"><use href="#i-spark"/></svg> Napravi mi plan</button><div id="planResult"></div>
-</div></div>
+ <div class="note" id="st"></div><div id="em" class="hide"></div><div id="list"></div></div>
  <div id="tabSaved" class="hide"><div class="sun"><b>Moji planovi</b><span>Sačuvano na ovom uređaju.</span></div><div id="slist"></div></div>
  <div class="note">Podaci: © OpenStreetMap contributors · sunce: Open-Meteo</div>
  <div class="nav"><button id="n1" class="on" onclick="tab(1)"><b><svg class="ic" width="24" height="24"><use href="#i-home"/></svg></b>Početna</button><button id="n2" onclick="tab(2)"><b><svg class="ic" width="24" height="24"><use href="#i-heart"/></svg></b>Planovi</button><button id="n3" onclick="openMap(lastL,'Mapa u blizini',false)"><b><svg class="ic" width="24" height="24"><use href="#i-map"/></svg></b>Mape</button></div>
 </div>
 <div id="map" class="hide"><div id="mapc"></div><div class="mtop"><button onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><b id="mt"></b></div><div class="msheet" id="msheet"></div></div>
 <div id="det" class="hide"></div>
+<div id="plan" class="hide"><div class="phero"><div id="pph"><div class="gph" id="gph2"></div></div><div class="pshade"></div><button class="pback" onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><div class="ptxt"><h1>Sklopi mi nešto sada</h1><p>Unesi svoje preferencije i dobićeš personalizovan plan u nekoliko sekundi.</p></div></div>
+<div class="psheet"><button class="prow" onclick="ppick('time')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="pt"><small>Raspoloživo vrijeme</small><b id="pv_time"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('budget')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3.5 3.5 0 1 0 0 5M8 11h5M8 13h5"/></svg><span class="pt"><small>Budžet</small><b id="pv_budget"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('interest')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg><span class="pt"><small>Tip aktivnosti</small><b id="pv_interest"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('move')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 2v5M7 12l3-3 3 1 3 3"/></svg><span class="pt"><small>Kretanje</small><b id="pv_move"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><div class="pint"><small>Interesovanja (opciono)</small><div class="pch"><button class="ichip" data-t="priroda" onclick="ptag('priroda')">Priroda</button><button class="ichip" data-t="kultura" onclick="ptag('kultura')">Kultura</button><button class="ichip" data-t="hrana" onclick="ptag('hrana')">Lokalna hrana</button></div></div>
+<button class="btn pgo" onclick="pgen()">Generiši plan</button><div id="planResult"></div></div><div class="psel" id="psel" onclick="if(event.target===this)pclose()"></div></div>
 <script src="config.js"></script>
 <script>
 // ===== BAZA MESTA (šema): id, city, name, cat, emoji, grad., coord[lat,lng], hours(min), sub, open, desc, book(opciono afilijatni link) =====
@@ -222,7 +236,7 @@ var Q="",ALL=false,MM=null,ML=null,MT=0,me=null,cityKey=null,H=3,R=5,cat="sve",V
 try{saved=JSON.parse(localStorage.getItem("blizu_saved")||"{}")}catch(e){}
 try{SI=JSON.parse(localStorage.getItem("blizu_si")||"{}")}catch(e){}
 function $(i){return document.getElementById(i)}
-function show(v){["gate","app","det","map"].forEach(function(x){$(x).classList.toggle("hide",x!=v)});window.scrollTo(0,0)}
+function show(v){["gate","app","det","map","plan"].forEach(function(x){$(x).classList.toggle("hide",x!=v)});window.scrollTo(0,0)}
 function tab(n){$("tabHome").classList.toggle("hide",n!=1);$("tabSaved").classList.toggle("hide",n!=2);$("n1").classList.toggle("on",n==1);$("n2").classList.toggle("on",n==2);render()}
 function km(a,b){var r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 12742*Math.asin(Math.sqrt(x))}
 var MP=null;
@@ -300,12 +314,12 @@ function wiki(p){if(WK[p.id]!==undefined){wkr(p,WK[p.id]);return}
  function fin(r){WK[p.id]=r;wkr(p,r)}
  go("sr",function(r){if(r)fin(r);else go("en",fin)})}
 function sea(p){try{fetch("https://marine-api.open-meteo.com/v1/marine?latitude="+p.c[0].toFixed(3)+"&longitude="+p.c[1].toFixed(3)+"&current=sea_surface_temperature,wave_height&timezone=auto").then(function(r){return r.json()}).then(function(j){var c=j.current||{},el=$("wk");if(!el||c.sea_surface_temperature==null)return;el.innerHTML='<div class="row" style="border-top:0"><i>'+ic("odmoriti",20)+'</i><div><small>More trenutno</small>'+String(c.sea_surface_temperature).replace(".",",")+' °C'+(c.wave_height!=null?' · talasi '+String(c.wave_height).replace(".",",")+' m':"")+'</div></div>'}).catch(function(){})}catch(e){}}
-var planCfg={time:2,budget:0,interest:"mix",move:"walk"};
+var planCfg={time:2,budget:20,interest:"mix",move:"walk",tags:[]};
 function pl(){var p=$("planner");p.classList.toggle("hide");$("arr").textContent=p.classList.contains("hide")?"›":"⌄";if(!p.classList.contains("hide"))p.scrollIntoView({behavior:"smooth",block:"start"})}
 function pickPlan(key,val,el){planCfg[key]=val;var group=el.parentNode;group.querySelectorAll(".chip").forEach(function(b){b.classList.remove("on")});el.classList.add("on")}
 function planTime(v,e){pickPlan("time",v,e)} function planBudget(v,e){pickPlan("budget",v,e)} function planInterest(v,e){pickPlan("interest",v,e)} function planMove(v,e){pickPlan("move",v,e)}
 function makePlan(){
- var out=$("planResult"),pool=P.filter(function(p){return p.k!=="info"&&p.k!=="prevoz"&&(planCfg.interest==="mix"||p.k===planCfg.interest)&&(!OO||openNow(p.oh)!==false)});
+ var out=$("planResult"),pool=P.filter(function(p){return p.k!=="info"&&p.k!=="prevoz"&&(planCfg.interest==="mix"?(!(planCfg.tags||[]).length||planCfg.tags.some(function(t){return TGK[t].indexOf(p.k)>=0})):p.k===planCfg.interest)&&(!OO||openNow(p.oh)!==false)});
  var maxStops=planCfg.time===1?2:planCfg.time===2?3:planCfg.time===3?4:6,chosen=[],mins=0,cost=0,last=me;
  // Build the route incrementally: choose the nearest eligible next stop, not simply the nearest places to the starting point.
  while(chosen.length<maxStops){
@@ -344,5 +358,17 @@ function det(id){var p=P.filter(function(x){return x.id==id})[0]||SI[id],d=dist(
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}}
 </script><script>
 function man(o){var g=document.getElementById("gman");g.classList.toggle("open",!!o);if(o)setTimeout(function(){document.getElementById("sq").focus()},280)}
-(function(){var u=window.BLIZU_GATE||"img/gate.jpg",im=new Image();im.onload=function(){var e=document.getElementById("gph");e.style.backgroundImage="url("+u+")";e.classList.add("on")};im.src=u})();
+(function(){var u=window.BLIZU_GATE||"img/gate.jpg",im=new Image();im.onload=function(){["gph","gph2"].forEach(function(i){var e=document.getElementById(i);e.style.backgroundImage="url("+u+")";e.classList.add("on")})};im.src=u})();
+</script><script>
+var TGK={priroda:["odmoriti"],kultura:["videti","dogadjaji"],hrana:["jesti"]};
+var PK={time:{t:"Raspoloživo vrijeme",o:[[1,"1 sat"],[2,"2 sata"],[3,"3 sata"],[5,"5+ sati"]]},budget:{t:"Budžet po osobi",o:[[0,"Besplatno"],[10,"10 €"],[20,"20 €"],[50,"50 €"]]},interest:{t:"Tip aktivnosti",o:[["mix","Iznenadi me"],["jesti","Hrana"],["videti","Otkrivanje"],["odmoriti","Odmor"]]},move:{t:"Kretanje",o:[["walk","Pješke"],["car","Autom"]]}};
+function prows(){for(var k in PK){var o=PK[k].o.filter(function(x){return x[0]===planCfg[k]})[0];$("pv_"+k).textContent=o?o[1]:""}document.querySelectorAll(".ichip").forEach(function(b){b.classList.toggle("on",planCfg.tags.indexOf(b.dataset.t)>=0)})}
+function pl(){show("plan");prows()}
+function ppick(k){var d=PK[k];$("psel").innerHTML='<div class="psh"><div class="pshh"><b>'+d.t+'</b><button onclick="pclose()" aria-label="Zatvori">✕</button></div>'+d.o.map(function(x,i){return'<button class="popt'+(planCfg[k]===x[0]?" on":"")+'" onclick="pset(\''+k+"',"+i+')">'+x[1]+"<i></i></button>"}).join("")+"</div>";$("psel").classList.add("open")}
+function pset(k,i){planCfg[k]=PK[k].o[i][0];pclose();prows()}
+function pclose(){$("psel").classList.remove("open")}
+function ptag(t){var a=planCfg.tags,i=a.indexOf(t);if(i<0)a.push(t);else a.splice(i,1);prows()}
+function pgen(){makePlan();setTimeout(function(){$("planResult").scrollIntoView({behavior:"smooth",block:"start"})},60)}
+try{$("pph").insertAdjacentHTML("afterbegin",document.querySelector("#gate .gbg").outerHTML.replace(/id="g(sky|wat|sun)"/g,'id="p$1"').replace(/url\(#g(sky|wat|sun)\)/g,"url(#p$1)").replace('class="gbg"','class="pbg"'))}catch(e){}
+prows();
 </script></body></html>
