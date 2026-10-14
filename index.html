@@ -164,7 +164,7 @@ function sheet(title,html){let s=$('sheet');if(!s){s=document.createElement('div
 const gmaps=x=>LV.q(x);
 /* navigacija sa istorijom (dugme nazad vraća na prethodni ekran) */
 const hist=[];let cur='welcome';const baseGo=go;
-function after(id){if(id==='map')renderMap();if(id==='saved')renderSaved()}
+function after(id){if(id==='map')renderMap();if(id==='saved')renderSaved();if(id==='itiner'&&window.renderItiner)renderItiner();if(id==='rent'&&window.renderRent){renderRent();window.loadRent&&loadRent()}}
 go=function(id){if(id!==cur){hist.push(cur);if(hist.length>30)hist.shift();cur=id}baseGo(id);after(id)};
 function back(){const p=hist.pop()||'home';cur=p;baseGo(p);after(p)}
 qa('.back,.iconbtn').forEach(b=>{if(b.dataset.back)b.onclick=back});
@@ -188,13 +188,15 @@ function openItem(t){const x=byTitle(t);if(!x)return;curItem=x;
  h.querySelector('.tag').textContent=isEv(x)?'Događaj':'Mjesto';h.querySelector('.eventhero h2').textContent=x.title;
  const fav=favs.includes(x.title);
  h.querySelector('.detailbody').innerHTML=`<div style="color:#777;font-size:13px">${ic('pin',14)} ${esc(LV.city||'')} · ${esc(x.distance||'')} · ${x.mins} min${x.rating?' · ⭐ '+esc(x.rating):''}</div><h2>${esc(x.desc)}</h2><p>${esc(x.type)}${LV.city?' · '+esc(LV.city):''}. Preporučeno trajanje posjete: ${x.mins} min.</p><button class="savebtn${fav?' on':''}" id="dSave">${HT(fav)} &nbsp; ${fav?'Sačuvano':'Sačuvaj mjesto'}</button><a class="primary" target="_blank" rel="noopener" href="${gmaps(x)}">${ic('nav',18)} &nbsp; Otvori rutu</a>`;
- $('dSave').onclick=()=>{toggleFav(x.title);openItemRefresh()};go('detail')}
+ $('dSave').onclick=()=>{toggleFav(x.title);openItemRefresh()};try{window.enhanceDetail&&enhanceDetail(x)}catch(e){}go('detail')}
+window.openItem=openItem;window.BZ={plans:()=>plans,persist:()=>persist(),plan:()=>PLAN};
 function openItemRefresh(){if(!curItem)return;const fav=favs.includes(curItem.title),b=$('dSave');if(b){b.classList.toggle('on',fav);b.innerHTML=HT(fav)+' &nbsp; '+(fav?'Sačuvano':'Sačuvaj mjesto')}}
 function toggleFav(t){const i=favs.indexOf(t);if(i>=0){favs.splice(i,1);toast('Uklonjeno iz sačuvanih')}else{favs.push(t);const _it=ALL.find(x=>x.title===t);if(_it){const _f=LS.get('blizu_favitems',{});_f[t]=_it;LS.set('blizu_favitems',_f)}toast('Sačuvano')}persist()}
 /* mapa */
 let mapIdx=0;
 function dirUrl(){const it=PLAN.length?PLAN:makePlan();return it.length?LV.dir(it):'https://www.google.com/maps'}
-function renderMap(){if(!PLAN.length)PLAN=makePlan();mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
+function renderMap(){if(!PLAN.length)PLAN=makePlan();
+ if(!PLAN.length){const w=q('#map .mapwrap');if(w)w.innerHTML=window.LV?LV.empty():'';q('#map .logo').textContent='Tvoj plan';return}mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
  q('#map .logo').textContent='Tvoj plan · '+fmtT(total);
  q('#map .mapwrap').innerHTML=`<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${LV.embed(x)}"></iframe><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-card"><div class="place-row"><img src="${x.img}"><div><h3>${mapIdx+1} &nbsp; ${esc(x.title)} <span style="float:right">${x.mins} min</span></h3><div style="color:#777;font-size:12px">${esc(x.type)} · ${esc(x.distance||'')}</div>${x.rating?'<div class="rating">⭐ '+esc(x.rating)+'</div>':''}</div></div><div class="actionrow"><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav">${HT(fav)}</button></div></div>`;
  $('mDet').onclick=()=>openItem(x.title);$('mFav').onclick=()=>{toggleFav(x.title);$('mFav').innerHTML=HT(favs.includes(x.title))}}
@@ -215,9 +217,9 @@ let sTab='Sve',sQ='';
 searchBox('#saved','sSearch',v=>{sQ=v;renderSaved()});
 q('#saved').addEventListener('click',e=>{const p=e.target.closest('.pill');if(p){sTab=p.dataset.tab;renderSaved();return}
  const h=e.target.closest('.heart');if(h){e.stopPropagation();const k=h.dataset.k;if(h.dataset.kind==='plan'){plans=plans.filter(x=>x.key!==k);persist();toast('Plan uklonjen')}else toggleFav(k);renderSaved();return}
- const c=e.target.closest('.savedcard');if(!c)return;if(c.dataset.kind==='plan'){const p=plans.find(x=>x.key===c.dataset.k);if(p){selectedTime=p.time;selectedCats=new Set(p.cats);qa('.timegrid .chip').forEach(x=>x.classList.toggle('sel',(x.dataset.time||'')===p.time));qa('.cat').forEach(x=>x.classList.toggle('sel',selectedCats.has(x.dataset.cat)));go('plan')}}else openItem(c.dataset.k)});
+ const c=e.target.closest('.savedcard');if(!c)return;if(c.dataset.kind==='plan'){const p=plans.find(x=>x.key===c.dataset.k);if(p&&p.kind==='itiner'){window.openItin&&openItin(p.days);return}if(p){selectedTime=p.time;selectedCats=new Set(p.cats);qa('.timegrid .chip').forEach(x=>x.classList.toggle('sel',(x.dataset.time||'')===p.time));qa('.cat').forEach(x=>x.classList.toggle('sel',selectedCats.has(x.dataset.cat)));go('plan')}}else openItem(c.dataset.k)});
 function renderSaved(){qa('#saved .pill').forEach(p=>p.classList.toggle('active',p.dataset.tab===sTab));const s=sQ.trim().toLowerCase(),out=[];
- if(sTab==='Sve'||sTab==='Planovi')plans.slice().reverse().forEach(p=>{const t='Plan za '+(p.time==='Ceo dan'?'ceo dan':p.time);if(s&&!(t+' '+p.cats.join(' ')).toLowerCase().includes(s))return;out.push(`<div class="savedcard" data-kind="plan" data-k="${esc(p.key)}"><img src="${p.img}"><div><h3>${esc(t)}</h3><p>${p.titles.length} stanice · ${fmtT(p.mins)} · ${esc(p.cats.join(', '))}</p></div><b class="heart on" data-kind="plan" data-k="${esc(p.key)}">${HT(true)}</b></div>`)});
+ if(sTab==='Sve'||sTab==='Planovi')plans.slice().reverse().forEach(p=>{const t=p.kind==='itiner'?'Itinerar · '+p.days+' dana':'Plan za '+(p.time==='Ceo dan'?'ceo dan':p.time);if(s&&!(t+' '+p.cats.join(' ')).toLowerCase().includes(s))return;out.push(`<div class="savedcard" data-kind="plan" data-k="${esc(p.key)}"><img src="${p.img}"><div><h3>${esc(t)}</h3><p>${p.titles.length} ${p.kind==='itiner'?'aktivnosti':'stanice'} · ${fmtT(p.mins)}${p.kind==='itiner'?'':' · '+esc(p.cats.join(', '))}</p></div><b class="heart on" data-kind="plan" data-k="${esc(p.key)}">${HT(true)}</b></div>`)});
  favs.map(byTitle).filter(Boolean).forEach(x=>{const ev=isEv(x);if(!(sTab==='Sve'||(sTab==='Mesta'&&!ev)||(sTab==='Događaji'&&ev)))return;if(s&&!(x.title+' '+x.desc).toLowerCase().includes(s))return;out.push(`<div class="savedcard" data-kind="item" data-k="${esc(x.title)}"><img src="${x.img}"><div><h3>${esc(x.title)}</h3><p>${esc(x.type)} · ${esc(x.distance)}${x.rating?' · ⭐ '+esc(x.rating):''}</p></div><b class="heart on" data-k="${esc(x.title)}">${HT(true)}</b></div>`)});
  $('savedList').innerHTML=out.length?out.join(''):'<div class="empty">Još nema sačuvanog.<br>Tapni srce na mjestu ili sačuvaj plan.</div>'}
 /* početna + profil */
@@ -326,12 +328,12 @@ function headPhotos(){
  const g='linear-gradient(180deg,#06182466 0%,#041a2acc 55%,#031420f2 100%)';
  try{
   const ph=document.querySelector('#plan .planhead');
-  if(ph){const f=(typeof PLAN!=='undefined'?PLAN:[]).find(realImg)||uniq().find(realImg);if(f)ph.style.backgroundImage=g+",url('"+f.img+"')";ph.style.backgroundSize='cover';ph.style.backgroundPosition='center'}
+  if(ph){const f=(window.BZ?BZ.plan():[]).find(realImg)||uniq().find(realImg);if(f)ph.style.backgroundImage=g+",url('"+f.img+"')";ph.style.backgroundSize='cover';ph.style.backgroundPosition='center'}
   const pr=document.querySelector('#profile .profilehero'),av=document.querySelector('#profile .avatar'),u=uniq().find(realImg);
   if(pr&&u){pr.style.backgroundImage='linear-gradient(180deg,#0003,#001a2ae0),url(\''+u.img+'\')';pr.style.backgroundSize='cover';pr.style.backgroundPosition='center'}
   if(av&&u)av.src=u.img;
  }catch(e){}}
-LV.headPhotos=headPhotos;
+LV.headPhotos=headPhotos;window.enhanceDetail=enhanceDetail;
 const PHC=LS.get('blizu_ph4',{});let bt=0;
 function bump(){clearTimeout(bt);bt=setTimeout(()=>{const a=document.querySelector('.screen.active');if(a&&a.id==='discover'&&window.renderDiscover)renderDiscover();else if(a&&a.id==='plan'&&window.renderPlan)renderPlan();else if(a&&a.id==='itiner'&&window.renderItiner)renderItiner()},900)}
 function setPh(x,u){const im=new Image();im.onload=()=>{x.img=u;bump();headPhotos()};im.src=u}
@@ -452,8 +454,8 @@ const SVG=(p)=>'<svg class="i" width="19" height="19" viewBox="0 0 24 24" fill="
 const I_PH=SVG('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>');
 const I_WEB=SVG('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>');
 {const st=document.createElement('style');st.textContent='.dinfo{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #e6e4e1;color:#1a2328;text-decoration:none;font-size:15px;line-height:1.3}.dinfo svg{flex:none;color:#6b747b}.dinfo span{min-width:0;overflow-wrap:anywhere}.dinfo small{display:block;color:#6b747b;font-size:13px;margin-top:2px}.dopen{font-weight:800}.dopen.on{color:#1a9a4b}.dopen.off{color:#d33}.dchips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}.dchips i{font-style:normal;font-size:13px;background:#e9eef0;color:#34434b;border-radius:999px;padding:6px 11px}.dsub{margin:2px 0 4px;color:#66717a;font-size:15px}';document.head.appendChild(st)}
-function enhanceDetail(){
- const x=window.curItemRef&&window.curItemRef();if(!x)return;
+function enhanceDetail(x){
+ if(!x)return;
  const b=document.querySelector('#detail .detailbody'),save=b&&b.querySelector('#dSave');if(!save)return;
  const h2=b.querySelector('h2'),p=b.querySelector('p');if(p)p.remove();
  if(x._rent){const mt=b.firstElementChild;if(mt)mt.innerHTML=ic('pin',14)+' '+esc(LV.city||'')+(x.distance?' · '+esc(x.distance):'')}
@@ -473,13 +475,7 @@ function enhanceDetail(){
  else h+='<div style="height:16px"></div>';
  save.insertAdjacentHTML('beforebegin',h)}
 
-window.curItemRef=()=>typeof curItem!=='undefined'?curItem:null;
-{const _oi=window.openItem;if(typeof _oi==='function')window.openItem=function(t){_oi.apply(this,arguments);try{enhanceDetail()}catch(e){}}}
 
-{const _rm=window.renderMap;if(typeof _rm==='function')window.renderMap=function(){
- try{if(!PLAN.length)PLAN=makePlan()}catch(e){PLAN=[]}
- if(!PLAN.length){const w=document.querySelector('#map .mapwrap');if(w)w.innerHTML=LV.empty();const l=document.querySelector('#map .logo');if(l)l.textContent='Tvoj plan';return}
- _rm()}}
 /* ---- višednevni itinerar ---- */
 let MDn=3,MDD=[];
 const KIND={videti:['Atrakcije','Kultura','Događaji'],jesti:['Hrana'],odmoriti:['Kafa','More','Priroda']};
@@ -492,7 +488,7 @@ function buildItin(n){
  for(let d=0;d<n;d++){const day=[];SLOTS.forEach(k=>{const x=take(k);if(x)day.push(x)});if(day.length)days.push(day)}
  return days}
 const itKey=days=>'it_'+days.length+'_'+days.flat().map(x=>x.title).join('|').split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
-function itSaved(k){return plans.some(p=>p.key===k)}
+function itSaved(k){return BZ.plans().some(p=>p.key===k)}
 function itSaveBtn(){const b=$('itSave');if(!b||!MDD.length)return;const on=itSaved(itKey(MDD));b.innerHTML=HT(on)+'  '+(on?'Itinerar je sačuvan':'Sačuvaj itinerar')}
 function renderItiner(){
  const c=$('itChips'),list=$('itList');if(!c||!list)return;
@@ -509,15 +505,10 @@ function renderItiner(){
 {const st=document.createElement('style');st.textContent='.dayh{display:flex;justify-content:space-between;align-items:center;margin:18px 0 2px}.dayh b{font-size:17px}.dayh a{font-size:13px;font-weight:700;color:#0e6075;text-decoration:none}.prem{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;font-style:normal;margin-left:6px}.itbody{padding:16px 18px 24px;background:#f8f6f3;color:#1a2328;min-height:60vh}.itnote{font-size:12px;color:#70777b;margin-top:14px;line-height:1.4}';document.head.appendChild(st)}
 $('itChips').addEventListener('click',e=>{const b=e.target.closest('.pill');if(b){MDn=+b.dataset.n;renderItiner()}});
 $('itList').addEventListener('click',e=>{const s=e.target.closest('.step');if(s&&window.openItem)openItem(s.dataset.t)});
-$('itSave').onclick=()=>{if(!MDD.length)return;const k=itKey(MDD),i=plans.findIndex(p=>p.key===k);
- if(i>=0){plans.splice(i,1);toast('Itinerar uklonjen iz sačuvanih')}
- else{const all=MDD.flat(),f=all.find(realImg)||all[0];plans.push({key:k,kind:'itiner',days:MDn,time:MDn+' dana',cats:['Itinerar'],titles:all.map(x=>x.title),img:f.img,mins:all.reduce((a,x)=>a+x.mins,0),t:Date.now()});toast('Itinerar je sačuvan')}
- persist();itSaveBtn()};
-{const _af=window.after;window.after=function(id){_af(id);if(id==='itiner')renderItiner()}}
-{const _rs=window.renderSaved;if(typeof _rs==='function')window.renderSaved=function(){_rs();
- document.querySelectorAll('#saved .savedcard[data-kind="plan"]').forEach(c=>{const p=plans.find(x=>x.key===c.dataset.k);if(p&&p.kind==='itiner'){const h=c.querySelector('h3'),q=c.querySelector('p');if(h)h.textContent='Itinerar · '+p.days+' dana';if(q)q.textContent=p.titles.length+' aktivnosti · '+fmtT(p.mins)}})}}
-document.getElementById('saved').addEventListener('click',e=>{if(e.target.closest('.heart'))return;const c=e.target.closest('.savedcard[data-kind="plan"]');if(!c)return;const p=plans.find(x=>x.key===c.dataset.k);
- if(p&&p.kind==='itiner'){e.stopPropagation();MDn=p.days||3;go('itiner')}},true);
+$('itSave').onclick=()=>{if(!MDD.length)return;const k=itKey(MDD),pl=BZ.plans(),i=pl.findIndex(p=>p.key===k);
+ if(i>=0){pl.splice(i,1);toast('Itinerar uklonjen iz sačuvanih')}
+ else{const all=MDD.flat(),f=all.find(realImg)||all[0];pl.push({key:k,kind:'itiner',days:MDn,time:MDn+' dana',cats:['Itinerar'],titles:all.map(x=>x.title),img:f.img,mins:all.reduce((a,x)=>a+x.mins,0),t:Date.now()});toast('Itinerar je sačuvan')}
+ BZ.persist();itSaveBtn()};
 window.renderItiner=renderItiner;
 /* ---- iznajmi: bicikli, e-trotineti, auta ---- */
 const RK={bike:{t:'Bicikli',h:'Iznajmljivanje bicikala',g:['#2f9e6a','#0d5a45'],i:'<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>'},
@@ -570,8 +561,7 @@ $('rentList').addEventListener('click',e=>{
  const r=e.target.closest('.rentrow');if(!r)return;const x=RENT.items.find(i=>i.id===r.dataset.id);if(!x)return;
  const f=LS.get('blizu_favitems',{});f[x.title]=x;LS.set('blizu_favitems',f);openItem(x.title)});
 document.querySelectorAll('#home .rentc').forEach(b=>b.onclick=()=>{RENT.kind=b.dataset.k;go('rent')});
-{const _af2=window.after;window.after=function(id){_af2(id);if(id==='rent'){renderRent();loadRent()}}}
-window.renderRent=renderRent;
+window.renderRent=renderRent;window.loadRent=loadRent;window.renderItiner=renderItiner;window.openItin=n=>{MDn=n||3;go('itiner')};
 CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
 })();
 </script>
