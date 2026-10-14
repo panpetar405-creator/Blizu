@@ -245,6 +245,7 @@ const CY={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Ђ":"Đ","Е":"E","Ж":"
 function lat(s){s=String(s||'');if(!/[\u0400-\u04FF]/.test(s))return s;let o='';for(const c of s){const u=c.toUpperCase();if(!/[\u0400-\u04FF]/.test(c)){o+=c;continue}const m=CY[u];if(m===undefined)return s;o+=c===u?m:m.toLowerCase()}return o}
 const LV=window.LV={me:null,city:'',country:'',gps:false,wid:null,la:null,tk:0,loading:false,fail:false,lr:0};
 const CATS=['Hrana','Kafa','Atrakcije','More','Kultura','Priroda','Događaji','Porodica','Par'];
+CATS.forEach(c=>DATA[c]=[]);window.rebuildAll&&rebuildAll();/* bez demo podataka: samo prave lokacije */
 const MINS={Hrana:40,Kafa:20,Atrakcije:40,More:45,Kultura:40,Priroda:40,'Događaji':60,Porodica:45,Par:40};
 const EMO={Hrana:'food',Kafa:'coffee',Atrakcije:'landmark',More:'waves',Kultura:'book',Priroda:'mountain','Događaji':'ticket',Porodica:'users',Par:'heart'};
 const GRAD={Hrana:['#e0793a','#a8431e'],Kafa:['#8a5a3c','#4b2e1e'],Atrakcije:['#2f7d8c','#0e3f55'],More:['#2aa5c9','#0b5e82'],Kultura:['#8a5cb0','#472b73'],Priroda:['#4f9e5a','#235c33'],'Događaji':['#c04ab0','#6a1f73'],Porodica:['#e7a928','#b06a12'],Par:['#e0566e','#8c2240']};
@@ -319,7 +320,7 @@ async function loadPlaces(keep){
 }
 /* ---- fotografije mjesta ---- */
 const PHC=LS.get('blizu_ph4',{});let bt=0;
-function bump(){clearTimeout(bt);bt=setTimeout(()=>{const a=document.querySelector('.screen.active');if(a&&a.id==='discover'&&window.renderDiscover)renderDiscover()},900)}
+function bump(){clearTimeout(bt);bt=setTimeout(()=>{const a=document.querySelector('.screen.active');if(a&&a.id==='discover'&&window.renderDiscover)renderDiscover();else if(a&&a.id==='plan'&&window.renderPlan)renderPlan()},900)}
 function setPh(x,u){const im=new Image();im.onload=()=>{x.img=u;bump()};im.src=u}
 function photos(){
  const list=uniq().filter(x=>!x._hasImg).slice(0,30);let i=0;
