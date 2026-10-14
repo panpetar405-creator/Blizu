@@ -1,0 +1,9 @@
+BLIZU — FOTOGRAFIJE
+
+Ova verzija NE sadrži stare screenshot/crop slike iz prethodnih verzija.
+Sve fotografije u interfejsu su stvarne fotografije Kotora/Boke i učitavaju se sa Wikimedia Commons-a preko interneta.
+
+Napomena: zbog ograničenja ovog okruženja fotografije trenutno nisu fizički preuzete u paket. Zato ova verzija zahteva internet vezu da bi se fotografije prikazale.
+
+Izvori fotografija: Wikimedia Commons.
+Licencni uslovi zavise od pojedinačne fotografije i navedeni su na njenoj stranici na Wikimedia Commons-u.
