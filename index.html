@@ -312,7 +312,7 @@ async function fetchEls(c,rd){
  return els}
 async function loadPlaces(keep){
  const tk=++LV.tk,c=LV.me;if(!c)return;
- if(!keep){LV.loading=true;LV.fail=false}
+ if(!keep){LV.loading=true;LV.fail=false;refreshView(true)}
  let els=await fetchEls(c,4000);if(tk!==LV.tk)return;
  let items=els?build(els):null;
  if(els&&items.length<10){const e2=await fetchEls(c,15000);if(tk!==LV.tk)return;if(e2){const i2=build(e2);if(i2.length>items.length)items=i2}}
@@ -357,7 +357,7 @@ function refreshView(force){
 function updateLabel(){const el=document.querySelector('#home .location');if(!el)return;
  el.innerHTML=ic('pin',16)+' '+esc(LV.city||'Izaberi lokaciju')+(LV.country?', '+esc(LV.country):'')+ic('down',16)+(LV.gps&&LV.wid!=null?' <i class="lv" title="Lokacija uživo"></i>':'')+'<span class="weather">'+ic('sun',20)+'</span>'}
 LV.empty=()=>LV.loading?'<div class="place-loader" role="status" aria-live="polite"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta blizu tebe</p><p class="loader-sub">Istražujemo okolinu i slažemo najbolje prijedloge…</p><div class="loader-skeletons" aria-hidden="true"><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div></div></div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
-LV.reload=()=>loadPlaces();
+LV.reload=()=>{if(!LV.me){LV.useGps();return}return loadPlaces().then(()=>{if(LV.fail)toast('Još uvijek ne uspijeva. Pokušaj ponovo za koji trenutak.')})};
 document.addEventListener('click',()=>setTimeout(headPhotos,50));
 const loc=x=>x.c?x.c[0].toFixed(6)+','+x.c[1].toFixed(6):x.title+' '+(LV.city||'');
 LV.q=x=>'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(loc(x))+(LV.gps&&LV.me?'&origin='+LV.me[0].toFixed(6)+','+LV.me[1].toFixed(6):'');
