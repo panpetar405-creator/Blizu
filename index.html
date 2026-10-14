@@ -281,7 +281,7 @@ function build(els){
   const prev=seen.get(nm);if(prev){if(km(prev,p)<0.15)continue;nm=nm+' ('+(prev.n=(prev.n||1)+1)+')'}else{const k=[p[0],p[1]];k.n=1;seen.set(nm,k)}
   const c0=cs[0][0],cu=cs[0][1],cu2=t.cuisine?String(t.cuisine).split(';').slice(0,2).map(s=>s.replace(/_/g,' ')).join(', '):'';
   const cats=[...new Set(cs.map(x=>x[0]))];
-  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:MINS[c0],img:imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'?'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400':ph(c0)),_hasImg:!!imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
+  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:MINS[c0],_oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',_addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:t.cuisine||'',_feats:[t.outdoor_seating==='yes'&&'Terasa',t.wheelchair==='yes'&&'Pristup za invalidska kolica',(t['payment:cards']==='yes'||t['payment:credit_cards']==='yes'||t['payment:visa']==='yes')&&'Plaćanje karticom',t.takeaway==='yes'&&'Za ponijeti',t.delivery==='yes'&&'Dostava',(t.internet_access==='wlan'||t.internet_access==='yes')&&'Wi‑Fi',t.air_conditioning==='yes'&&'Klima'].filter(Boolean),img:imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'?'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400':ph(c0)),_hasImg:!!imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
  }
  return out}
 function setData(items){
@@ -412,6 +412,67 @@ LV.cityPicker=function(msg){
 const wb=document.querySelectorAll('#welcome button');
 wb[0].onclick=()=>LV.useGps();wb[1].onclick=()=>LV.cityPicker('');
 document.querySelector('#home .location').onclick=()=>LV.cityPicker('');
+/* ---- detalji mjesta: radno vrijeme, kontakt, osobine ---- */
+const DAYS={Su:0,Mo:1,Tu:2,We:3,Th:4,Fr:5,Sa:6},DN=['Su','Mo','Tu','We','Th','Fr','Sa'];
+const hm=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+function parseOH(str){
+ if(!str)return null;str=String(str).trim();
+ if(/^24\/7$/i.test(str)){const a={};for(let d=0;d<7;d++)a[d]=[[0,1440]];return{map:a,all:true}}
+ if(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|week|sunrise|sunset|PH|SH|")/i.test(str))return null;
+ const map={};for(let d=0;d<7;d++)map[d]=[];
+ for(const rule of str.split(';')){
+  const r=rule.trim();if(!r)continue;
+  const m=r.match(/^((?:(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\s*-\s*(?:Mo|Tu|We|Th|Fr|Sa|Su))?\s*,?\s*)+)?(.*)$/);if(!m)return null;
+  const days=new Set();
+  if(m[1]){for(const part of m[1].split(',')){const p=part.trim();if(!p)continue;const q=p.split('-').map(s=>s.trim());
+    if(q.length===1)days.add(DAYS[q[0]]);else{let d=DAYS[q[0]];const e=DAYS[q[1]];for(let k=0;k<8;k++){days.add(d);if(d===e)break;d=(d+1)%7}}}}
+  else for(let d=0;d<7;d++)days.add(d);
+  const rest=m[2].trim();let iv=[];
+  if(/^(off|closed)$/i.test(rest))iv=[];
+  else{
+   const re=/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/g;let t,any=false;
+   while((t=re.exec(rest))){any=true;const s=+t[1]*60+ +t[2];let e=+t[3]*60+ +t[4];if(e<=s)e+=1440;iv.push([s,e])}
+   if(!any)return null}
+  days.forEach(d=>{map[d]=iv.slice()})}
+ return{map}}
+function ohInfo(str,live){
+ const p=parseOH(str);if(!p)return{raw:str};
+ const now=new Date(),d=now.getDay(),n=now.getHours()*60+now.getMinutes(),today=p.map[d]||[],prev=p.map[(d+6)%7]||[];
+ const txt=p.all?'Otvoreno 24h':(today.length?'Danas '+today.map(i=>hm(i[0])+'–'+hm(i[1])).join(', '):'Danas zatvoreno');
+ if(!live)return{hours:txt};
+ let openEnd=null;
+ for(const i of today)if(n>=i[0]&&n<i[1])openEnd=i[1];
+ for(const i of prev)if(i[1]>1440&&n<i[1]-1440)openEnd=i[1]-1440+(openEnd?0:0);
+ if(openEnd!=null){const left=openEnd-n;return{open:true,status:p.all?'Otvoreno 24h':(left<=60&&left>0?'Uskoro zatvara u '+hm(openEnd):'Otvoreno do '+hm(openEnd)),hours:txt}}
+ const nx=today.filter(i=>i[0]>n).sort((a,b)=>a[0]-b[0])[0];
+ return{open:false,status:nx?'Zatvoreno · otvara u '+hm(nx[0]):'Zatvoreno',hours:txt}}
+const CUIS={mediterranean:'mediteranska',italian:'italijanska',pizza:'pica',seafood:'morski plodovi',fish:'riblja',burger:'burgeri',regional:'domaća',local:'lokalna',steak_house:'steak',grill:'roštilj',balkan:'balkanska',montenegrin:'crnogorska',croatian:'hrvatska',serbian:'srpska',chinese:'kineska',asian:'azijska',japanese:'japanska',sushi:'suši',indian:'indijska',mexican:'meksička',french:'francuska',greek:'grčka',turkish:'turska',kebab:'kebab',sandwich:'sendviči',coffee_shop:'kafa',ice_cream:'sladoled',vegetarian:'vegetarijanska',vegan:'veganska',international:'internacionalna',pasta:'testenine',bakery:'pekara',barbecue:'roštilj',chicken:'piletina',breakfast:'doručak',dessert:'deserti',cake:'torte'};
+const cuisineSr=c=>c?String(c).split(';').slice(0,3).map(s=>{s=s.trim().toLowerCase().replace(/ /g,'_');return CUIS[s]||s.replace(/_/g,' ')}).join(', '):'';
+const SVG=(p)=>'<svg class="i" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const I_PH=SVG('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>');
+const I_WEB=SVG('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/>');
+{const st=document.createElement('style');st.textContent='.dinfo{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #e6e4e1;color:#1a2328;text-decoration:none;font-size:15px;line-height:1.3}.dinfo svg{flex:none;color:#6b747b}.dinfo span{min-width:0;overflow-wrap:anywhere}.dinfo small{display:block;color:#6b747b;font-size:13px;margin-top:2px}.dopen{font-weight:800}.dopen.on{color:#1a9a4b}.dopen.off{color:#d33}.dchips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}.dchips i{font-style:normal;font-size:13px;background:#e9eef0;color:#34434b;border-radius:999px;padding:6px 11px}.dsub{margin:2px 0 4px;color:#66717a;font-size:15px}';document.head.appendChild(st)}
+function enhanceDetail(){
+ const x=window.curItemRef&&window.curItemRef();if(!x)return;
+ const b=document.querySelector('#detail .detailbody'),save=b&&b.querySelector('#dSave');if(!save)return;
+ const h2=b.querySelector('h2'),p=b.querySelector('p');if(p)p.remove();
+ const cu=cuisineSr(x._cuisine),t=x.type||'';
+ if(h2)h2.textContent=t+(cu&&t.toLowerCase()!==cu?' · '+cu:'')||x.desc||'';
+ let h='';
+ const oh=x._oh?ohInfo(x._oh,LV.gps):null;
+ if(oh){
+  if(oh.status)h+='<div class="dinfo">'+ic('clock',19)+'<span><span class="dopen '+(oh.open?'on':'off')+'">'+esc(oh.status)+'</span><small>'+esc(oh.hours||'')+'</small></span></div>';
+  else if(oh.hours)h+='<div class="dinfo">'+ic('clock',19)+'<span>'+esc(oh.hours)+'</span></div>';
+  else if(oh.raw)h+='<div class="dinfo">'+ic('clock',19)+'<span>'+esc(oh.raw)+'</span></div>'}
+ if(x._addr)h+='<div class="dinfo">'+ic('pin',19)+'<span>'+esc(x._addr)+'</span></div>';
+ if(x._phone){const tel=String(x._phone).split(';')[0].replace(/[^\d+]/g,'');h+='<a class="dinfo" href="tel:'+esc(tel)+'">'+I_PH+'<span>'+esc(String(x._phone).split(';')[0].trim())+'<small>Pozovi</small></span></a>'}
+ if(x._web){let u=String(x._web).trim();if(!/^https?:\/\//i.test(u))u='https://'+u;h+='<a class="dinfo" target="_blank" rel="noopener" href="'+esc(u)+'">'+I_WEB+'<span>'+esc(u.replace(/^https?:\/\/(www\.)?/i,'').replace(/\/$/,''))+'<small>Otvori sajt</small></span></a>'}
+ if(x._feats&&x._feats.length)h+='<div class="dchips">'+x._feats.map(f=>'<i>'+esc(f)+'</i>').join('')+'</div>';
+ else h+='<div style="height:16px"></div>';
+ save.insertAdjacentHTML('beforebegin',h)}
+
+window.curItemRef=()=>typeof curItem!=='undefined'?curItem:null;
+{const _oi=window.openItem;if(typeof _oi==='function')window.openItem=function(t){_oi.apply(this,arguments);try{enhanceDetail()}catch(e){}}}
 CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
 })();
 </script>
