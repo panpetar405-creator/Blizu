@@ -468,12 +468,33 @@ function enhanceDetail(x){
   if(oh.status)h+='<div class="dinfo">'+ic('clock',19)+'<span><span class="dopen '+(oh.open?'on':'off')+'">'+esc(oh.status)+'</span><small>'+esc(oh.hours||'')+'</small></span></div>';
   else if(oh.hours)h+='<div class="dinfo">'+ic('clock',19)+'<span>'+esc(oh.hours)+'</span></div>';
   else if(oh.raw)h+='<div class="dinfo">'+ic('clock',19)+'<span>'+esc(oh.raw)+'</span></div>'}
+ const needG=window.BLIZU_API&&x.c&&x.title&&!x._rent&&(!x._oh||!x._phone);
+ if(needG&&!x._oh)h+='<div id="gxh"></div>';
  if(x._addr)h+='<div class="dinfo">'+ic('pin',19)+'<span>'+esc(x._addr)+'</span></div>';
+ if(needG&&!x._phone)h+='<div id="gxp"></div>';
  if(x._phone){const tel=String(x._phone).split(';')[0].replace(/[^\d+]/g,'');h+='<a class="dinfo" href="tel:'+esc(tel)+'">'+I_PH+'<span>'+esc(String(x._phone).split(';')[0].trim())+'<small>Pozovi</small></span></a>'}
  if(x._web){let u=String(x._web).trim();if(!/^https?:\/\//i.test(u))u='https://'+u;h+='<a class="dinfo" target="_blank" rel="noopener" href="'+esc(u)+'">'+I_WEB+'<span>'+esc(u.replace(/^https?:\/\/(www\.)?/i,'').replace(/\/$/,''))+'<small>Otvori sajt</small></span></a>'}
  if(x._feats&&x._feats.length)h+='<div class="dchips">'+x._feats.map(f=>'<i>'+esc(f)+'</i>').join('')+'</div>';
  else h+='<div style="height:16px"></div>';
- save.insertAdjacentHTML('beforebegin',h)}
+ save.insertAdjacentHTML('beforebegin',h);
+ if(needG)googleFill(x)}
+/* dopuna radnog vremena i telefona iz Googlea (preko Workera) kad ih OSM nema */
+const GX={};
+function googleFill(x){
+ const hEl=document.getElementById('gxh'),pEl=document.getElementById('gxp');
+ if(!hEl&&!pEl)return;
+ const key=x.title+'|'+x.c[0].toFixed(4)+'|'+x.c[1].toFixed(4);
+ const paint=g=>{
+  if(!g||g.none||g.error)return;
+  if(hEl&&hEl.isConnected&&g.hours&&g.hours.length){
+   const today=(g.hours[(new Date().getDay()+6)%7]||'').replace(/^[^:]+:\s*/,'');
+   if(today)hEl.innerHTML='<div class="dinfo">'+ic('clock',19)+'<span>'+esc('Danas '+today)+'<small>Izvor: Google</small></span></div>'}
+  if(pEl&&pEl.isConnected&&g.phone){
+   const tel=String(g.phone).replace(/[^\d+]/g,'');
+   pEl.innerHTML='<a class="dinfo" href="tel:'+esc(tel)+'">'+I_PH+'<span>'+esc(g.phone)+'<small>Pozovi</small></span></a>'}};
+ if(GX[key]!==undefined)return paint(GX[key]);
+ fetch(window.BLIZU_API+'/api/enrich?name='+encodeURIComponent(x.title)+'&lat='+x.c[0]+'&lng='+x.c[1])
+  .then(r=>r.json()).then(g=>{GX[key]=g;paint(g)}).catch(()=>{})}
 
 
 /* ---- višednevni itinerar ---- */
