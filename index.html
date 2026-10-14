@@ -1,628 +1,356 @@
-<!DOCTYPE html>
-<html lang="sr"><head><meta charset="utf-8"><title>BLIZU</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b4a40"><link rel="manifest" href="manifest.json">
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#062b3a"><title>Blizu — tvoj vodič</title>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);--bg:#f3f7f5;--card:#fff;--ink:#0c2b27;--mut:#5e716b;--navy:#0b4a40;--y:#ffcb2e;--soft:#fff6d6}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07140f;--card:#0d2620;--ink:#eaf2fa;--mut:#9fb4c8;--soft:#2a2a1c}}
-:root[data-theme="dark"]{--bg:#07140f;--card:#0d2620;--ink:#eaf2fa;--mut:#9fb4c8;--soft:#2a2a1c}
-*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0 auto;max-width:480px;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
-.hide{display:none!important}.lv{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2ecc71;margin-left:4px;vertical-align:middle;animation:lvp 1.6s infinite}@keyframes lvp{50%{opacity:.3}}
-.gate{background:linear-gradient(160deg,#0b4a40,#0f8b6d 65%,#35c2a1);color:#fff;min-height:100vh;padding:30px 22px}
-.logo{font-weight:900;letter-spacing:2px;font-size:26px}.logo i{color:var(--y);font-style:normal}
-.gate{position:relative;overflow:hidden}.gate>div,.gate>h1,.gate>p,.gate>button{position:relative}.gb{position:absolute;left:0;bottom:0;width:100%;height:52%;-webkit-mask-image:linear-gradient(transparent,#000 40%);mask-image:linear-gradient(transparent,#000 40%)}
-.gate h1{font-size:34px;line-height:1.1;margin:50px 0 10px}.gate p{opacity:.9}
-.btn{background:var(--y);color:#0c2b27;border:0;border-radius:26px;padding:14px 18px;font-weight:800;font-size:16px;cursor:pointer;width:100%}
-.btn.o{background:none;color:#fff;border:2px solid #fff8}.btn.s{padding:9px 14px;font-size:14px;width:auto}.btn.done{background:var(--navy);color:#fff}
-.cities{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.msg{font-size:13px;margin-top:12px;min-height:18px;color:#ffe9a0}
-.top{background:var(--navy);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
-.top b{flex:1;font-size:17px}.top small{display:block;font-weight:400;opacity:.8;font-size:12px}
-.top button{background:#ffffff22;border:0;color:#fff;border-radius:18px;padding:8px 12px;font-weight:700;cursor:pointer}
-.sun{background:var(--soft);margin:14px;border-radius:20px;padding:14px 16px}.sun b{font-size:18px;display:block}.sun span{color:var(--mut);font-size:14px}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:0 14px}
-.chip{flex:none;border:2px solid transparent;background:var(--card);color:var(--ink);border-radius:18px;padding:9px 13px;font-weight:700;cursor:pointer}.chip.on{border-color:var(--y)}
-.card{background:var(--card);margin:12px 14px;border-radius:20px;display:flex;gap:12px;padding:10px;box-shadow:0 2px 10px #0000000f}
-.th{width:84px;border-radius:14px;flex:none;display:grid;place-items:center;font-size:32px;min-height:84px;cursor:pointer}
-.card h3{margin:2px 0 3px;font-size:16px;cursor:pointer}.card p{margin:0 0 8px;color:var(--mut);font-size:13px}
-.hero{height:200px;display:flex;justify-content:space-between;padding:16px}.hero button{background:#fffd;border:0;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer}
-.body{background:var(--bg);margin-top:-22px;border-radius:24px 24px 0 0;padding:20px 16px 30px;position:relative}
-.body h1{margin:0 0 6px;font-size:25px}.meta{color:var(--mut);font-size:14px}
-.row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid #8884}.row i{font-style:normal;font-size:22px}.row small{display:block;color:var(--mut)}
-a.btn{display:block;text-align:center;text-decoration:none;background:var(--navy);color:#fff;margin-top:12px}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);display:flex;border-top:1px solid #8883;padding-bottom:env(safe-area-inset-bottom,0px)}
-.nav button{flex:1;background:none;border:0;color:var(--mut);padding:10px 4px;font-size:12px;font-weight:700;cursor:pointer}.nav button b{display:block;font-size:20px}.nav button.on{color:var(--navy)}
-@media (prefers-color-scheme:dark){.nav button.on{color:var(--y)}}
-.note{color:var(--mut);font-size:12px;text-align:center;padding:14px 20px}
-.hero2{background:linear-gradient(160deg,#0b4a40,#0f8b6d 65%,#35c2a1);color:#fff;padding:20px 20px 56px;border-radius:0 0 28px 28px}
-.hero2{position:relative;overflow:hidden}.hero2>div,.hero2>h1,.hero2>p{position:relative}.hb{position:absolute;inset:0;width:100%;height:100%}
-.hero2 h1{font-size:36px;line-height:1.05;margin:26px 0 8px}.hero2 h1 span{color:var(--y)}.hero2 p{margin:0;opacity:1;font-size:15px;text-shadow:0 1px 8px #0b4a40,0 0 14px #0b4a40}
-.srch{display:flex;align-items:center;gap:8px;background:var(--card);margin:-30px 16px 0;padding:8px 8px 8px 16px;border-radius:40px;box-shadow:0 8px 24px #0003;position:relative}
-.srch span{flex:1;font-weight:700;min-width:0}
-.cg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:16px 14px 4px}
-.cc{background:var(--card);border:2px solid transparent;border-radius:16px;padding:10px 2px;text-align:center;font-size:11px;font-weight:700;color:var(--ink);cursor:pointer}.cc b{display:block;font-size:24px;margin-bottom:2px}.cc.on{border-color:var(--y)}
-.pl{background:var(--navy);color:#fff;margin:12px 14px;border-radius:20px;padding:14px 16px}
-.pl .hd{display:flex;align-items:center;gap:10px;cursor:pointer}.pl .hd div{flex:1}.pl .hd small{opacity:.8;display:block}
-.pl .chips{padding:12px 0 0}.pl .chip{background:none;color:#fff;border-color:#fff6}.pl .chip.on{background:var(--y);color:#0c2b27;border-color:var(--y)}
-.h2t{font-size:18px;font-weight:800;margin:14px 16px 0}
-.pl2{background:var(--card);margin:12px 14px 0;border-radius:20px;padding:12px;box-shadow:0 2px 10px #0000000f}#radar{display:block;width:100%;max-width:340px;margin:0 auto;color:var(--ink)}#radar circle.d{cursor:pointer}.meta2{text-align:center;color:var(--mut);font-size:13px;margin-top:4px}.card.sel{box-shadow:0 0 0 2px var(--y)}
-</style><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-<style id="v2">
-:root{--bg:#F3F7F5;--card:#fff;--ink:#0c2b27;--mut:#5E716B;--sea:#0f8b6d;--teal:#35c2a1;--line:#0c2b2714;--sh:0 1px 2px #0c2b2710,0 10px 26px -10px #0c2b2740;--ease:cubic-bezier(.2,.8,.2,1)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07140f;--card:#0d2620;--line:#ffffff14;--sh:0 1px 2px #0006,0 10px 26px -10px #000a}}
-:root[data-theme="dark"]{--bg:#07140f;--card:#0d2620;--line:#ffffff14;--sh:0 1px 2px #0006,0 10px 26px -10px #000a}
-body,button{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
-.ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;flex:none}.ic.fill{fill:currentColor}
-@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}
-@keyframes shim{to{background-position:-200% 0}}@keyframes pop{40%{transform:scale(1.25)}}@keyframes flt{50%{transform:translateY(-6px)}}
-#app,#gate,#det{animation:fade .35s var(--ease) both}.hero2 .logo,.hero2 h1{animation:up .6s var(--ease) both}.hero2 h1{animation-delay:.08s}
-.gate .btn{display:flex;align-items:center;justify-content:center;gap:8px}.btn{transition:transform .15s,box-shadow .2s}.btn:active,.chip:active,.cc:active{transform:scale(.96)}
-.btn{box-shadow:0 6px 16px -6px #ffcb2eaa}a.btn,.btn.done{box-shadow:none}
-.chip{box-shadow:var(--sh);border:1.5px solid transparent;transition:all .2s}.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-@media (prefers-color-scheme:dark){.chip.on{background:var(--y);color:#0c2b27;border-color:var(--y)}}
-.pl .chip.on{background:var(--y);color:#0c2b27}
-.srch{box-shadow:var(--sh);gap:10px}.srch .ic{color:var(--sea)}
-.cg{gap:8px}.cc{border:0;border-radius:18px;padding:12px 2px 10px;box-shadow:var(--sh);transition:transform .2s var(--ease)}
-.cc b{width:42px;height:42px;margin:0 auto 6px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);transition:.2s}
-.cc.on{transform:translateY(-3px)}.cc.on b{background:var(--c);color:#fff}
-.pl{background:linear-gradient(135deg,var(--navy),var(--sea));box-shadow:var(--sh);border-radius:22px}.pl .hd>span:first-child{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#ffffff1f;color:var(--y)}
-.card{border-radius:22px;padding:10px;gap:14px;box-shadow:var(--sh);border:1px solid var(--line);animation:up .5s var(--ease) both;animation-delay:calc(var(--i,0)*45ms);position:relative;transition:transform .2s}
-.card:active{transform:scale(.985)}.card.sel{box-shadow:0 0 0 2px var(--c,var(--y)),var(--sh)}
-.th{width:96px;min-height:104px;border-radius:16px;color:#fff;background-size:cover;background-position:center;position:relative;overflow:hidden;transition:background .4s}
-.th::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 15%,#ffffff40,transparent 55%)}.th .ic{opacity:.95;position:relative;z-index:1}.th.ph .ic{opacity:0}
-.cb{flex:1;min-width:0;display:flex;flex-direction:column;padding:2px 36px 0 0}.kl{font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--c)}
-.card h3{font-size:16px;font-weight:800;margin:2px 0 3px;line-height:1.2}.card p{margin:0 0 8px;font-size:12.5px}
-.pr{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;background:var(--bg);color:var(--mut)}
-.pill.ok{background:#1fa86022;color:#16864c}.pill.no{background:#e5484d1f;color:#d13438}
-.add{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--bg);color:var(--ink);cursor:pointer;transition:.2s}
-.add.on{background:var(--navy);color:#fff;animation:pop .35s}
-.sk .th,.sk i{background:linear-gradient(90deg,#8883 25%,#8886 50%,#8883 75%);background-size:200% 100%;animation:shim 1.3s linear infinite;border:0}.sk i{display:block;height:12px;border-radius:6px;margin:8px 0;width:80%}.sk i:first-child{width:35%}.sk::after,.sk .th::after{display:none}
-.nav{background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
-.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .2s}.nav button b{display:block;height:24px;transition:transform .25s var(--ease)}.nav button.on b{transform:translateY(-2px) scale(1.12)}
-.hero{height:260px;position:relative;align-items:flex-start;background-size:cover;background-position:center;color:#fff}.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(#0b355566,transparent 40%,#0b355599)}
-.hero button{position:relative;z-index:1;background:#ffffffe6;color:var(--navy);display:grid;place-items:center;backdrop-filter:blur(8px)}.hero .ic.big{position:absolute;left:50%;top:50%;margin:-32px;opacity:.9}
-.body{margin-top:-26px;animation:up .5s var(--ease) both}.body h1{font-weight:800}
-.row i{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--soft);color:var(--sea)}
-a.btn{border-radius:26px}.note{opacity:.8}.top,.hero2{background-image:linear-gradient(160deg,#0b4a40,#0f8b6d 70%,#35c2a1)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.hp{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity .9s}.hp.on{opacity:1}
-.hp::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0b4a40d9,#0b4a4066 60%,#0b4a4033),linear-gradient(transparent 55%,#0b4a40cc)}
-@keyframes bob{50%{transform:translateY(-4px) rotate(-1.5deg)}}@keyframes glow{50%{opacity:.5;transform:scale(1.08)}}@keyframes drift{50%{transform:translateX(8px)}}
-.boat{animation:bob 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.sunx{animation:glow 5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.birds{animation:drift 7s ease-in-out infinite}
-html{background:#0b4a40}@media (prefers-color-scheme:dark){html{background:#07140f}}
-.chips{scrollbar-width:none;padding-block:8px!important}.chips::-webkit-scrollbar{display:none}.pl .chips{padding-top:12px!important;padding-bottom:4px!important}
-body{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
-.logo{display:flex;align-items:center;gap:10px}.lm{width:36px;height:36px;border-radius:12px;background:var(--y);color:#0b4a40;display:grid;place-items:center}
-@keyframes ring{from{transform:scale(1);opacity:.8}to{transform:scale(5);opacity:0}}.ring{animation:ring 3s ease-out infinite;transform-box:fill-box;transform-origin:center}.ring.r2{animation-delay:1.5s}
-.sq{width:100%;padding:14px 18px;border-radius:26px;border:0;font:inherit;font-size:16px;margin-top:8px;color:#0c2b27;background:#fff}#sres{display:grid;gap:8px;margin-top:10px}#sres .btn.o{display:flex;flex-direction:column;align-items:flex-start;text-align:left;border-radius:18px;gap:2px}#sres small{opacity:.8;font-weight:500;font-size:12px}#sres p{margin:0;font-size:13px}
-#map{position:fixed;inset:0;max-width:480px;margin:0 auto;background:var(--bg);z-index:5}#mapc{position:absolute;inset:0}
-.mtop{position:absolute;z-index:1000;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;display:flex;align-items:center;gap:10px}.mtop button{width:42px;height:42px;border-radius:50%;border:0;background:var(--card);color:var(--navy);display:grid;place-items:center;box-shadow:var(--sh)}.mtop b{background:var(--card);padding:11px 16px;border-radius:22px;box-shadow:var(--sh);font-size:14px}
-.msheet{position:absolute;z-index:1000;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-height:38%;overflow:auto;background:var(--card);border-radius:22px;padding:8px 14px;box-shadow:var(--sh);animation:up .4s var(--ease) both}.msheet .row:first-child{border-top:0}
-.mk{width:28px;height:28px;border-radius:50%;color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 2px 8px #0006}.mk.me{width:18px;height:18px;background:#2b7fff;box-shadow:0 0 0 6px #2b7fff33}
-.btn+.btn{margin-top:10px}.leaflet-container{font-family:inherit}
-.pl2 .chips{flex-wrap:wrap;overflow:visible;padding-block:0!important}.pl2 .chip{box-shadow:none;background:var(--bg)}.pl2 .chip.on{background:var(--navy);color:#fff}
-@media (prefers-color-scheme:dark){.pl2 .chip.on{background:var(--y);color:#0c2b27}}
-.chips .chip{box-shadow:0 2px 6px -2px #0b2a4533}
-
-
-#gate.gate{display:flex;flex-direction:column;min-height:100vh;min-height:100svh;padding:22px 22px max(22px,env(safe-area-inset-bottom,0px));background:#0b2f3c;color:#fff;position:relative;overflow:hidden}
-#gate .gbg,#gate .gph,#gate .gsh{position:absolute;inset:0;width:100%;height:100%}
-#gate .gph{background-size:cover;background-position:center;opacity:0;transition:opacity .8s}#gate .gph.on{opacity:1}
-#gate .gsh{background:linear-gradient(180deg,#04141c88 0,#04141c00 24%,#04141c00 42%,#04161ccc 74%,#04161cf2 100%)}
-#gate .glogo{position:relative;align-self:center;display:flex;align-items:center;gap:8px;margin-top:34px;font-weight:800;font-size:26px;letter-spacing:.18em;animation:up .6s var(--ease) both}
-#gate .gtxt{position:relative;margin-top:auto;animation:up .7s var(--ease) .1s both}
-#gate h1{font-size:38px;line-height:1.08;font-weight:800;margin:0 0 12px;text-shadow:0 2px 14px #0008}
-#gate .gsub{margin:0 0 24px;max-width:300px;font-size:15px;line-height:1.45;opacity:.92;text-shadow:0 1px 8px #0009}
-#gate .btn{display:flex;align-items:center;justify-content:center;width:100%;padding:16px 18px;border-radius:28px;font-size:16px;font-weight:800}
-#gate .btn.pri{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;box-shadow:0 10px 24px -8px #0f8b6dcc}
-#gate .btn.sec{margin-top:12px;background:#04141c55;color:#fff;border:1.5px solid #ffffffd9;backdrop-filter:blur(6px);box-shadow:none}
-#gate .msg{text-align:center;color:#ffe9a0;margin-top:10px;min-height:0;font-size:13px}
-#gate .gpriv{text-align:center;font-size:12px;line-height:1.45;opacity:.72;margin:14px 0 0}
-#gate .gman{position:absolute;inset:0;z-index:5;background:#04141c99;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
-#gate .gman.open{opacity:1;pointer-events:auto}
-#gate .gsheet{width:100%;max-height:78%;overflow:auto;background:var(--card);color:var(--ink);border-radius:26px 26px 0 0;padding:18px 18px max(18px,env(safe-area-inset-bottom,0px));transform:translateY(30px);transition:transform .3s var(--ease)}
-#gate .gman.open .gsheet{transform:none}
-#gate .gshh{display:flex;align-items:center;justify-content:space-between;font-size:18px;margin-bottom:12px}
-#gate .gshh button{width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--ink);font-size:14px;cursor:pointer}
-#gate .sq{margin:0;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
-#gate #sres .btn.o{background:var(--bg);color:var(--ink);border:1px solid var(--line);padding:12px 16px;font-size:15px;backdrop-filter:none}
-#gate #sres p{color:var(--mut)}
-
-
-#tabHome{background:var(--card);min-height:100vh}
-.tb{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 6px}
-.tlogo{display:flex;align-items:center;gap:7px;font-weight:800;font-size:20px;letter-spacing:.14em;color:var(--ink)}
-.city{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 12px;border-radius:20px;font-weight:700;font-size:13px;cursor:pointer;max-width:50%}.city span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sf{display:flex;align-items:center;gap:10px;margin:8px 16px 0;padding:0 14px;height:46px;border-radius:24px;border:1px solid var(--line);background:var(--bg);color:var(--mut)}
-.sf input{flex:1;border:0;background:none;outline:0;font:inherit;font-size:14px;color:var(--ink);min-width:0}
-.cg{display:flex;overflow-x:auto;gap:10px;padding:14px 16px 6px;scrollbar-width:none}.cg::-webkit-scrollbar{display:none}.cc{flex:0 0 calc(25% - 8px);min-width:74px;background:var(--card);border:1px solid var(--line);box-shadow:none}
-#tabHome>.chips{padding-inline:16px}
-#mini{position:relative;isolation:isolate;height:190px;margin:12px 16px 0;border-radius:20px;overflow:hidden;box-shadow:var(--sh);background:#cfe6df;cursor:pointer}#minic{position:absolute;inset:0}
-#mini .mb{position:absolute;z-index:500;right:10px;bottom:10px;border:0;background:#fff;color:var(--sea);font-weight:800;font-size:12px;padding:8px 12px;border-radius:18px;box-shadow:var(--sh);display:flex;gap:6px;align-items:center;cursor:pointer}
-.mk.s{width:16px;height:16px;border-width:2px}
-.h2r{display:flex;align-items:center;justify-content:space-between;margin:20px 16px 0}.h2r .h2t{margin:0}.h2r button{border:0;background:none;color:var(--sea);font-weight:800;font-size:13px;cursor:pointer}
-#list .card{margin:10px 16px;padding:10px 12px;gap:12px;align-items:center;box-shadow:none;border:1px solid var(--line)}
-#list .th{width:64px;min-height:64px;height:64px;border-radius:14px}
-#list .kl,#list .pr .pill:nth-child(2){display:none}#list .cb{padding-right:34px}#list .add{top:50%;margin-top:-17px}
-.nav{z-index:20}
-
-
-#plan{min-height:100vh;background:var(--card)}
-.phero{position:relative;height:215px;overflow:hidden;background:#0b2f3c;color:#fff}
-#pph,#pph .pbg,#plan .gph,.pshade{position:absolute;inset:0;width:100%;height:100%}
-#plan .gph{background-size:cover;background-position:center;opacity:0;transition:opacity .8s}#plan .gph.on{opacity:1}
-.pshade{background:linear-gradient(180deg,#04141c77,#04141c00 38%,#04141cd0)}
-.pback{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:14px;width:40px;height:40px;border-radius:50%;border:0;background:#04141c66;color:#fff;display:grid;place-items:center;backdrop-filter:blur(6px);cursor:pointer}
-.ptxt{position:absolute;left:20px;right:20px;bottom:44px;animation:up .6s var(--ease) both}
-.ptxt h1{margin:0 0 6px;font-size:26px;font-weight:800;text-shadow:0 2px 12px #0008}.ptxt p{margin:0;font-size:14px;line-height:1.4;opacity:.92;text-shadow:0 1px 8px #0009}
-.psheet{position:relative;margin-top:-26px;background:var(--card);border-radius:26px 26px 0 0;padding:18px 16px 30px;color:var(--ink)}
-.prow{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:transform .15s}.prow:active{transform:scale(.98)}
-.prow>.ic:first-child{color:var(--mut)}.prow .pt{flex:1;display:flex;flex-direction:column;gap:2px}.prow small{font-size:12px;color:var(--mut)}.prow b{font-size:15px;font-weight:800}.prow>.ic:last-child{color:var(--mut)}
-.pint{border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin:2px 0 18px}.pint small{font-size:12px;color:var(--mut);font-weight:700}
-.pch{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.ichip{border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:20px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:.2s}.ichip.on{background:color-mix(in srgb,var(--sea) 16%,transparent);border-color:var(--sea);color:var(--sea)}
-#plan .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}
-#plan #planResult .btn{background:var(--navy);color:#fff;box-shadow:none}#plan #planResult .btn.s{background:var(--sea)}
-#planResult{margin-top:6px}
-.psel{position:fixed;inset:0;z-index:60;background:#04141c99;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}.psel.open{opacity:1;pointer-events:auto}
-.psh{width:100%;max-width:480px;background:var(--card);color:var(--ink);border-radius:26px 26px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom,0px))}
-.pshh{display:flex;align-items:center;justify-content:space-between;font-size:18px;margin-bottom:10px}.pshh button{width:34px;height:34px;border-radius:50%;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
-.popt{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;color:var(--ink);font:inherit;font-weight:700;font-size:16px;padding:14px 4px;border-top:1px solid var(--line);cursor:pointer}.popt i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line)}.popt.on i{border:6px solid var(--sea)}
-
-
-#planres{min-height:100vh;background:var(--card);padding-bottom:110px}
-.rh{display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 8px}
-.rb{flex:none;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;cursor:pointer}
-.rh h1{margin:0;font-size:22px;font-weight:800}.rsub{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--mut);margin-top:3px}.rsub .dot{width:8px;height:8px;border-radius:50%;background:#1fa860}
-#resmap{position:relative;isolation:isolate;height:190px;margin:10px 16px 6px;border-radius:20px;overflow:hidden;box-shadow:var(--sh);background:#cfe6df}#resmc{position:absolute;inset:0}
-#resmap .mb{position:absolute;z-index:500;right:10px;bottom:10px;border:0;background:#fff;color:var(--sea);font-weight:800;font-size:12px;padding:8px 12px;border-radius:18px;box-shadow:var(--sh);display:flex;gap:6px;align-items:center;cursor:pointer}
-.stop{position:relative;display:flex;gap:12px;align-items:flex-start;padding:14px 16px;animation:up .5s var(--ease) both}
-.stop:not(:last-child)::before{content:"";position:absolute;left:31px;top:46px;bottom:-4px;width:2px;background:var(--line)}
-.sn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--sea);color:#fff;font-weight:800;font-size:14px;display:grid;place-items:center;position:relative}
-.sb{flex:1;min-width:0}.sb b{display:block;font-size:16px;font-weight:800;line-height:1.25}.sm{display:block;font-size:12.5px;color:var(--mut);margin:3px 0 5px}.sb p{margin:0;font-size:13px;color:var(--mut);line-height:1.4}
-.sl{border:0;background:none;color:var(--sea);font-weight:800;font-size:13px;padding:6px 0 0;cursor:pointer}
-#resList .th{flex:none;width:76px;min-height:76px;height:76px;border-radius:14px}
-#planres .note{padding:6px 20px;text-align:left}
-.rg{display:block;text-align:center;color:var(--sea);font-weight:800;font-size:14px;padding:12px;text-decoration:none}
-#resBar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:26px 16px max(14px,env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--card) 38%);z-index:20}
-#planres .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}
-#planres .btn.pgo.done{background:var(--navy)}
-
-
-.hero{height:280px}.body h1{font-size:26px;margin-bottom:4px}.dm{font-size:13px;color:var(--mut);line-height:1.5}.dm .pill{margin-left:4px;vertical-align:1px}
-.dtiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 12px}.dt{display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px}.dt>.ic{color:var(--mut)}
-.dt span{min-width:0}.dt small{display:block;font-size:12px;color:var(--mut)}.dt b{display:block;font-size:13.5px;font-weight:800;overflow-wrap:anywhere}
-.dact{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dact .btn{margin:0;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:26px;padding:14px 10px;font-size:15px;text-decoration:none;box-shadow:none}
-.dact .btn.o2{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}.dact .btn.gr{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff}
-.dd{color:var(--mut);font-size:14px;line-height:1.5;margin:16px 0 0}#wk{font-size:14px;line-height:1.5;color:var(--mut)}
-.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 4px}.gal img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;background:var(--bg)}.gal:empty{display:none}
-
-
-.mtop{left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;background:var(--card);box-shadow:var(--sh);gap:6px}
-.mtop button{width:40px;height:40px;background:none;box-shadow:none;color:var(--ink)}
-.mtop b{flex:1;background:none;box-shadow:none;padding:0;text-align:center;font-size:17px;font-weight:800}
-.mtop::after{content:"";width:40px;flex:none}
-.msheet{padding:6px 16px;max-height:42%}
-.msheet .row{padding:12px 0;gap:12px;cursor:pointer}
-.msheet .row i{width:32px;height:32px;border-radius:50%;background:var(--sea);color:#fff;font-weight:800;font-size:14px;flex:none}
-.msheet .row b{font-size:15px;font-weight:800}.msheet .row small{font-size:12.5px;margin-top:2px}
-.msheet .row::after{content:"›";color:var(--mut);font-size:24px;line-height:1}
-.msheet .meta{font-size:11.5px;margin:4px 0 6px}
-
-
-#ev{min-height:100vh;background:var(--card);padding-bottom:40px}#evc{padding:8px 16px!important}#ev .chip.on{background:var(--sea);border-color:var(--sea);color:#fff}
-.evc{position:relative;margin:12px 16px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--card);cursor:pointer;animation:up .5s var(--ease) both}
-.evc .th{width:100%;height:150px;min-height:150px;border-radius:0}
-.evb{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px 14px}.evb b{display:block;font-size:16px;font-weight:800;line-height:1.25}.evw{display:block;font-size:12.5px;color:var(--mut);margin-top:3px}
-.tag{flex:none;font-size:12px;font-weight:800;padding:5px 10px;border-radius:14px;background:#1fa86022;color:#16864c}.tag.pr{background:var(--bg);color:var(--ink);border:1px solid var(--line)}.tag.no{background:#e5484d1f;color:#d13438}
-.evh{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:#ffffffe6;color:var(--navy);display:grid;place-items:center;z-index:2;cursor:pointer}
-.evn{margin:12px 16px;padding:12px 14px;border-radius:14px;background:var(--soft);color:var(--mut);font-size:13px;line-height:1.45}
-
-
-#food{min-height:100vh;background:var(--card);padding-bottom:40px}#fdc{padding:8px 16px 0!important}#food .chip.on{background:var(--sea);border-color:var(--sea);color:#fff}#food .note{text-align:left;padding:10px 18px 4px}
-.fi{position:relative;display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;animation:up .45s var(--ease) both}
-.fi .th{flex:none;width:76px;min-height:76px;height:76px;border-radius:14px}.fi .fb{flex:1;min-width:0;padding-right:36px}.fi b{display:block;font-size:16px;font-weight:800;line-height:1.25}
-.fi .fs{display:block;font-size:12.5px;color:var(--mut);margin:3px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fi .pr{margin:0}
-.fi .fh{position:absolute;top:50%;right:16px;margin-top:-18px;width:36px;height:36px;border:0;background:none;color:var(--mut);display:grid;place-items:center;cursor:pointer}.fi .fh .ic.fill{color:#e5484d}
-
-
-#tabSaved{background:var(--card);min-height:100vh;padding-bottom:150px}.mh h1{margin:0;padding:18px 16px 12px;font-size:24px;font-weight:800}
-.seg{display:flex;gap:8px;padding:0 16px 4px}.seg button{flex:1;border:0;border-radius:20px;padding:10px 6px;font-weight:800;font-size:14px;background:var(--bg);color:var(--mut);cursor:pointer;transition:.2s}.seg button.on{background:var(--sea);color:#fff}
-.mp{position:relative;display:flex;gap:12px;align-items:center;margin:12px 16px 0;padding:10px;border:1px solid var(--line);border-radius:18px;background:var(--card);cursor:pointer;animation:up .45s var(--ease) both}
-.mp .th{flex:none;width:84px;min-height:84px;height:84px;border-radius:14px}.mp .mb2{flex:1;min-width:0;padding-right:30px}.mp b{display:block;font-size:15px;font-weight:800;line-height:1.25}.mp .ms{display:block;font-size:12.5px;color:var(--mut);margin-top:4px}
-.mm{position:absolute;top:8px;right:8px;width:34px;height:34px;border:0;background:none;color:var(--mut);font-size:20px;font-weight:800;cursor:pointer}
-.mnew{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:calc(72px + env(safe-area-inset-bottom,0px));padding:0 16px;z-index:19}
-#tabSaved .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}
-.popt.red{color:#d13438}
-
-
-#tabProfile{background:var(--card);min-height:100vh;padding-bottom:20px}
-.pfh{display:flex;align-items:center;gap:14px;padding:22px 16px 14px}.av{flex:none;width:64px;height:64px;border-radius:50%;background:color-mix(in srgb,var(--sea) 16%,transparent);color:var(--sea);display:grid;place-items:center}
-.pfh b{display:block;font-size:20px;font-weight:800}.pfh small{display:block;color:var(--mut);font-size:13px;margin-top:3px;line-height:1.35}
-.pfl{margin:6px 0 0}.pfr{display:flex;align-items:center;gap:14px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);padding:16px;font:inherit;font-weight:700;font-size:15px;text-align:left;cursor:pointer}.pfr span{flex:1}.pfr .ic{color:var(--mut)}.pfl .pfr:last-child{border-bottom:1px solid var(--line)}
-.promo{position:relative;height:150px;margin:20px 16px 0;border-radius:20px;overflow:hidden;background:#0b2f3c;color:#fff}.promo .pbg,.promo .gph,.promo .pshade{position:absolute;inset:0;width:100%;height:100%}
-.promo .gph{background-size:cover;background-position:center;opacity:0;transition:opacity .8s}.promo .gph.on{opacity:1}.promo p{position:absolute;left:16px;bottom:14px;margin:0;font-size:20px;font-weight:800;line-height:1.2;text-shadow:0 2px 10px #0008}
-#pfsel .psh{max-height:85vh;overflow:auto}.pfb{font-size:14px;line-height:1.55;color:var(--mut)}.pfb p{margin:0 0 12px}.pfb b{color:var(--ink)}.pfb a{color:var(--sea);font-weight:700}
-.pfb .btn{margin-top:6px}.pfb .btn.red{background:#e5484d1f;color:#d13438;box-shadow:none}
-
-
-#priv{display:flex;flex-direction:column;min-height:100vh;min-height:100svh;padding:18px 20px max(22px,env(safe-area-inset-bottom,0px));background:var(--card);color:var(--ink)}
-#priv .pvc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 8px;animation:up .6s var(--ease) both}
-#priv .pva{width:240px;max-width:75%;margin-bottom:26px}#priv .flt{animation:flt 3.2s ease-in-out infinite}
-#priv h1{margin:0 0 12px;font-size:24px;font-weight:800;line-height:1.2}#priv p{margin:0;max-width:300px;color:var(--mut);font-size:15px;line-height:1.5}
-#priv .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}
-
-
-#man{min-height:100vh;background:var(--card);padding-bottom:110px}#man .rh h1{font-size:20px}
-.mrow{display:flex;align-items:center;gap:14px;padding:11px 16px;cursor:pointer;animation:up .4s var(--ease) both}
-.mav{flex:none;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#35c2a1,#0b4a40) center/cover;color:#fff;font-weight:800;font-size:18px;display:grid;place-items:center}
-.mrow .mt{flex:1;min-width:0}.mrow b{display:block;font-size:16px;font-weight:800}.mrow small{display:block;color:var(--mut);font-size:13px;margin-top:2px}
-.mrad{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);transition:.15s}.mrow.on .mrad{border:7px solid var(--sea)}
-#sres{margin-top:8px;display:block}#sres p{padding:14px 18px;color:var(--mut)}
-.mbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:26px 16px max(14px,env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--card) 38%);z-index:20}
-#man .btn.pgo{background:linear-gradient(180deg,#13987a,#0e7f64);color:#fff;border-radius:28px;padding:16px;box-shadow:0 10px 24px -8px #0f8b6dcc}#man .btn.pgo:disabled{opacity:.45;box-shadow:none}
-#multi,#partners{min-height:100vh;background:var(--card);padding-bottom:40px}#multi .chip.on{background:var(--sea);border-color:var(--sea);color:#fff}#mdList .th{flex:none;width:76px;min-height:76px;height:76px;border-radius:14px}
-.prem{margin-left:auto;background:#f5b942;color:#4a3000;font-size:12px;font-weight:800;padding:4px 10px;border-radius:99px;font-style:normal}
-.mdh{padding:14px 16px 0;font-weight:800;font-size:17px;display:flex;justify-content:space-between;align-items:center}.mdh a{font-size:13px;color:var(--sea);font-weight:700;text-decoration:none}
-.ptc{padding:8px 20px}.ptl{list-style:none;padding:0;margin:18px 0}.ptl li{padding:12px 0 12px 34px;position:relative;font-weight:600;border-top:1px solid var(--line)}.ptl li::before{content:"✓";position:absolute;left:0;top:11px;width:22px;height:22px;border-radius:50%;background:var(--sea);color:#fff;font-size:13px;text-align:center;line-height:22px}
-</style></head><body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-jesti" viewBox="0 0 24 24"><path d="M3 2v7a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V2M6 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/></symbol><symbol id="i-videti" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M12 3 3 8h18z"/></symbol><symbol id="i-dogadjaji" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol><symbol id="i-odmoriti" viewBox="0 0 24 24"><path d="M2 8c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 14c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2M2 20c2 0 2-2 5-2s3 2 5 2 3-2 5-2 3 2 5 2"/></symbol><symbol id="i-prevoz" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4h-2a2 2 0 0 1-4 0H9a2 2 0 0 1-4 0H3zM3 13h18"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 17v3a2 2 0 0 1-2.2 2A19 19 0 0 1 2 4.2 2 2 0 0 1 4 2h3l2 5-2.5 1.5a14 14 0 0 0 6 6L16 12l5 2z"/></symbol><symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 10v10h14V10"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol><symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/></symbol><symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 2v5M7 12l3-3 3 1 3 3"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="M3 13l2-6h14l2 6v4H3zM7 17v2M17 17v2"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15M15 6v15"/></symbol></defs></svg>
-<div id="gate" class="gate"><svg class="gbg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>
-<linearGradient id="gsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d3550"/><stop offset=".55" stop-color="#2d6a86"/><stop offset="1" stop-color="#eaa66b"/></linearGradient>
-<linearGradient id="gwat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d98f5e"/><stop offset=".07" stop-color="#3f7389"/><stop offset=".4" stop-color="#145064"/><stop offset="1" stop-color="#082a36"/></linearGradient>
-<radialGradient id="gsun"><stop offset="0" stop-color="#ffc77a" stop-opacity=".95"/><stop offset="1" stop-color="#ffc77a" stop-opacity="0"/></radialGradient></defs>
-<rect width="390" height="440" fill="url(#gsky)"/><circle class="sunx" cx="250" cy="352" r="170" fill="url(#gsun)"/>
-<g fill="#ffd9ad" opacity=".28"><ellipse cx="90" cy="215" rx="90" ry="9"/><ellipse cx="300" cy="190" rx="80" ry="7"/><ellipse cx="200" cy="262" rx="110" ry="8"/></g>
-<path d="M0 335L60 292L120 322L190 262L260 318L330 282L390 312V445H0Z" fill="#566a8c" opacity=".92"/>
-<path d="M0 365L40 335L110 352L170 302L230 348L300 322L390 352V445H0Z" fill="#37536e"/>
-<path d="M0 235L70 262L150 328L212 405L236 445H0Z" fill="#1c3d4b"/>
-<path d="M54 272L78 288L68 296L98 312L88 322L124 340L116 350L156 372L150 380L190 400" fill="none" stroke="#f0cfa0" stroke-width="1.4" opacity=".7"/>
-<path d="M390 322L336 356L284 408L262 445H390Z" fill="#23434f"/>
-<rect y="434" width="390" height="410" fill="url(#gwat)"/>
-<rect x="214" y="417" width="18" height="17" fill="#c9a47a"/><path d="M213 417L223.0 411L233 417Z" fill="#c4623a"/><rect x="222.0" y="421" width="2" height="3" fill="#ffd27a"/><rect x="234" y="423" width="14" height="11" fill="#c9a47a"/><path d="M233 423L241.0 417L249 423Z" fill="#a2432a"/><rect x="240.0" y="427" width="2" height="3" fill="#ffd27a"/><rect x="248" y="418" width="12" height="16" fill="#f0dcc0"/><path d="M247 418L254.0 412L261 418Z" fill="#b5502f"/><rect x="253.0" y="422" width="2" height="3" fill="#ffd27a"/><rect x="262" y="416" width="11" height="18" fill="#c9a47a"/><path d="M261 416L267.5 410L274 416Z" fill="#c4623a"/><rect x="266.5" y="420" width="2" height="3" fill="#ffd27a"/><rect x="275" y="416" width="13" height="18" fill="#e9d3b0"/><path d="M274 416L281.5 410L289 416Z" fill="#a2432a"/><rect x="280.5" y="420" width="2" height="3" fill="#ffd27a"/><rect x="288" y="422" width="14" height="12" fill="#e9d3b0"/><path d="M287 422L295.0 416L303 422Z" fill="#c4623a"/><rect x="294.0" y="426" width="2" height="3" fill="#ffd27a"/><rect x="304" y="417" width="14" height="17" fill="#d9b98c"/><path d="M303 417L311.0 411L319 417Z" fill="#a2432a"/><rect x="310.0" y="421" width="2" height="3" fill="#ffd27a"/><rect x="318" y="418" width="12" height="16" fill="#f0dcc0"/><path d="M317 418L324.0 412L331 418Z" fill="#c4623a"/><rect x="330" y="420" width="15" height="14" fill="#d9b98c"/><path d="M329 420L337.5 414L346 420Z" fill="#a2432a"/><rect x="336.5" y="424" width="2" height="3" fill="#ffd27a"/><rect x="345" y="419" width="12" height="15" fill="#e9d3b0"/><path d="M344 419L351.0 413L358 419Z" fill="#c4623a"/><rect x="350.0" y="423" width="2" height="3" fill="#ffd27a"/><rect x="357" y="422" width="11" height="12" fill="#d9b98c"/><path d="M356 422L362.5 416L369 422Z" fill="#b5502f"/><rect x="361.5" y="426" width="2" height="3" fill="#ffd27a"/><rect x="370" y="419" width="17" height="15" fill="#e9d3b0"/><path d="M369 419L378.5 413L388 419Z" fill="#a2432a"/><rect x="377.5" y="423" width="2" height="3" fill="#ffd27a"/><rect x="296" y="394" width="9" height="40" fill="#ecd9b8"/><path d="M294 394Q300.5 380 307 394Z" fill="#b5502f"/><rect x="299.5" y="374" width="2" height="8" fill="#ecd9b8"/><g opacity=".28"><rect x="214" y="436" width="18" height="14" fill="#d98b55"/><rect x="234" y="436" width="14" height="9" fill="#d98b55"/><rect x="248" y="436" width="12" height="13" fill="#d98b55"/><rect x="262" y="436" width="11" height="14" fill="#d98b55"/><rect x="275" y="436" width="13" height="14" fill="#d98b55"/><rect x="288" y="436" width="14" height="10" fill="#d98b55"/><rect x="304" y="436" width="14" height="14" fill="#d98b55"/><rect x="318" y="436" width="12" height="13" fill="#d98b55"/><rect x="330" y="436" width="15" height="11" fill="#d98b55"/><rect x="345" y="436" width="12" height="12" fill="#d98b55"/><rect x="357" y="436" width="11" height="10" fill="#d98b55"/><rect x="370" y="436" width="17" height="12" fill="#d98b55"/></g>
-<g class="birds" fill="none" stroke="#fff" stroke-width="1.3" opacity=".22"><path d="M40 470h60M200 492h110M80 520h90M240 548h120M20 580h70M170 610h130M60 660h110"/></g>
-<g class="boat"><path d="M112 505h30l-5 7h-20z" fill="#f4efe6"/><path d="M127 487l11 16h-11z" fill="#fff" opacity=".9"/></g></svg><div class="gph" id="gph"></div><div class="gsh"></div>
- <div class="glogo"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.5 16.5 4 12.8 4 9.5a8 8 0 0 1 16 0c0 3.3-2.5 7-8 12.5z" fill="#fff"/><circle cx="12" cy="9.5" r="3.2" fill="#0f8b6d"/></svg><span>BLIZU</span></div>
- <div class="gtxt"><h1>Stigao si.<br>Šta sada?</h1>
- <p class="gsub">Otkrij najbolja mjesta, događaje i aktivnosti u tvojoj blizini.</p>
- <button class="btn pri" onclick="askLoc()">Podijeli lokaciju</button>
- <button class="btn sec" onclick="man(1)">Izaberi lokaciju ručno</button>
- <div class="msg" id="msg"></div>
- <p class="gpriv">Tvoja lokacija se koristi samo na uređaju<br>i ne čuva se na serveru.</p></div>
+:root{--navy:#062b3a;--navy2:#0b4052;--teal:#12647a;--yellow:#ffc400;--cream:#f7f5f2;--ink:#13212a;--muted:#71808a;--white:#fff;--line:#dfe2e4;--radius:24px}
+*{box-sizing:border-box}html,body{margin:0;background:#dfe4e7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}button{font:inherit;border:0;cursor:pointer}.app{width:100%;max-width:430px;min-height:100svh;margin:auto;background:var(--cream);position:relative;overflow:hidden;box-shadow:0 0 40px #0002}.screen{display:none;min-height:100svh;padding-bottom:82px}.screen.active{display:block}.dark{background:linear-gradient(180deg,#052b3a,#061d28);color:white}.hero{height:100svh;position:relative;background-image:linear-gradient(180deg,#00182540 0%,#00182518 35%,#00182570 65%,#001520ee 100%),url('img/gate.jpg');background-size:cover;background-position:center 35%;display:flex;flex-direction:column;justify-content:flex-end;padding:34px 24px 30px}.brand{position:absolute;top:76px;left:0;right:0;text-align:center;font-size:43px;font-weight:800;letter-spacing:-2px;color:white}.pin{color:var(--yellow);font-size:49px;vertical-align:-5px;margin-right:5px}.hero h1{font-size:39px;line-height:.98;margin:0 0 18px;letter-spacing:-1.7px}.yellow{color:var(--yellow)}.hero p{font-size:17px;line-height:1.35;margin:0 0 26px;max-width:320px}.primary{background:var(--yellow);color:#111;border-radius:999px;padding:16px 18px;font-weight:800;box-shadow:0 7px 20px #0003}.outline{background:transparent;color:white;border:1px solid white;border-radius:999px;padding:14px 18px;font-weight:700;margin-top:10px}.tiny-links{text-align:center;margin-top:22px;color:#d7e0e5;font-size:14px;word-spacing:10px}
+.topbar{height:92px;padding:38px 18px 12px;display:flex;align-items:center;gap:12px}.topbar .logo{font-weight:800;font-size:22px;flex:1}.topbar .pin{font-size:28px}.iconbtn{width:38px;height:38px;border-radius:50%;background:#ffffff16;color:#fff;font-size:21px}.homebody{padding:0 18px}.location{display:flex;align-items:center;gap:8px;background:#ffffff12;border:1px solid #ffffff22;padding:10px 13px;border-radius:16px;font-size:14px}.weather{margin-left:auto}.question{font-size:24px;line-height:1.05;margin:20px 0 12px}.timegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.chip{background:#0e6075;color:#fff;border-radius:18px;padding:13px;text-align:center;font-weight:700;border:1px solid #ffffff0f}.chip.sel{background:var(--yellow);color:#172028}.day{grid-column:1/-1}.section-title{font-size:21px;margin:22px 0 12px}.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cat{background:#fff;border-radius:16px;padding:12px 6px 10px;text-align:center;min-height:76px;font-weight:700;color:#1c2730}.cat .ico{font-size:26px;display:block;margin-bottom:3px}.cat.sel{outline:3px solid var(--yellow);background:#fffef1}.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(430px,100%);height:78px;background:#fff;border-top:1px solid #ddd;display:grid;grid-template-columns:repeat(4,1fr);z-index:20}.bottom button{background:none;color:#66717a;font-size:12px}.bottom button span{display:block;font-size:22px;margin-bottom:2px}.bottom button.active{color:#e5af00;font-weight:800}.bottom.darknav{background:#052432;border-color:#ffffff18}.bottom.darknav button{color:#aabac2}.bottom.darknav button.active{color:var(--yellow)}
+.planhead{position:relative;height:225px;background:linear-gradient(180deg,#0000,#001a2bde),url('https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20old%20town%201.jpg?width=1400') center/cover;padding:42px 18px 18px;display:flex;flex-direction:column;justify-content:flex-end}.back{position:absolute;top:35px;left:17px;color:white;font-size:27px;background:#0005;border-radius:50%;width:38px;height:38px}.planhead h2{font-size:24px;margin:0 0 4px}.planhead p{margin:0;font-size:14px;max-width:310px}.planlist{background:#f8f6f3;color:#1a2328;padding:8px 18px 18px}.step{display:grid;grid-template-columns:70px 1fr 22px;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #dfe0df}.thumb{width:68px;height:68px;border-radius:50%;object-fit:cover}.step .mins{color:#e3aa00;font-weight:800;font-size:12px}.step h3{margin:2px 0 3px;font-size:14px}.step p{margin:0;color:#70777b;font-size:12px;line-height:1.2}.total{display:flex;justify-content:space-between;padding:16px 2px;font-weight:800}.mapbtn{width:100%;background:var(--yellow);border-radius:999px;padding:15px;font-weight:800}.mapwrap{padding:14px 14px 0;background:#fff}.mapimg{width:100%;height:450px;object-fit:cover;border-radius:22px}.place-card{background:#fff;border-radius:22px 22px 0 0;margin-top:-6px;position:relative;padding:16px}.place-row{display:flex;gap:12px;align-items:center}.place-row img{width:66px;height:66px;border-radius:14px;object-fit:cover}.place-row h3{margin:0 0 4px;font-size:15px}.rating{font-size:13px}.actionrow{display:flex;gap:10px;margin-top:14px}.secondary{background:#f0eff2;border-radius:999px;padding:13px;flex:1;font-weight:700}.discover{background:#f7f5f2;padding:18px}.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:12px}.pill{white-space:nowrap;padding:9px 13px;border-radius:999px;background:#e6eaec}.pill.active{background:var(--yellow)}.card{background:#fff;border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 2px 10px #0000000a}.card img{width:100%;height:155px;object-fit:cover}.cardbody{padding:12px}.cardbody h3{margin:0 0 5px;font-size:16px}.cardbody p{margin:0;color:#6b747b;font-size:13px}.eventhero{height:310px;background:linear-gradient(180deg,#0000,#001422d9),url('https://commons.wikimedia.org/wiki/Special:FilePath/Boka%20Night%2C%20boats%2001.jpg?width=1400') center/cover;padding:40px 18px 20px;display:flex;flex-direction:column;justify-content:flex-end;color:white}.eventhero .tag{display:inline-block;background:#a900d9;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800;width:max-content;margin-bottom:8px}.eventhero h2{font-size:27px;line-height:1.05;margin:0 0 10px}.detailbody{padding:20px}.detailbody p{line-height:1.45;color:#66717a}.savebtn{width:100%;background:#fff;border:1px solid #ddd;border-radius:999px;padding:15px;font-weight:800}.saved{padding:20px}.savedcard{display:flex;gap:12px;background:#fff;border-radius:18px;padding:10px;margin-bottom:10px}.savedcard img{width:95px;height:80px;border-radius:13px;object-fit:cover}.savedcard h3{margin:4px 0;font-size:15px}.savedcard p{margin:0;color:#777;font-size:12px}.profile{padding:0 18px 30px}.profilehero{height:205px;border-radius:0 0 26px 26px;background:linear-gradient(180deg,#0002,#001a2ac8),url('https://commons.wikimedia.org/wiki/Special:FilePath/Bay-of-Kotor-Perast.jpg?width=1400') center/cover;display:flex;align-items:flex-end;padding:18px;color:#fff}.avatar{width:60px;height:60px;border-radius:50%;border:3px solid #fff;object-fit:cover;margin-right:12px}.profile h2{margin:0;font-size:22px}.photo-credit{font-size:10px;line-height:1.4;color:#7b858b;background:#eef0f1;border-radius:12px;padding:10px 12px;margin:10px 0 12px}.menuitem{background:#fff;padding:17px;border-radius:14px;margin:8px 0;display:flex;align-items:center;gap:12px;font-weight:700}.menuitem span:last-child{margin-left:auto;color:#7a8388}.plancta{margin:18px 0;background:#fff;border-radius:18px;padding:17px;display:flex;gap:12px;align-items:center}.star{font-size:29px;color:var(--yellow)}.hidden{display:none!important}
+@media(min-width:700px){body{padding:20px}.app{border-radius:34px;min-height:calc(100svh - 40px)}.bottom{bottom:20px;border-radius:0 0 34px 34px}}
+.heart{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;background:#fffffff0;color:#13212a;font-size:19px;display:grid;place-items:center;box-shadow:0 2px 8px #0003}
+.heart.on{color:#e03a4e}
+.card{position:relative;cursor:pointer}
+.stops{display:flex;gap:8px;padding:12px 4px 0;background:#fff}.stops button{width:36px;height:36px;border-radius:50%;background:#062b3a;color:#fff;font-weight:800}.stops button.on{background:var(--yellow);color:#111}
+.mapimg{border:0;display:block}
+.srch{display:block;width:calc(100% - 36px);margin:10px 18px 0;height:42px;border-radius:21px;border:1px solid #d6dbde;padding:0 16px;font:inherit;background:#fff;color:#13212a}
+#sheet{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center;z-index:100}#sheet.on{display:flex}
+.sbox{background:#fff;width:min(430px,100%);border-radius:24px 24px 0 0;padding:22px 20px 26px;max-height:80svh;overflow:auto;color:#13212a}
+.sbox b{font-size:19px;display:block;margin-bottom:10px}.sbox p,.sbox li{color:#4a5860;line-height:1.5;font-size:15px;margin:6px 0}.sbox ol{padding-left:20px;margin:6px 0}.sbox .primary{width:100%;margin-top:14px}
+#toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,10px);background:#052b3a;color:#fff;font-weight:700;font-size:14px;padding:11px 18px;border-radius:22px;opacity:0;pointer-events:none;transition:.25s;z-index:120;max-width:86vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
+.menuitem,.plancta,.step,.savedcard{cursor:pointer}
+.photo-credit{display:none}
+.savebtn.on{background:#fff4d1;border-color:var(--yellow)}
+.detailbody a.primary{display:block;text-align:center;text-decoration:none;width:100%;margin-top:10px;box-sizing:border-box}
+.savedcard{position:relative;align-items:center}.savedcard>div{flex:1;min-width:0}.savedcard b.heart{position:static;box-shadow:none;background:none;width:34px;height:34px;flex:none}
+.empty{padding:36px 10px;text-align:center;color:#6b747b;line-height:1.5}
+.hidden{display:none!important}
+</style></head>
+<body>
+<div class="app">
+<section id="welcome" class="screen active dark"><div class="hero"><div class="brand"><span class="pin">●</span>Blizu</div><div><h1>Stigao si.<br><span class="yellow">Šta sada?</span></h1><p>Tvoj lokalni vodič za nezaboravne trenutke.</p><button class="primary" onclick="go('home')">➤ &nbsp; Koristi moju lokaciju</button><button class="outline" onclick="go('home')">⌖ &nbsp; Ili izaberi grad</button><div class="tiny-links">Otkrij · Doživi · Uživaj</div></div></div></section>
+<section id="home" class="screen dark"><header class="topbar"><button class="iconbtn">☰</button><div class="logo"><span class="pin">●</span>Blizu</div><div>☀️ 26°C</div><button class="iconbtn">♧</button></header><div class="homebody"><div class="location">⌖ Kotor, Crna Gora⌄ <span class="weather">☀️</span></div><h2 class="question">Koliko vremena<br>imaš?</h2><div class="timegrid"><button class="chip" data-time="30 min">◷ 30 min</button><button class="chip" data-time="1 h">◷ 1 h</button><button class="chip sel" data-time="2 h">◷ 2 h</button><button class="chip" data-time="3–4 h">◷ 3–4 h</button><button class="chip day" data-time="Ceo dan">▣ Ceo dan</button></div><h2 class="section-title">Šta ti se radi?</h2><div class="cats"><button class="cat sel" data-cat="Hrana"><span class="ico">🍴</span>Hrana</button><button class="cat" data-cat="Kafa"><span class="ico">☕</span>Kafa</button><button class="cat" data-cat="Atrakcije"><span class="ico">♧</span>Atrakcije</button><button class="cat" data-cat="More"><span class="ico">🌴</span>More</button><button class="cat" data-cat="Kultura"><span class="ico">▥</span>Kultura</button><button class="cat" data-cat="Priroda"><span class="ico">⛰</span>Priroda</button><button class="cat" data-cat="Događaji"><span class="ico">▣</span>Događaji</button><button class="cat" data-cat="Porodica"><span class="ico">👨‍👩‍👧</span>Porodica</button><button class="cat" data-cat="Par"><span class="ico">♥</span>Par</button></div><button class="primary" style="width:100%;margin:18px 0" onclick="go('plan')">➤ &nbsp; Pronađi moj plan</button></div><nav class="bottom darknav"><button class="active" onclick="go('home')"><span>⌂</span>Početna</button><button onclick="go('map')"><span>⌖</span>Mapa</button><button onclick="go('saved')"><span>♡</span>Sačuvano</button><button onclick="go('discover')"><span>⁙</span>Otkrij</button></nav></section>
+<section id="plan" class="screen"><div class="planhead"><button class="back" onclick="go('home')">‹</button><h2 id="planTitle">Tvoj plan za 2 sata</h2><p id="planSub">Imamo ideju! Savršen plan za 2h u Kotoru, prilagođen tvom vremenu i raspoloženju.</p></div><div class="planlist"><div id="planSteps"></div><div class="total"><span id="planTotal">◷ Ukupno: 2h 00min</span><span id="planCount">4 stanice</span></div><button class="mapbtn" onclick="go('map')">➤ &nbsp; Prikaži na mapi</button></div><nav class="bottom"><button onclick="go('home')"><span>⌂</span>Početna</button><button class="active" onclick="go('map')"><span>⌖</span>Mapa</button><button onclick="go('saved')"><span>♡</span>Sačuvano</button><button onclick="go('profile')"><span>⁙</span>Još</button></nav></section><section id="map" class="screen"><header class="topbar" style="background:#052b3a;color:#fff"><button class="iconbtn" onclick="go('plan')">‹</button><div class="logo">Tvoj plan · 2h 00min</div><button class="iconbtn">⌁</button></header><div class="mapwrap"><img class="mapimg" src="https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20city%20walls.jpg?width=1400"><div class="place-card"><div class="place-row"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400"><div><h3>1 &nbsp; Kafa u Starom gradu <span style="float:right">15 min</span></h3><div style="color:#777;font-size:12px">Stari grad, Kotor</div><div class="rating">⭐ 4.8 (842)</div></div></div><div class="actionrow"><button class="secondary" onclick="go('detail')">▣ Detalji</button><button class="secondary">♡</button></div></div></div><nav class="bottom"><button onclick="go('home')"><span>⌂</span>Početna</button><button class="active"><span>⌖</span>Mapa</button><button onclick="go('saved')"><span>♡</span>Sačuvano</button><button onclick="go('profile')"><span>⁙</span>Još</button></nav></section>
+<section id="detail" class="screen"><div class="eventhero" style="height:270px;background-image:linear-gradient(180deg,#0000,#001422e8),url('https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20old%20town%201.jpg?width=1400')"><button class="back" onclick="go('map')">‹</button><span class="tag" style="background:#0e6075">Mesto</span><h2>Kafa u Starom gradu</h2></div><div class="detailbody"><div style="color:#777;font-size:13px">📍 Stari grad, Kotor · 15 min</div><h2>Mirna pauza između doživljaja</h2><p>Opusti se uz odličnu kafu u srcu Starog grada. Ovo je prva stanica tvog plana, pa imaš dovoljno vremena da uživaš bez žurbe.</p><button class="savebtn">♡ &nbsp; Sačuvaj mesto</button><button class="primary" style="width:100%;margin-top:10px">➤ &nbsp; Otvori rutu</button></div></section>
+<section id="discover" class="screen"><header class="topbar" style="background:#052b3a;color:#fff"><button class="iconbtn" onclick="go('home')">‹</button><div class="logo">Otkrij u blizini</div><button class="iconbtn">⌕</button></header><div class="discover"><div class="tabs" id="discoverTabs"><button class="pill active" data-filter="Sve">Sve</button><button class="pill" data-filter="Hrana">Restorani</button><button class="pill" data-filter="Kafa">Kafa</button><button class="pill" data-filter="Atrakcije">Atrakcije</button><button class="pill" data-filter="More">More</button><button class="pill" data-filter="Kultura">Kultura</button><button class="pill" data-filter="Priroda">Priroda</button><button class="pill" data-filter="Događaji">Događaji</button></div><div id="discoverList"></div></div><nav class="bottom"><button onclick="go('home')"><span>⌂</span>Početna</button><button onclick="go('map')"><span>⌖</span>Mapa</button><button onclick="go('saved')"><span>♡</span>Sačuvano</button><button class="active"><span>⁙</span>Otkrij</button></nav></section><section id="saved" class="screen"><header class="topbar" style="background:#052b3a;color:#fff"><button class="iconbtn" onclick="go('home')">‹</button><div class="logo">Sačuvano</div><button class="iconbtn">⌕</button></header><div class="saved"><div class="tabs"><button class="pill active">Sve</button><button class="pill">Planovi</button><button class="pill">Mesta</button><button class="pill">Događaji</button></div><div class="savedcard"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Bay%20of%20Kotor%20with%20Sveti%20%C4%90or%C4%91e%20and%20Our%20Lady%20of%20the%20Rocks.jpg?width=1400"><div><h3>Restoran Tanja</h3><p>⭐ 4.8 · Sačuvano danas</p></div><b>♥</b></div><div class="savedcard"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Catamaran%20-%20Perast%2C%20Montenegro.jpg?width=1400"><div><h3>Tura brodom po zalivu</h3><p>⭐ 4.9 · Sačuvano juče</p></div><b>♡</b></div></div><nav class="bottom"><button onclick="go('home')"><span>⌂</span>Početna</button><button onclick="go('map')"><span>⌖</span>Mapa</button><button class="active"><span>♡</span>Sačuvano</button><button onclick="go('profile')"><span>⁙</span>Još</button></nav></section>
+<section id="profile" class="screen"><div class="profilehero"><img class="avatar" src="https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20Old%20Town.JPG?width=1400"><div><h2>Dobrodošao,<br>Putniče!</h2><small>Personalizuj svoje preporuke</small></div></div><div class="profile"><div class="photo-credit">Fotografije: Wikimedia Commons — korišćene su fotografije Kotorа, Boke, Starog grada, tvrđave, restorana Dojmi i Bokeljske noći. Licencni uslovi i autori: Wikimedia Commons.</div><div class="plancta"><span class="star">★</span><div><b>Tvoj putnik profil</b><div style="font-size:13px;color:#6c757b">Personalizuj preporuke i sačuvaj omiljene.</div></div><span>›</span></div><div class="menuitem">▣ Moji planovi <span>›</span></div><div class="menuitem">♥ Sačuvana mesta <span>›</span></div><div class="menuitem">♧ Obaveštenja <span style="color:#d33">3 &nbsp;›</span></div><div class="menuitem">? Pomoć i podrška <span>›</span></div><div class="menuitem">ⓘ O aplikaciji <span>›</span></div></div><nav class="bottom"><button onclick="go('home')"><span>⌂</span>Početna</button><button onclick="go('map')"><span>⌖</span>Mapa</button><button onclick="go('saved')"><span>♡</span>Sačuvano</button><button class="active"><span>⁙</span>Još</button></nav></section>
 </div>
-<div id="app" class="hide">
- 
- <div id="tabHome"><div class="tb"><div class="tlogo"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22C6.5 16.5 4 12.8 4 9.5a8 8 0 0 1 16 0c0 3.3-2.5 7-8 12.5z" fill="#0f8b6d"/><circle cx="12" cy="9.5" r="3.2" fill="#fff"/></svg>BLIZU</div><button class="city" onclick="show('gate')"><svg class="ic" width="14" height="14"><use href="#i-pin"/></svg><span id="where"></span><svg class="ic" width="14" height="14" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button></div>
-<label class="sf"><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" type="search" placeholder="Pretraži u blizini…" oninput="Q=this.value;render()" autocomplete="off"></label>
-<div class="cg" id="cat"></div><div class="chips" id="rad" style="margin-top:4px"></div><div class="hide"><div id="vw"></div><div id="radw" class="pl2 hide"><svg id="radar" viewBox="0 0 200 200"></svg><div class="meta2" id="rcount"></div></div></div>
-<div id="mini" onclick="openMap(lastL,'Mapa u blizini',false)"><div id="minic"></div><button class="mb" onclick="event.stopPropagation();openMap(lastL,'Mapa u blizini',false)"><svg class="ic" width="14" height="14"><use href="#i-pin"/></svg>Moje lokacije</button></div>
-<div class="pl"><div class="hd" onclick="pl()"><span><svg class="ic" width="20" height="20"><use href="#i-timer"/></svg></span><div><b>Sklopi mi nešto sada</b><small id="pls">Reci koliko vremena imaš.</small></div><span id="arr">›</span></div><div class="chips hide" id="hrs"></div></div><button class="pfr" style="border:1px solid var(--line);border-radius:16px;margin:10px 0" onclick="mdOpen()"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>Višednevni itinerar</span><i class="prem">Premium</i></button><div class="h2r"><div class="h2t" id="ttl"></div><button id="all" class="hide" onclick="ALL=!ALL;render()">Vidi sve</button></div>
-
- <div class="note" id="st"></div><div id="em" class="hide"></div><div id="list"></div></div>
- <div id="tabSaved" class="hide"><div class="mh"><h1>Moji planovi</h1></div><div class="seg" id="pseg"></div><div id="mplans"></div><div id="slist" class="hide"></div><div class="mnew"><button class="btn pgo" onclick="pl()">Kreiraj novi plan</button></div><div class="psel" id="msel" onclick="if(event.target===this)this.classList.remove('open')"></div></div>
- <div id="tabProfile" class="hide"><div class="pfh"><div class="av"><svg class="ic" width="30" height="30" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><div><b>Gost</b><small>Nalog ti nije potreban. Podaci ostaju na ovom uređaju.</small></div></div><div class="pfl"><button class="pfr" onclick="PS='saved';tab(2)"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4v2h6V4M9 11h6M9 15h6"/></svg><span>Moji planovi</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="PS='places';tab(2)"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg><span>Omiljena mjesta</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="pfSet()"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg><span>Podešavanja</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="pfPriv()"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Privatnost</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="pfHelp()"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg><span>Pomoć i podrška</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="pfAbout()"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>O aplikaciji</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="pfr" onclick="show('partners')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M3 9l1-5h16l1 5M4 9v11h16V9M9 20v-6h6v6"/></svg><span>Za lokalne partnere</span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button></div><div class="promo" id="promo"><div class="gph" id="gph3"></div><div class="pshade"></div><p>Bolja iskustva<br>počinju u blizu.</p></div><div class="psel" id="pfsel" onclick="if(event.target===this)pfClose()"></div></div>
-<div class="note">Podaci: © OpenStreetMap contributors · sunce: Open-Meteo</div>
- <div class="nav"><button id="n1" class="on" onclick="tab(1)"><b><svg class="ic" width="24" height="24"><use href="#i-home"/></svg></b>Početna</button><button id="n2" onclick="tab(2)"><b><svg class="ic" width="24" height="24"><use href="#i-heart"/></svg></b>Planovi</button><button id="n3" onclick="openMap(lastL,'Mapa u blizini',false)"><b><svg class="ic" width="24" height="24"><use href="#i-map"/></svg></b>Mape</button><button id="n4" onclick="tab(4)"><b><svg class="ic" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></b>Profil</button></div>
-</div>
-<div id="map" class="hide"><div id="mapc"></div><div class="mtop"><button onclick="show(BK||'app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><b id="mt"></b></div><div class="msheet" id="msheet"></div></div>
-<div id="det" class="hide"></div>
-<div id="food" class="hide"><div class="rh"><button class="rb" onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><h1>Restorani i kafići</h1></div><div class="chips" id="fdc"></div><div class="note" id="fdn"></div><div id="fdl"></div></div>
-<div id="ev" class="hide"><div class="rh"><button class="rb" onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><h1>Događaji</h1></div><div class="chips" id="evc"></div><div id="evl"></div></div>
-<div id="priv" class="hide"><button class="rb" onclick="show('gate')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><div class="pvc"><svg class="pva" viewBox="0 0 240 190" aria-hidden="true"><ellipse cx="120" cy="150" rx="104" ry="30" fill="#d7f0e8"/><ellipse cx="120" cy="150" rx="66" ry="17" fill="#bfe7da"/>
-<rect x="78" y="22" width="84" height="146" rx="16" fill="var(--card)" stroke="#0c2b27" stroke-width="3"/><rect x="104" y="29" width="32" height="6" rx="3" fill="#0c2b27"/>
-<rect x="87" y="44" width="66" height="114" rx="8" fill="#e6f4ef"/><path d="M87 80Q110 70 120 90T153 84M87 118Q112 108 126 126T153 120M110 44Q104 100 124 158" fill="none" stroke="#fff" stroke-width="5"/>
-<path class="flt" d="M120 128C108 114 105 106 105 98a15 15 0 0 1 30 0c0 8-3 16-15 30z" fill="#0f8b6d"/><circle cx="120" cy="98" r="5.5" fill="#fff"/>
-<g class="flt" style="animation-delay:-1.4s"><path d="M178 38C170 28 168 22 168 17a10 10 0 0 1 20 0c0 5-2 11-10 21z" fill="#ff4d6a"/><circle cx="178" cy="17" r="3.6" fill="#fff"/></g></svg><h1>Tvoja lokacija, tvoja privatnost</h1><p>Koristimo lokaciju samo na tvom uređaju da bismo ti prikazali relevantne preporuke. Lokacija se ne čuva na serveru.</p></div><button class="btn pgo" onclick="pvOk()">Razumijem</button></div>
-<div id="man" class="hide"><div class="rh"><button class="rb" onclick="show('gate')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><h1>Izaberi lokaciju ručno</h1></div>
-<label class="sf"><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="sq" type="search" placeholder="Pretraži grad, mjesto…" oninput="srch(this.value)" autocomplete="off"></label>
-<div id="sres"></div><div class="mbar"><button class="btn pgo" id="mok" disabled onclick="mOk()">Potvrdi</button></div></div>
-<div id="planres" class="hide"><div class="rh"><button class="rb" onclick="resBack()" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><div><h1 id="rt"></h1><div class="rsub" id="rs"></div></div></div>
-<div id="resmap"><div id="resmc"></div><button class="mb" id="rmb"><svg class="ic" width="14" height="14"><use href="#i-map"/></svg>Pogledaj na mapi</button></div>
-<div id="resList"></div><div class="note" id="rn"></div><a class="rg" id="rg" target="_blank" rel="noopener">Otvori rutu u Google mapama</a>
-<div id="resBar"><button class="btn pgo" id="rsave">Sačuvaj plan</button></div></div>
-<div id="multi" class="hide"><div class="rh"><button class="rb" onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><div><h1 id="mdt"></h1><div class="rsub" id="mds"></div></div><span class="prem">Premium</span></div><div class="chips" id="mdc"></div><div id="mdList"></div><div class="note">Prijedlog se pravi od mjesta u tvojoj blizini. Provjeri radno vrijeme prije polaska.</div></div>
-<div id="partners" class="hide"><div class="rh"><button class="rb" onclick="show('app');tab(4)" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><h1>Za lokalne partnere</h1></div><div class="ptc"><p>Povežite se sa putnicima i povećajte vidljivost svog biznisa.</p><ul class="ptl"><li>Više rezervacija i posjeta</li><li>Upravljanje ponudom i događajima</li><li>Detaljna analitika</li><li>Posebne promocije i popusti</li></ul><button class="btn pgo" onclick="ptMore()">Saznajte više</button><div class="note" id="ptm"></div></div></div>
-<div id="plan" class="hide"><div class="phero"><div id="pph"><div class="gph" id="gph2"></div></div><div class="pshade"></div><button class="pback" onclick="show('app')" aria-label="Nazad"><svg class="ic" width="20" height="20"><use href="#i-back"/></svg></button><div class="ptxt"><h1>Sklopi mi nešto sada</h1><p>Unesi svoje preferencije i dobićeš personalizovan plan u nekoliko sekundi.</p></div></div>
-<div class="psheet"><button class="prow" onclick="ppick('time')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="pt"><small>Raspoloživo vrijeme</small><b id="pv_time"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('budget')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3.5 3.5 0 1 0 0 5M8 11h5M8 13h5"/></svg><span class="pt"><small>Budžet</small><b id="pv_budget"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('interest')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg><span class="pt"><small>Tip aktivnosti</small><b id="pv_interest"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><button class="prow" onclick="ppick('move')"><svg class="ic" width="22" height="22" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="m9 21 3-7 3 2v5M7 12l3-3 3 1 3 3"/></svg><span class="pt"><small>Kretanje</small><b id="pv_move"></b></span><svg class="ic" width="18" height="18" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button><div class="pint"><small>Interesovanja (opciono)</small><div class="pch"><button class="ichip" data-t="priroda" onclick="ptag('priroda')">Priroda</button><button class="ichip" data-t="kultura" onclick="ptag('kultura')">Kultura</button><button class="ichip" data-t="hrana" onclick="ptag('hrana')">Lokalna hrana</button></div></div>
-<button class="btn pgo" onclick="pgen()">Generiši plan</button><div id="planResult"></div></div><div class="psel" id="psel" onclick="if(event.target===this)pclose()"></div></div>
-<script src="config.js"></script>
 <script>
-// ===== BAZA MESTA (šema): id, city, name, cat, emoji, grad., coord[lat,lng], hours(min), sub, open, desc, book(opciono afilijatni link) =====
-function ic(n,z,f){return'<svg class="ic'+(f?' fill':'')+'" width="'+z+'" height="'+z+'"><use href="#i-'+n+'"/></svg>'}
-var KN={jesti:"Hrana",videti:"Znamenitost",dogadjaji:"Izlazak",odmoriti:"Odmor",prevoz:"Prevoz",info:"Info"},PH={};try{PH=JSON.parse(localStorage.getItem("blizu_ph3")||"{}")}catch(e){}
-var STOP=/^(restoran|restaurant|kafic|cafe|caffe|bar|pizzeria|konoba|hotel|plaza|beach|park|snack|grill|fast|food)$/;
-function nz(x){return lat(x).toLowerCase().replace(/đ/g,"d").normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
-function dec(x){var t=document.createElement("textarea");t.innerHTML=x;return t.value}
-function cmn(c,rad,lim,cb,nm){var tk=nm?nz(nm).split(/[^a-z0-9]+/).filter(function(w){return w.length>=4&&!STOP.test(w)}):null;if(nm&&!tk.length)return cb(0);fetch("https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+c[0]+"%7C"+c[1]+"&ggsradius="+rad+"&ggsnamespace=6&ggslimit="+lim+"&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=640&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query?Object.keys(j.query.pages).map(function(k){return j.query.pages[k]}):[];q=q.filter(function(x){var i=(x.imageinfo||[])[0];if(!(i&&i.mime=="image/jpeg"&&!/logo|map|flag|plan|coat|icon|sign|menu/i.test(x.title)))return false;if(!tk)return true;var t=nz(x.title);return tk.some(function(w){return t.indexOf(w)>=0})}).sort(function(a,b){return a.index-b.index});var i=q[0]&&q[0].imageinfo[0];cb(i?i.thumburl:0)}).catch(function(){cb(0)})}
-function cmnOld(c,rad,lim,cb){fetch("https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+c[0]+"%7C"+c[1]+"&ggsradius="+rad+"&ggsnamespace=6&ggslimit="+lim+"&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=640&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query?Object.keys(j.query.pages).map(function(k){return j.query.pages[k]}):[];q=q.filter(function(x){var i=(x.imageinfo||[])[0];return i&&i.mime=="image/jpeg"&&!/logo|map|flag|plan|coat|icon|sign|menu/i.test(x.title)}).sort(function(a,b){return a.index-b.index});var i=q[0]&&q[0].imageinfo[0];cb(i?i.thumburl:0)}).catch(function(){cb(0)})}
-var USED={};for(var k in PH)if(PH[k])USED[PH[k]]=k;
-function phSave(p,u,cb){if(u&&USED[u]&&USED[u]!=p.id)u=0;if(u)USED[u]=p.id;PH[p.id]=u;try{localStorage.setItem("blizu_ph3",JSON.stringify(PH))}catch(e){}cb(u)}
-function imgOf(t){var i=t.image||"",w=t.wikimedia_commons||"",f=/^File:/i.test(w)?w:/^File:/i.test(i)?i:"";if(f)return"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f.replace(/^File:/i,""))+"?width=640";return/^https?:\/\/.+\.(jpe?g|png|webp)(\?|$)/i.test(i)?i:""}
-function phOk(p){return/^(videti|odmoriti|dogadjaji|jesti)$/.test(p.k)}
-function phGet(p,cb){if(p.img)return cb(p.img);if(PH[p.id]!==undefined)return cb(PH[p.id]);if(!p.wd)return phGet2(p,cb);
- fetch("https://www.wikidata.org/w/api.php?action=wbgetclaims&entity="+p.wd+"&property=P18&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var c=j.claims&&j.claims.P18&&j.claims.P18[0],v=c&&c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(v)phSave(p,"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(v)+"?width=640",cb);else phGet2(p,cb)}).catch(function(){phGet2(p,cb)})}
-function phGet2(p,cb){if(p.img)return cb(p.img);if(PH[p.id]!==undefined)return cb(PH[p.id]);if(p.k=="jesti")return cmn(p.c,150,25,function(u){phSave(p,u,cb)},dec(p.n));
- fetch("https://sr.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.c[0]+"%7C"+p.c[1]+"&ggsradius=120&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query&&j.query.pages,u=q?(q[Object.keys(q)[0]].thumbnail||{}).source||0:0;if(u)phSave(p,u,cb);else cmn(p.c,80,8,function(v){phSave(p,v,cb)})}).catch(function(){cb(0)})}
-var IO=window.IntersectionObserver&&new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;IO.unobserve(e.target);var id=e.target.dataset.pid,p=P.filter(function(x){return x.id==id})[0]||SI[id]||(window.SP||{})[id];if(p){if(window.BLIZU_API&&phOk(p))rtVis(p);var go=function(u){var v=u||"img/cat-"+p.k+".jpg",im=new Image();im.onload=function(){if(e.target.classList.contains("gp"))return;e.target.style.backgroundImage="url("+v+")";e.target.classList.add("ph")};im.src=v};if(phOk(p))phGet(p,go);else go(0)}})},{rootMargin:"200px"});
-function lazyPh(){if(IO)document.querySelectorAll(".th[data-pid]").forEach(function(t){IO.observe(t)})}
-function detPh(p){if(!phOk(p))return;phGet(p,function(u){var h=document.querySelector("#det .hero");if(u&&h){h.style.backgroundImage="url("+u+")";var b=h.querySelector(".big");if(b)b.style.display="none"}})}
-function skel(){return[0,1,2,3].map(function(i){return'<div class="card sk" style="--i:'+i+'"><div class="th"></div><div class="cb"><i></i><i></i><i></i></div></div>'}).join("")}
-function render(){render0();if(busy&&!$("list").querySelector(".card"))$("list").innerHTML=skel();else if(FAIL&&!busy&&!P.length)$("list").innerHTML='<div style="padding:10px 20px 20px;text-align:center"><p style="color:var(--mut)">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.</p><button class="btn" onclick="load()">Pokušaj ponovo</button></div>';lazyPh()}
-var P=[];var P0=[];var CT=[["jesti","🍴","Hrana"],["videti","🏛","Atrakcije"],["dogadjaji","🎭","Događaji"],["odmoriti","🏖","Odmor"],["prevoz","🚕","Prevoz"],["info","ℹ️","Info"]];
-var Q="",ALL=false,MM=null,ML=null,MT=0,me=null,cityKey=null,H=3,R=5,cat="sve",V="lista",sel=null,heading=null,lastL=[],busy=false,OO=false,LT=0,SI={},gpsOn=false,saved={};
-try{saved=JSON.parse(localStorage.getItem("blizu_saved")||"{}")}catch(e){}
-try{SI=JSON.parse(localStorage.getItem("blizu_si")||"{}")}catch(e){}
-function $(i){return document.getElementById(i)}
-function show(v){["gate","app","det","map","plan","planres","ev","food","priv","man","multi","partners"].forEach(function(x){$(x).classList.toggle("hide",x!=v)});window.scrollTo(0,0)}
-function tab(n){$("tabHome").classList.toggle("hide",n!=1);$("tabSaved").classList.toggle("hide",n!=2);$("n1").classList.toggle("on",n==1);$("n2").classList.toggle("on",n==2);render()}
-function km(a,b){var r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)*Math.sin(dg/2);return 12742*Math.asin(Math.sqrt(x))}
-var MP=null;
-function lf(cb){if(window.L)return cb();var c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);var j=document.createElement("script");j.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";j.onload=cb;j.onerror=function(){$("mapc").innerHTML='<p class="note" style="padding-top:90px">Mapa se ne može učitati – provjeri vezu.</p>'};document.head.appendChild(j)}
-function mapPlan(id){var pl=(window._blizuPlans||{})[id];if(!pl)return;RMODE=pl.move||"walk";window.MPS={};(pl.stops||[]).forEach(function(x){MPS[x.id]=x.stay+" min · "+(x.price>0?"oko "+x.price+" €":"Besplatno")});var L2=pl.items.map(function(x){return P.filter(function(p){return p.id==x})[0]||SI[x]||(window.SP||{})[x]}).filter(Boolean);openMap(L2,"Tvoj plan na mapi",true)}
-function openMap(list,title,route){if(!route)window.MPS=null;show("map");$("mt").textContent=title;
- $("msheet").innerHTML=route?list.map(function(p,i){return'<div class="row" onclick="det(\''+p.id+'\')"><i>'+(i+1)+'</i><div style="flex:1"><b>'+p.n+'</b><small>'+(window.MPS&&MPS[p.id]?MPS[p.id]:fmt(km(i?list[i-1].c:me,p.c))+' od prethodne stanice')+'</small></div></div>'}).join("")+'<p class="meta" style="text-align:center">Isprekidana linija pokazuje redoslijed stanica, ne tačnu rutu.</p>':'<div class="note" style="padding:6px">'+list.length+' mjesta · tapni oznaku za detalje</div>';
- lf(function(){if(MP){MP.remove();MP=null}var m=MP=L.map("mapc",{zoomControl:false}).setView(me,14);L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(m);var pts=[me];
-  window.MEM=L.marker(me,{icon:L.divIcon({className:"",html:'<div class="mk me"></div>',iconSize:[18,18]})}).addTo(m);
-  list.forEach(function(p,i){pts.push(p.c);L.marker(p.c,{icon:L.divIcon({className:"",html:'<div class="mk" style="background:'+(route?"#0f8b6d":KC[p.k]||"#888")+'">'+(route?i+1:"")+'</div>',iconSize:[28,28],iconAnchor:[14,14]})}).addTo(m).bindPopup("<b>"+p.n+'</b><br><a href="#" onclick="det(\''+p.id+'\');return false">Detalji</a>')});
-  if(route&&list.length){var dl=L.polyline(pts,{color:"#0f8b6d",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(m);window.route(pts,function(g){if(MP!==m)return;m.removeLayer(dl);L.polyline(g.l,{color:"#0f8b6d",weight:5,lineCap:"round"}).addTo(m);var nt=document.querySelector("#msheet p.meta");if(nt)nt.textContent="Ruta po ulicama (OpenStreetMap) · ≈ "+(g.d/1000).toFixed(1).replace(".",",")+" km, "+Math.max(1,Math.round(g.t/60))+" min"+(RMODE=="car"?" autom":" pješke")})}
-  if(pts.length>1)m.fitBounds(pts,{paddingTopLeft:[40,100],paddingBottomRight:[40,route?250:90],maxZoom:16});setTimeout(function(){m.invalidateSize()},150)})}
-function miniMap(list){if(!me)return;lf(function(){var el=$("minic"),Lf=window.L;if(!el||$("tabHome").classList.contains("hide")||!$("app")||$("app").classList.contains("hide"))return;
- if(!MM||MM._container!==el){if(MM)MM.remove();MM=Lf.map(el,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false}).setView(me,14);Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(MM);ML=Lf.layerGroup().addTo(MM)}
- ML.clearLayers();var pts=[me];Lf.marker(me,{icon:Lf.divIcon({className:"",html:'<div class="mk me"></div>',iconSize:[18,18]})}).addTo(ML);
- list.slice(0,14).forEach(function(p){pts.push(p.c);Lf.marker(p.c,{icon:Lf.divIcon({className:"",html:'<div class="mk s" style="background:'+(KC[p.k]||"#888")+'"></div>',iconSize:[16,16]})}).addTo(ML)});
- MM.invalidateSize();if(pts.length>1)MM.fitBounds(pts,{padding:[24,24],maxZoom:16});else MM.setView(me,14)})}
-var FAIL=0,OVP=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
-function gmaps(p,d){var m=d<=1.5?"walking":"driving",o=window.gpsOn&&me?"&origin="+me[0].toFixed(6)+","+me[1].toFixed(6):"";
- return'<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&travelmode='+m+o+'&destination='+p.c[0].toFixed(6)+','+p.c[1].toFixed(6)+'">Vodi me do tamo</a>'}
-var CY={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Ђ":"Đ","Е":"E","Ж":"Ž","З":"Z","И":"I","Ј":"J","К":"K","Л":"L","Љ":"Lj","М":"M","Н":"N","Њ":"Nj","О":"O","П":"P","Р":"R","С":"S","Т":"T","Ћ":"Ć","У":"U","Ф":"F","Х":"H","Ц":"C","Ч":"Č","Џ":"Dž","Ш":"Š"};
-function lat(s){s=String(s||"");if(!/[\u0400-\u04FF]/.test(s))return s;var o="";for(var i=0;i<s.length;i++){var c=s[i],u=c.toUpperCase();if(!/[\u0400-\u04FF]/.test(c)){o+=c;continue}var m=CY[u];if(m===undefined)return s;o+=c==u?m:m.toLowerCase()}return o}
-var PLACE={n:"",cn:"",cc:"",c:null};
-function gps(){$("msg").textContent="Tražim tvoju lokaciju…";if(!navigator.geolocation){$("msg").textContent="Uređaj ne podržava lokaciju – potraži mjesto ručno.";return}
- navigator.geolocation.getCurrentPosition(function(p){me=[p.coords.latitude,p.coords.longitude];gpsOn=true;LA=me;PLACE={n:"Tvoja okolina",cn:"",cc:"",c:me};start();rev(me);live()},function(){$("msg").textContent="Lokacija nije dostupna – potraži mjesto ručno."},{enableHighAccuracy:true,maximumAge:0,timeout:15000})}
-
-/* ===== Lokacija uživo (watchPosition) ===== */
-var WID=null,LA=null,LR=0,KEEP=0;
-function stopLive(){if(WID!=null&&navigator.geolocation){navigator.geolocation.clearWatch(WID)}WID=null}
-function upd(p){
- if(!gpsOn||!p||!p.coords)return;
- var n=[p.coords.latitude,p.coords.longitude];
- if(me&&km(me,n)*1000<15)return;           // ignoriši GPS šum
- me=n;PLACE.c=n;
- if(window.MEM&&window.MP){try{MEM.setLatLng(n)}catch(e){}}
- var now=Date.now();
- if(!LA||km(LA,n)*1000>=300){                // pomjerio si se 300 m+ -> nova mjesta i naziv grada
-  LA=n;KEEP=1;load();rev(n)
- }else if(now-LR>4000){LR=now;render()}      // inače samo osvježi udaljenosti
-}
-function live(){
- if(!navigator.geolocation||WID!=null)return;
- WID=navigator.geolocation.watchPosition(upd,function(e){
-  if(e&&e.code==1){stopLive();gpsOn=false;render();$("st").textContent="Lokacija je isključena – uključi je u podešavanjima uređaja."}
- },{enableHighAccuracy:true,maximumAge:10000,timeout:30000});
- render()
-}
-document.addEventListener("visibilitychange",function(){
- if(document.hidden||!gpsOn||!navigator.geolocation)return;
- navigator.geolocation.getCurrentPosition(upd,function(){},{enableHighAccuracy:true,maximumAge:0,timeout:10000})
-});
-function rev(c){fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=sr&lat="+c[0]+"&lon="+c[1]).then(function(r){return r.json()}).then(function(j){var a=j.address||{},n=a.city||a.town||a.village||a.municipality||a.county||"";if(n&&me&&km(me,c)<2){PLACE.n=lat(n);PLACE.cn=lat(a.country||"");PLACE.cc=a.country_code||"";render();heroPh();cats()}}).catch(function(){})}
-var ST;function srch(q){clearTimeout(ST);var o=$("sres");if(q.trim().length<2){o.innerHTML="";return}ST=setTimeout(function(){fetch("https://geocoding-api.open-meteo.com/v1/search?count=6&language=sr&name="+encodeURIComponent(q.trim())).then(function(r){return r.json()}).then(function(j){var r=window._SR=j.results||[];o.innerHTML=r.length?r.map(function(x,i){return'<button class="btn o s" onclick="pickR('+i+')">'+E(lat(x.name))+'<small>'+E(lat([x.admin1,x.country].filter(Boolean).join(", ")))+'</small></button>'}).join(""):"<p>Nema rezultata.</p>"}).catch(function(){o.innerHTML="<p>Pretraga nije dostupna.</p>"})},350)}
-function pickR(i){var x=window._SR[i];me=[x.latitude,x.longitude];stopLive();gpsOn=false;PLACE={n:lat(x.name),cn:lat(x.country||""),cc:x.country_code||"",c:me};start()}
-var HC={};try{HC=JSON.parse(localStorage.getItem("blizu_hero2")||"{}")}catch(e){}
-function heroPh(){var h=$("hp");if(!h)return;h.classList.remove("on");var n=PLACE.n,key=n+"|"+PLACE.cn;if(!n)return;if(n=="Tvoja okolina")return cmn(PLACE.c,3000,8,set);
- function set(u){if(u&&key==PLACE.n+"|"+PLACE.cn){var im=new Image();im.onload=function(){h.style.backgroundImage="url("+u+")";h.classList.add("on")};im.src=u}}
- function fin(u){HC[key]=u;try{localStorage.setItem("blizu_hero2",JSON.stringify(HC))}catch(e){}set(u)}
- function go(lg,cb){fetch("https://"+lg+".wikipedia.org/w/api.php?action=query&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1000&titles="+encodeURIComponent(n)+"&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query.pages;cb((q[Object.keys(q)[0]].thumbnail||{}).source||0)}).catch(function(){cb(0)})}
- var l=window.BLIZU_HERO;if(l&&l[n])return set(l[n]);if(HC[key]!==undefined)return set(HC[key]);
- go("sr",function(u){if(u)fin(u);else go("en",function(v){if(v)fin(v);else cmn(PLACE.c,3000,8,fin)})})}
-function start(){show("app");hrs();cats();rad();vw();load();heroPh()}
-function rad(){var o=[[0.5,"10 min · 500 m"],[5,"15 min · 5 km"],[0,"Bez ograničenja"]];$("rad").innerHTML=o.map(function(x){return '<button class="chip '+(R==x[0]?"on":"")+'" onclick="R='+x[0]+';rad();load()">'+x[1]+'</button>'}).join("")}
-function hrs(){$("hrs").innerHTML=[1,2,3,5].map(function(h){return '<button class="chip '+(H==h?"on":"")+'" onclick="H='+h+';hrs();render()">'+(h==1?"1 sat":h==5?"5 sati+":h+" sata")+'</button>'}).join("")}
-var KC={jesti:"#D8503F",videti:"#5E9E2E",dogadjaji:"#A85BC9",odmoriti:"#1C8FBF",prevoz:"#D98A12",info:"#6b7b8c"};
-function brg(a,b){var r=Math.PI/180,f1=a[0]*r,f2=b[0]*r,dl=(b[1]-a[1])*r,y=Math.sin(dl)*Math.cos(f2),x=Math.cos(f1)*Math.sin(f2)-Math.sin(f1)*Math.cos(f2)*Math.cos(dl);return(Math.atan2(y,x)/r+360)%360}
-function vw(){$("radw").classList.toggle("hide",V!="radar");$("vw").innerHTML=[["lista","Lista"],["radar","Radar"]].map(function(o){return '<button class="chip '+(V==o[0]?"on":"")+'" onclick="V=\''+o[0]+'\';vw();render()">'+o[1]+'</button>'}).join("")+'<button class="chip '+(OO?"on":"")+'" onclick="OO=!OO;vw();render()">Otvoreno sada</button>'+(V=="radar"?'<button class="chip '+(heading!=null?"on":"")+'" onclick="compass()">Kompas</button>':"")}
-function compass(){if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission){DeviceOrientationEvent.requestPermission().then(function(s){if(s=="granted")lis()}).catch(function(){})}else lis()}
-function lis(){window.addEventListener("deviceorientationabsolute",oh,true);window.addEventListener("deviceorientation",oh,true)}
-function oh(e){var h=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.absolute&&e.alpha!=null?360-e.alpha:null);if(h==null)return;var f=heading==null;heading=h;if(f)vw();if(V=="radar")drawRadar(lastL)}
-function selp(id){sel=sel==id?null:id;render();var c=$("c_"+id);if(c&&sel)c.scrollIntoView({behavior:"smooth",block:"center"})}
-function drawRadar(L){lastL=L;var el=$("radar");if(!el||!me)return;var Rm=R==0?Math.max(1,Math.max.apply(null,L.map(dist).concat([1]))):R,rot=heading||0,h="",S=82;
- [1/3,2/3,1].forEach(function(f){h+='<circle cx="100" cy="100" r="'+S*f+'" fill="none" stroke="currentColor" opacity=".25"/><text x="100" y="'+(100-S*f-2)+'" font-size="7" text-anchor="middle" fill="currentColor" opacity=".7">'+fmt(Rm*f)+'</text>'});
- var na=-rot*Math.PI/180;h+='<text x="'+(100+93*Math.sin(na)).toFixed(1)+'" y="'+(100-93*Math.cos(na)+3).toFixed(1)+'" font-size="9" font-weight="800" text-anchor="middle" fill="#d9a400">S</text>';
- L.forEach(function(p){var a=(brg(me,p.c)-rot)*Math.PI/180,r=Math.min(dist(p),Rm)/Rm*S,x=100+r*Math.sin(a),y=100-r*Math.cos(a);h+='<circle class="d" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(sel==p.id?8.5:6.5)+'" fill="'+(KC[p.k]||"#888")+'" stroke="'+(sel==p.id?"currentColor":"#fff")+'" stroke-width="2" onclick="selp(\''+p.id+'\')"><title>'+p.n+', '+fmt(dist(p))+'</title></circle>'});
- h+='<circle cx="100" cy="100" r="5.5" fill="#ffcb2e" stroke="currentColor" stroke-width="1.5"/>';
- if(heading!=null)h+='<path d="M100 8l-5 9h10z" fill="currentColor"/>';
- el.innerHTML=h;$("rcount").textContent=L.length+(L.length==1?" mesto":" mesta")+" · "+(R==0?"cela regija":"do "+fmt(R))+(heading==null?" · gore je sever (S)":" · gore je smer u kom gledaš")}
-var GR={jesti:"#c9772d,#7a3a12",videti:"#ff9a5a,#6b3b8f",odmoriti:"#35c2a1,#0b4a40",dogadjaji:"#7b3fe4,#ff4d8d",prevoz:"#4a6fa5,#0b4a40",info:"#6b7b8c,#2b3a4a"};
-var TM={"amenity=restaurant":["Restoran","jesti","🍽",1],"amenity=cafe":["Kafić","jesti","☕",1],"amenity=bar":["Bar","jesti","🍹",1],"amenity=pub":["Pab","jesti","🍺",1],"amenity=fast_food":["Brza hrana","jesti","🍔",1],"amenity=ice_cream":["Sladoled","jesti","🍦",1],"tourism=attraction":["Atrakcija","videti","📍",1],"tourism=viewpoint":["Vidikovac","videti","🌄",1],"tourism=museum":["Muzej","videti","🏛",1],"tourism=gallery":["Galerija","videti","🖼",1],"historic=castle":["Tvrđava","videti","🏰",2],"historic=fort":["Utvrđenje","videti","🏰",2],"historic=monument":["Spomenik","videti","🗿",1],"historic=ruins":["Ruševine","videti","🏛",1],"historic=archaeological_site":["Arheološko nalazište","videti","🏺",1],"historic=memorial":["Spomen-obeležje","videti","🕊",1],"natural=beach":["Plaža","odmoriti","🏖",2],"leisure=beach_resort":["Plaža","odmoriti","🏖",2],"leisure=park":["Park","odmoriti","🌳",1],"leisure=marina":["Marina","odmoriti","⛵",1],"amenity=theatre":["Pozorište","dogadjaji","🎭",2],"amenity=cinema":["Bioskop","dogadjaji","🎬",2],"amenity=arts_centre":["Kulturni centar","dogadjaji","🎨",2],"amenity=nightclub":["Noćni klub","dogadjaji","🪩",2],"amenity=taxi":["Taksi","prevoz","🚕",1],"amenity=bus_station":["Autobuska stanica","prevoz","🚌",1],"amenity=bicycle_rental":["Iznajmljivanje bicikala","prevoz","🚲",1],"amenity=pharmacy":["Apoteka","info","💊",1],"amenity=hospital":["Bolnica","info","🏥",1],"amenity=clinic":["Zdravstvena stanica","info","🏥",1],"amenity=doctors":["Ordinacija","info","🩺",1],"amenity=atm":["Bankomat","info","🏧",1],"amenity=bank":["Banka","info","🏦",1],"amenity=post_office":["Pošta","info","📮",1],"amenity=police":["Policija","info","👮",1],"amenity=fuel":["Benzinska pumpa","info","⛽",1],"tourism=information":["Turistički info centar","info","ℹ️",1]};
-function E(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-function conv(els){var out=[],ks=["amenity","tourism","historic","natural","leisure"];els.forEach(function(el){var t=el.tags||{},c=el.type=="node"?[el.lat,el.lon]:(el.center?[el.center.lat,el.center.lon]:null);if(!c)return;var m=null;for(var i=0;i<ks.length&&!m;i++){if(t[ks[i]])m=TM[ks[i]+"="+t[ks[i]]]}if(!m)return;var n=t.name||t["name:sr"]||t["name:en"]||(m[1]=="info"?(t.brand||t.operator):"");if(!n){if(m[1]=="prevoz"||m[1]=="info"||m[0]=="Plaža")n=m[0];else return}var cu=t.cuisine?" • "+t.cuisine.split(";")[0].replace(/_/g," "):"";out.push({id:el.type[0]+el.id,n:E(lat(n)),k:m[1],e:m[2],g:GR[m[1]],c:c,h:m[3],s:E(m[0]+cu),oh:t.opening_hours||"",ph:t.phone||t["contact:phone"]||"",hr:t.opening_hours?E(t.opening_hours):"nije poznato",d:E(t.description||"Podaci: OpenStreetMap."),img:imgOf(t),wd:/^Q\d+$/.test(t.wikidata||"")?t.wikidata:""})});return out}
-function dset(s){var o={},W=["Mo","Tu","We","Th","Fr","Sa","Su"];s.split(",").forEach(function(p){var m=p.trim().match(/^(Mo|Tu|We|Th|Fr|Sa|Su)(?:\s*-\s*(Mo|Tu|We|Th|Fr|Sa|Su))?$/);if(!m)throw 0;var a=W.indexOf(m[1]),b=m[2]?W.indexOf(m[2]):a,i=a;for(var n=0;n<8;n++){o[i]=1;if(i==b)break;i=(i+1)%7}});return o}
-function openNow(str){try{str=String(str).trim();if(str=="24/7")return true;var d=new Date(),ti=(d.getDay()+6)%7,mi=d.getHours()*60+d.getMinutes(),res=null,had=false;str.split(";").forEach(function(rule){rule=rule.trim();if(!rule)return;var m=rule.match(/^(?:([A-Za-z,\- ]+?)\s+)?((?:off|closed)|(?:\d{1,2}:\d{2}-\d{1,2}:\d{2})(?:\s*,\s*\d{1,2}:\d{2}-\d{1,2}:\d{2})*)$/i);if(!m)throw 0;var days=m[1]?dset(m[1]):null;if(days)had=true;if(days&&!days[ti])return;if(/^(off|closed)$/i.test(m[2])){res=false;return}var open=false;m[2].split(",").forEach(function(r){var x=r.trim().match(/(\d+):(\d+)-(\d+):(\d+)/),s=x[1]*60+ +x[2],e=x[3]*60+ +x[4];if(e<=s){if(mi>=s||mi<e)open=true}else if(mi>=s&&mi<e)open=true});res=open});return res===null&&had?false:res}catch(e){return null}}
-function ost(p){if(!p.oh)return"";var o=openNow(p.oh);return o===true?" • otvoreno":o===false?" • 🔴 zatvoreno":""}
-function sun(){try{fetch("https://api.open-meteo.com/v1/forecast?latitude="+me[0].toFixed(3)+"&longitude="+me[1].toFixed(3)+"&daily=sunset&timezone=auto&forecast_days=1").then(function(r){return r.json()}).then(function(j){var s=new Date(j.daily.sunset[0]),m=Math.round((s-Date.now())/6e4),t=("0"+s.getHours()).slice(-2)+":"+("0"+s.getMinutes()).slice(-2);$("pls").textContent=m>0?"Zalazak sunca u "+t+" · za "+Math.floor(m/60)+" h "+m%60+" min":"Zalazak sunca je bio u "+t}).catch(function(){})}catch(e){}}
-function load(){FAIL=0;var tk=++LT,rd=R==0?15000:Math.round(R*1000);busy=true;if(!KEEP)P=[];KEEP=0;$("st").textContent="";render();sun();
- var key="blizu_e_"+me[0].toFixed(3)+"_"+me[1].toFixed(3)+"_"+rd+"_"+cat;
- try{var c=JSON.parse(localStorage.getItem(key)||"null");if(c&&Date.now()-c.t<216e5){P=c.p;busy=false;$("st").textContent="Uživo (keš) · "+P.length+" mesta";render();return}}catch(e){}
- var A="(around:"+rd+","+me[0]+","+me[1]+")",q='[out:json][timeout:25];(nwr'+A+'[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream|theatre|cinema|arts_centre|nightclub)$"][name];nwr'+A+'[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr'+A+'[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];nwr'+A+'[natural=beach];nwr'+A+'[leisure~"^(beach_resort|park|marina)$"][name];nwr'+A+'[amenity~"^(taxi|bus_station|bicycle_rental)$"];);out center tags 400;';
- q=qFor(A,cat);function post(u){var ac=new AbortController(),t=setTimeout(function(){ac.abort()},15000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(function(r){clearTimeout(t);if(!r.ok)throw 0;return r.json()})}
- (window.BLIZU_API?fetch(window.BLIZU_API+"/api/places?lat="+me[0].toFixed(4)+"&lng="+me[1].toFixed(4)+"&r="+rd+"&cat="+cat).then(function(r){if(!r.ok)throw 0;return r.json()}):Promise.reject()).catch(function(){var pr=Promise.reject();OVP.forEach(function(u){pr=pr.catch(function(){return post(u)})});return pr}).then(function(j){if(tk!=LT)return;P=conv(j.elements||[]);try{localStorage.setItem(key,JSON.stringify({t:Date.now(),p:P}))}catch(e){}$("st").textContent="Uživo iz OpenStreetMap-a · "+P.length+" mesta"}).catch(function(){if(tk!=LT)return;FAIL=1;P=P0.slice();$("st").textContent="Podaci trenutno nisu dostupni – provjeri vezu i pokušaj ponovo."}).then(function(){if(tk!=LT)return;busy=false;render()})}
-var QF={jesti:'nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream)$"][name];',videti:'nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];',odmoriti:'nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];',dogadjaji:'nwr@[amenity~"^(theatre|cinema|arts_centre|nightclub)$"][name];',prevoz:'nwr@[amenity~"^(taxi|bus_station|bicycle_rental)$"];',info:'nwr@[amenity~"^(pharmacy|atm|bank|hospital|clinic|doctors|post_office|police|fuel)$"];nwr@[tourism=information][name];'};
-var EMH='<div class="card" style="display:block"><b>'+ic("alert",18)+' Hitna pomoć</b><p style="margin:6px 0 0"><a href="tel:112">112</a> opšti · <a href="tel:122">122</a> policija · <a href="tel:123">123</a> vatrogasci · <a href="tel:124">124</a> hitna pomoć</p></div>';
-function qFor(A,c){var ks=c=="sve"?Object.keys(QF).filter(function(k){return k!="info"}):[c];return'[out:json][timeout:25];('+ks.map(function(k){return QF[k].replace(/@/g,A)}).join("")+');out center tags '+(c=="sve"?400:300)+';'}
-var WK={};
-function gx(p){if(!window.BLIZU_API)return;fetch(window.BLIZU_API+"/api/enrich?name="+encodeURIComponent(dec(p.n))+"&lat="+p.c[0]+"&lng="+p.c[1]).then(function(r){return r.json()}).then(function(g){var el=$("gx");if(!el||el.getAttribute("data-id")!=p.id||!g||g.none||g.error)return;var h="";if(g.rating)h+='<span class="pill ok">★ '+String(g.rating).replace(".",",")+(g.n?" ("+g.n+")":"")+"</span> ";if(g.price){var pm={PRICE_LEVEL_INEXPENSIVE:"€",PRICE_LEVEL_MODERATE:"€€",PRICE_LEVEL_EXPENSIVE:"€€€",PRICE_LEVEL_VERY_EXPENSIVE:"€€€€"}[g.price];if(pm)h+="<b>"+pm+"</b> "}var im=g.photo?'<img src="'+window.BLIZU_API+'/api/photo?ref='+encodeURIComponent(g.photo)+'" alt="" loading="lazy" referrerpolicy="origin" onerror="this.remove()" style="width:100%;border-radius:16px;margin:8px 0;display:block"><p class="meta">Foto: '+E(g.by||"Google")+' (Google)</p>':"";if(h||im)el.innerHTML=im+(h?'<p>'+h+'<span class="meta"> Izvor: Google</span></p>':"");var t=$("hrt");if(t&&p.hr=="nije poznato"&&g.hours){var d=g.hours[(new Date().getDay()+6)%7];if(d)t.textContent=d.replace(/^[^:]+:\s*/,"")}}).catch(function(){})}
-function wkr(p,r){var el=$("wk");if(!el||!r)return;el.innerHTML=(r.i?'<img src="'+E(r.i)+'" alt="" style="width:100%;border-radius:16px;margin:8px 0;display:block">':"")+'<p>'+E(r.x)+'</p><p class="meta">Izvor: <a href="https://'+r.l+'.wikipedia.org/wiki/'+encodeURIComponent(r.t.replace(/ /g,"_"))+'" target="_blank" rel="noopener">Wikipedia – '+E(r.t)+'</a></p>'}
-function wiki(p){if(WK[p.id]!==undefined){wkr(p,WK[p.id]);return}
- function go(l,cb){fetch("https://"+l+".wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.c[0]+"%7C"+p.c[1]+"&ggsradius=200&ggslimit=3&prop=extracts%7Cpageimages&exintro=1&explaintext=1&exchars=350&piprop=thumbnail&pithumbsize=600&variant=sr-el&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var a=j.query?Object.keys(j.query.pages).map(function(k){return j.query.pages[k]}).sort(function(x,y){return x.index-y.index}):[];cb(a[0]?{t:a[0].title,x:a[0].extract||"",i:a[0].thumbnail?a[0].thumbnail.source:"",l:l}:null)}).catch(function(){cb(null)})}
- function fin(r){WK[p.id]=r;wkr(p,r)}
- go("sr",function(r){if(r)fin(r);else go("en",fin)})}
-function sea(p){try{fetch("https://marine-api.open-meteo.com/v1/marine?latitude="+p.c[0].toFixed(3)+"&longitude="+p.c[1].toFixed(3)+"&current=sea_surface_temperature,wave_height&timezone=auto").then(function(r){return r.json()}).then(function(j){var c=j.current||{},el=$("wk");if(!el||c.sea_surface_temperature==null)return;el.innerHTML='<div class="row" style="border-top:0"><i>'+ic("odmoriti",20)+'</i><div><small>More trenutno</small>'+String(c.sea_surface_temperature).replace(".",",")+' °C'+(c.wave_height!=null?' · talasi '+String(c.wave_height).replace(".",",")+' m':"")+'</div></div>'}).catch(function(){})}catch(e){}}
-var planCfg={time:2,budget:20,interest:"mix",move:"walk",tags:[]};
-
-function pickPlan(key,val,el){planCfg[key]=val;var group=el.parentNode;group.querySelectorAll(".chip").forEach(function(b){b.classList.remove("on")});el.classList.add("on")}
-function planTime(v,e){pickPlan("time",v,e)} function planBudget(v,e){pickPlan("budget",v,e)} function planInterest(v,e){pickPlan("interest",v,e)} function planMove(v,e){pickPlan("move",v,e)}
+const screens=[...document.querySelectorAll('.screen')];
+let selectedTime='2 h';
+let selectedCats=new Set(['Hrana']);
+const DATA={
+  Hrana:[
+    {title:'Restoran Dojmi',type:'Restoran',mins:35,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Restoran%20Dojmi%2001.jpg?width=1400',desc:'Tradicionalna kuhinja i pogled na more.',distance:'350 m',rating:'4.8'},
+    {title:'Restoran Dojmi — lokalna kuhinja',type:'Hrana',mins:30,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Restoran%20Dojmi%2003.jpg?width=1400',desc:'Probaj lokalne specijalitete Kotora.',distance:'700 m',rating:'4.7'}],
+  Kafa:[
+    {title:'Kafa u Starom gradu',type:'Kafa',mins:15,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400',desc:'Mirna pauza uz odličnu kafu u srcu Kotora.',distance:'120 m',rating:'4.8'},
+    {title:'Kafe atmosfera Starog grada',type:'Kafa',mins:25,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400',desc:'Kafa i nešto slatko sa pogledom na trg.',distance:'420 m',rating:'4.6'}],
+  Atrakcije:[
+    {title:'Tvrđava San Đovani',type:'Atrakcija',mins:45,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Forteresse%20de%20Kotor%201.jpg?width=1400',desc:'Najlepši panoramski pogled na zaliv.',distance:'600 m',rating:'4.9'},
+    {title:'Katedrala Sv. Tripuna',type:'Atrakcija',mins:30,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20Cathedral%20church.jpg?width=1400',desc:'Jedan od simbola istorijskog Kotora.',distance:'250 m',rating:'4.8'}],
+  More:[
+    {title:'Tura brodom po zalivu',type:'More',mins:60,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Catamaran%20-%20Perast%2C%20Montenegro.jpg?width=1400',desc:'Pogled na Boku sa mora i mala pauza u zalivu.',distance:'900 m',rating:'4.9'},
+    {title:'Šetnja uz more',type:'More',mins:30,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Catamaran%20-%20Perast%2C%20Montenegro.jpg?width=1400',desc:'Lagani đir uz obalu sa pogledom na planine.',distance:'300 m',rating:'4.7'}],
+  Kultura:[
+    {title:'Katedrala Sv. Tripuna',type:'Kultura',mins:40,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20Cathedral%20church.jpg?width=1400',desc:'Istorija i duhovna lepota Starog grada.',distance:'250 m',rating:'4.8'},
+    {title:'Pomorski muzej',type:'Kultura',mins:45,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20Cathedral%20church.jpg?width=1400',desc:'Priča o pomorskoj tradiciji Boke.',distance:'500 m',rating:'4.7'}],
+  Priroda:[
+    {title:'Šetnja gradskim zidinama',type:'Priroda',mins:35,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Forteresse%20de%20Kotor%201.jpg?width=1400',desc:'Pogled koji oduzima dah iznad Kotora.',distance:'600 m',rating:'4.9'},
+    {title:'Vidikovac iznad Kotora',type:'Priroda',mins:50,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Forteresse%20de%20Kotor%201.jpg?width=1400',desc:'Kratak uspon za veliki pogled.',distance:'1.2 km',rating:'4.9'}],
+  Događaji:[
+    {title:'Bokeljska noć',type:'Događaj',mins:90,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Boka%20Night%2C%20boats%2001.jpg?width=1400',desc:'Tradicionalna manifestacija na moru u Kotoru.',distance:'450 m',rating:'4.7'},
+    {title:'Ljetnji trgovi Kotora',type:'Događaj',mins:60,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Boka%20Night%2C%20boats%2001.jpg?width=1400',desc:'Program i atmosfera na otvorenom.',distance:'300 m',rating:'4.6'}],
+  Porodica:[
+    {title:'Porodična šetnja uz more',type:'Porodica',mins:45,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Catamaran%20-%20Perast%2C%20Montenegro.jpg?width=1400',desc:'Lagano iskustvo za celu porodicu.',distance:'300 m',rating:'4.8'},
+    {title:'Mali istraživači Starog grada',type:'Porodica',mins:40,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Kotor%20Cathedral%20church.jpg?width=1400',desc:'Kratko otkrivanje istorijskih kutaka Kotora.',distance:'250 m',rating:'4.7'}],
+  Par:[
+    {title:'Kafa za dvoje u Starom gradu',type:'Par',mins:25,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400',desc:'Mirna pauza i atmosfera za dvoje.',distance:'120 m',rating:'4.8'},
+    {title:'Zalazak sunca uz zaliv',type:'Par',mins:50,img:'https://commons.wikimedia.org/wiki/Special:FilePath/Catamaran%20-%20Perast%2C%20Montenegro.jpg?width=1400',desc:'Romantična šetnja uz more.',distance:'700 m',rating:'4.9'}]
+};
+const durations={'30 min':30,'1 h':60,'2 h':120,'3–4 h':210,'Ceo dan':420};
+function go(id){screens.forEach(s=>s.classList.toggle('active',s.id===id));window.scrollTo(0,0);if(id==='plan')renderPlan();if(id==='discover')renderDiscover('Sve');}
+function selectedItems(){let pool=[];[...selectedCats].forEach(c=>pool.push(...(DATA[c]||[])));return pool;}
 function makePlan(){
- var out=$("planResult"),pool=P.filter(function(p){return p.k!=="info"&&p.k!=="prevoz"&&(planCfg.interest==="mix"?(!(planCfg.tags||[]).length||planCfg.tags.some(function(t){return TGK[t].indexOf(p.k)>=0})):p.k===planCfg.interest)&&(!OO||openNow(p.oh)!==false)});
- var maxStops=planCfg.time===1?2:planCfg.time===2?3:planCfg.time===3?4:6,chosen=[],mins=0,cost=0,last=me;
- // Build the route incrementally: choose the nearest eligible next stop, not simply the nearest places to the starting point.
- while(chosen.length<maxStops){
-  var candidates=pool.filter(function(p){return !chosen.some(function(x){return x.p.id===p.id})}).map(function(p){var d=km(last,p.c),travel=Math.max(3,Math.round(d/(planCfg.move==="walk"?4.5:25)*60)),stay=p.k==="jesti"?45:p.k==="videti"?35:25;
-   // Prices are estimates, not verified venue prices. A zero budget intentionally excludes food venues from the generated plan.
-   var price=p.k==="jesti"?(planCfg.budget===0?Infinity:planCfg.budget<=10?8:planCfg.budget<=20?12:18):0;
-   return {p:p,d:d,travel:travel,stay:stay,price:price,score:travel+stay};
-  }).filter(function(x){return mins+x.travel+x.stay<=planCfg.time*60&&cost+x.price<=planCfg.budget});
-  if(!candidates.length)break;
-  candidates.sort(function(a,b){return a.d-b.d});var next=candidates[0];chosen.push(next);mins+=next.travel+next.stay;cost+=next.price;last=next.p.c;
- }
- if(!chosen.length){if(!P.length){out.innerHTML='<p class="meta">Mjesta se još nisu učitala. Sačekaj da se pojave u listi ili pokušaj ponovo.</p>';return}out.innerHTML='<p style="color:var(--mut);font-size:13px">Nijesmo našli odgovarajuće stanice za ovaj izbor. Probaj duže trajanje, veći budžet ili „Iznenadi me“. Ako je lokacija isključena, uključi je ili izaberi lokaciju ručno.</p>';return}
- var id="plan_"+Date.now(),plan={id:id,city:PLACE.n,time:planCfg.time,budget:planCfg.budget,interest:planCfg.interest,move:planCfg.move,items:chosen.map(function(x){return x.p.id}),created:Date.now(),estimatedMinutes:mins,estimatedCost:cost};
- plan.stops=chosen.map(function(x){return{id:x.p.id,travel:x.travel,stay:x.stay,price:x.price,p:x.p}});out.innerHTML="";
- window._blizuPlans=window._blizuPlans||{};window._blizuPlans[id]=plan;try{var all=JSON.parse(localStorage.getItem("blizu_plans")||"{}");all[id]=plan;localStorage.setItem("blizu_plans",JSON.stringify(all))}catch(e){}
-resShow(plan);
+ const target=durations[selectedTime]||120; let pool=selectedItems(); if(!pool.length) pool=DATA.Hrana;
+ // Prefer a mix of selected categories, then fill from the selected pool.
+ let items=[]; const used=new Set();
+ [...selectedCats].forEach(c=>{const x=(DATA[c]||[])[0];if(x&&items.reduce((a,b)=>a+b.mins,0)+x.mins<=target){items.push(x);used.add(x.title);}});
+ for(const x of pool){if(used.has(x.title))continue;if(items.reduce((a,b)=>a+b.mins,0)+x.mins<=target){items.push(x);used.add(x.title);}}
+ if(!items.length)items=[pool[0]];
+ return items;
 }
+function renderPlan(){
+ const items=makePlan(); const total=items.reduce((a,b)=>a+b.mins,0); const pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
+ document.getElementById('planTitle').textContent='Tvoj plan za '+pretty;
+ document.getElementById('planSub').textContent=`Imamo ideju! Plan je sastavljen prema tvom vremenu i izboru: ${[...selectedCats].join(', ')}.`;
+ document.getElementById('planSteps').innerHTML=items.map((x,i)=>`<div class="step"><img class="thumb" src="${x.img}" alt="${x.title}"><div><div class="mins">${x.mins} min</div><h3>${x.title}</h3><p>${x.desc}</p></div><b>›</b></div>`).join('');
+ document.getElementById('planTotal').textContent='◷ Ukupno: '+Math.floor(total/60)+'h '+String(total%60).padStart(2,'0')+'min';
+ document.getElementById('planCount').textContent=items.length+' stanice';
+}
+function renderDiscover(filter){
+ document.querySelectorAll('#discoverTabs .pill').forEach(p=>p.classList.toggle('active',p.dataset.filter===filter));
+ let items=filter==='Sve'?Object.values(DATA).flat():DATA[filter]||[];
+ // unique titles
+ const seen=new Set();items=items.filter(x=>!seen.has(x.title)&&seen.add(x.title));
+ document.getElementById('discoverList').innerHTML=items.map(x=>`<div class="card"><img src="${x.img}" alt="${x.title}"><div class="cardbody"><h3>${x.type==='Restoran'?'🍴':x.type==='Kafa'?'☕':x.type==='Događaj'?'🎵':'📍'} ${x.title} <span style="float:right">${x.distance}</span></h3><p>${x.desc} · ⭐ ${x.rating}</p></div></div>`).join('');
+}
+document.querySelectorAll('.timegrid .chip').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.timegrid .chip').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');selectedTime=b.dataset.time||b.textContent.replace('◷ ','').trim();}));
+document.querySelectorAll('.cat').forEach(b=>b.addEventListener('click',()=>{b.classList.toggle('sel');const c=b.dataset.cat;b.classList.contains('sel')?selectedCats.add(c):selectedCats.delete(c);if(!selectedCats.size){b.classList.add('sel');selectedCats.add(c);}}));
+document.querySelectorAll('#discoverTabs .pill').forEach(b=>b.addEventListener('click',()=>renderDiscover(b.dataset.filter)));
+renderDiscover('Sve');
+</script>
+<script>
+(function(){
+const $=id=>document.getElementById(id),q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const ALL=[];function rebuildAll(){ALL.length=0;const seen=new Set();Object.values(DATA).flat().forEach(x=>{if(!seen.has(x.title)){seen.add(x.title);ALL.push(x)}});ALL.sort((a,b)=>(a.d==null?1e9:a.d)-(b.d==null?1e9:b.d))}rebuildAll();window.rebuildAll=rebuildAll;window.openSheet=(a,b)=>sheet(a,b);window.toast=m=>toast(m);
+let favs=LS.get('blizu_favs',[]),plans=LS.get('blizu_plans',[]);
+const persist=()=>{LS.set('blizu_favs',favs);LS.set('blizu_plans',plans)};
+const isEv=x=>x.type==='Događaj',byTitle=t=>ALL.find(x=>x.title===t)||LS.get('blizu_favitems',{})[t];
+const fmtT=m=>Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'min';
+const icon=x=>x.ico||(x.type==='Restoran'||x.type==='Hrana'?'🍴':x.type==='Kafa'?'☕':x.type==='Događaj'?'🎵':'📍');
+function toast(m){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t)}t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200)}
+function sheet(title,html){let s=$('sheet');if(!s){s=document.createElement('div');s.id='sheet';s.innerHTML='<div class="sbox"><b id="sttl"></b><div id="sbody"></div><button class="primary" id="sclose">Zatvori</button></div>';document.body.appendChild(s);s.addEventListener('click',e=>{if(e.target===s||e.target.id==='sclose')s.classList.remove('on')})}$('sttl').textContent=title;$('sbody').innerHTML=html;s.classList.add('on')}
+const gmaps=x=>LV.q(x);
+/* navigacija sa istorijom (dugme nazad vraća na prethodni ekran) */
+const hist=[];let cur='welcome';const baseGo=go;
+function after(id){if(id==='map')renderMap();if(id==='saved')renderSaved()}
+go=function(id){if(id!==cur){hist.push(cur);if(hist.length>30)hist.shift();cur=id}baseGo(id);after(id)};
+function back(){const p=hist.pop()||'home';cur=p;baseGo(p);after(p)}
+qa('.back,.iconbtn').forEach(b=>{if(b.textContent.trim()==='‹')b.onclick=back});
+/* plan */
+let PLAN=[];
+const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
+renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
+ $('planTitle').textContent='Tvoj plan za '+pretty;
+ $('planSub').textContent='Imamo ideju! Plan je sastavljen prema tvom vremenu i izboru: '+[...selectedCats].join(', ')+'.';
+ $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p></div><b>›</b></div>`).join('');
+ $('planTotal').textContent='◷ Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
+ planSaveBtn()};
+function planSaveBtn(){const b=$('planSave');if(b)b.textContent=plans.some(p=>p.key===planKey())?'♥  Plan je sačuvan':'♡  Sačuvaj plan'}
+{const mb=q('#plan .mapbtn');const b=document.createElement('button');b.id='planSave';b.className='secondary';b.style.cssText='width:100%;margin-top:10px';mb.after(b);
+ b.onclick=()=>{const k=planKey(),i=plans.findIndex(p=>p.key===k);if(i>=0){plans.splice(i,1);toast('Plan uklonjen iz sačuvanih')}else{plans.push({key:k,time:selectedTime,cats:[...selectedCats],titles:PLAN.map(x=>x.title),img:(PLAN[0]||{}).img,mins:PLAN.reduce((a,x)=>a+x.mins,0),t:Date.now()});toast('Plan je sačuvan')}persist();planSaveBtn()}}
+$('planSteps').addEventListener('click',e=>{const s=e.target.closest('.step');if(s)openItem(PLAN[+s.dataset.i].title)});
+/* detalj */
+let curItem=null;
+function openItem(t){const x=byTitle(t);if(!x)return;curItem=x;
+ const h=$('detail');h.querySelector('.eventhero').style.backgroundImage=`linear-gradient(180deg,#0000,#001422e8),url('${x.img}')`;
+ h.querySelector('.tag').textContent=isEv(x)?'Događaj':'Mjesto';h.querySelector('.eventhero h2').textContent=x.title;
+ const fav=favs.includes(x.title);
+ h.querySelector('.detailbody').innerHTML=`<div style="color:#777;font-size:13px">📍 ${esc(LV.city||'')} · ${esc(x.distance||'')} · ${x.mins} min${x.rating?' · ⭐ '+esc(x.rating):''}</div><h2>${esc(x.desc)}</h2><p>${esc(x.type)}${LV.city?' · '+esc(LV.city):''}. Preporučeno trajanje posjete: ${x.mins} min.</p><button class="savebtn${fav?' on':''}" id="dSave">${fav?'♥ &nbsp; Sačuvano':'♡ &nbsp; Sačuvaj mjesto'}</button><a class="primary" target="_blank" rel="noopener" href="${gmaps(x)}">➤ &nbsp; Otvori rutu</a>`;
+ $('dSave').onclick=()=>{toggleFav(x.title);openItemRefresh()};go('detail')}
+function openItemRefresh(){if(!curItem)return;const fav=favs.includes(curItem.title),b=$('dSave');if(b){b.classList.toggle('on',fav);b.innerHTML=fav?'♥ &nbsp; Sačuvano':'♡ &nbsp; Sačuvaj mjesto'}}
+function toggleFav(t){const i=favs.indexOf(t);if(i>=0){favs.splice(i,1);toast('Uklonjeno iz sačuvanih')}else{favs.push(t);const _it=ALL.find(x=>x.title===t);if(_it){const _f=LS.get('blizu_favitems',{});_f[t]=_it;LS.set('blizu_favitems',_f)}toast('Sačuvano')}persist()}
+/* mapa */
+let mapIdx=0;
+function dirUrl(){const it=PLAN.length?PLAN:makePlan();return it.length?LV.dir(it):'https://www.google.com/maps'}
+function renderMap(){if(!PLAN.length)PLAN=makePlan();mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
+ q('#map .logo').textContent='Tvoj plan · '+fmtT(total);
+ q('#map .mapwrap').innerHTML=`<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${LV.embed(x)}"></iframe><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-card"><div class="place-row"><img src="${x.img}"><div><h3>${mapIdx+1} &nbsp; ${esc(x.title)} <span style="float:right">${x.mins} min</span></h3><div style="color:#777;font-size:12px">${esc(x.type)} · ${esc(x.distance||'')}</div>${x.rating?'<div class="rating">⭐ '+esc(x.rating)+'</div>':''}</div></div><div class="actionrow"><button class="secondary" id="mDet">▣ Detalji</button><button class="secondary" id="mFav">${fav?'♥':'♡'}</button></div></div>`;
+ $('mDet').onclick=()=>openItem(x.title);$('mFav').onclick=()=>{toggleFav(x.title);$('mFav').textContent=favs.includes(x.title)?'♥':'♡'}}
+q('#map .mapwrap').addEventListener('click',e=>{const b=e.target.closest('.stops button');if(b){mapIdx=+b.dataset.i;renderMap()}});
+{const r=qa('#map .iconbtn')[1];r.textContent='➤';r.title='Otvori rutu u Google mapama';r.onclick=()=>window.open(dirUrl(),'_blank')}
+/* otkrij */
+let dFilter='Sve',dQ='';
+function searchBox(sel,id,cb){const hd=q(sel+' .topbar'),inp=document.createElement('input');inp.className='srch hidden';inp.id=id;inp.type='search';inp.placeholder='Pretraži…';hd.after(inp);qa('.iconbtn',hd).pop().onclick=()=>{inp.classList.toggle('hidden');if(!inp.classList.contains('hidden'))inp.focus();else{inp.value='';cb('')}};inp.oninput=()=>cb(inp.value)}
+renderDiscover=function(f){if(f)dFilter=f;qa('#discoverTabs .pill').forEach(p=>p.classList.toggle('active',p.dataset.filter===dFilter));
+ let items=dFilter==='Sve'?ALL:(DATA[dFilter]||[]);const s=dQ.trim().toLowerCase();if(s)items=items.filter(x=>(x.title+' '+x.desc).toLowerCase().includes(s));
+ $('discoverList').innerHTML=items.length?items.map(x=>`<div class="card" data-t="${esc(x.title)}"><img src="${x.img}" alt="${esc(x.title)}"><button class="heart${favs.includes(x.title)?' on':''}" data-t="${esc(x.title)}" aria-label="Sačuvaj">${favs.includes(x.title)?'♥':'♡'}</button><div class="cardbody"><h3>${icon(x)} ${esc(x.title)} <span style="float:right">${esc(x.distance)}</span></h3><p>${esc(x.desc)}${x.rating?' · ⭐ '+esc(x.rating):''}</p></div></div>`).join(''):LV.empty()};
+searchBox('#discover','dSearch',v=>{dQ=v;renderDiscover()});
+$('discoverList').addEventListener('click',e=>{const h=e.target.closest('.heart');if(h){e.stopPropagation();toggleFav(h.dataset.t);renderDiscover();return}const c=e.target.closest('.card');if(c)openItem(c.dataset.t)});
+renderDiscover('Sve');
+/* sačuvano */
+let sTab='Sve',sQ='';
+{const w=q('#saved .saved');w.innerHTML=`<div class="tabs">${['Sve','Planovi','Mesta','Događaji'].map(t=>`<button class="pill" data-tab="${t}">${t}</button>`).join('')}</div><div id="savedList"></div>`}
+searchBox('#saved','sSearch',v=>{sQ=v;renderSaved()});
+q('#saved').addEventListener('click',e=>{const p=e.target.closest('.pill');if(p){sTab=p.dataset.tab;renderSaved();return}
+ const h=e.target.closest('.heart');if(h){e.stopPropagation();const k=h.dataset.k;if(h.dataset.kind==='plan'){plans=plans.filter(x=>x.key!==k);persist();toast('Plan uklonjen')}else toggleFav(k);renderSaved();return}
+ const c=e.target.closest('.savedcard');if(!c)return;if(c.dataset.kind==='plan'){const p=plans.find(x=>x.key===c.dataset.k);if(p){selectedTime=p.time;selectedCats=new Set(p.cats);qa('.timegrid .chip').forEach(x=>x.classList.toggle('sel',(x.dataset.time||'')===p.time));qa('.cat').forEach(x=>x.classList.toggle('sel',selectedCats.has(x.dataset.cat)));go('plan')}}else openItem(c.dataset.k)});
+function renderSaved(){qa('#saved .pill').forEach(p=>p.classList.toggle('active',p.dataset.tab===sTab));const s=sQ.trim().toLowerCase(),out=[];
+ if(sTab==='Sve'||sTab==='Planovi')plans.slice().reverse().forEach(p=>{const t='Plan za '+(p.time==='Ceo dan'?'ceo dan':p.time);if(s&&!(t+' '+p.cats.join(' ')).toLowerCase().includes(s))return;out.push(`<div class="savedcard" data-kind="plan" data-k="${esc(p.key)}"><img src="${p.img}"><div><h3>${esc(t)}</h3><p>${p.titles.length} stanice · ${fmtT(p.mins)} · ${esc(p.cats.join(', '))}</p></div><b class="heart on" data-kind="plan" data-k="${esc(p.key)}">♥</b></div>`)});
+ favs.map(byTitle).filter(Boolean).forEach(x=>{const ev=isEv(x);if(!(sTab==='Sve'||(sTab==='Mesta'&&!ev)||(sTab==='Događaji'&&ev)))return;if(s&&!(x.title+' '+x.desc).toLowerCase().includes(s))return;out.push(`<div class="savedcard" data-kind="item" data-k="${esc(x.title)}"><img src="${x.img}"><div><h3>${esc(x.title)}</h3><p>${esc(x.type)} · ${esc(x.distance)}${x.rating?' · ⭐ '+esc(x.rating):''}</p></div><b class="heart on" data-k="${esc(x.title)}">♥</b></div>`)});
+ $('savedList').innerHTML=out.length?out.join(''):'<div class="empty">Još nema sačuvanog.<br>Tapni srce na mjestu ili sačuvaj plan.</div>'}
+/* početna + profil */
+{const hb=qa('#home .iconbtn');hb[0].onclick=()=>go('profile');hb[1].onclick=()=>sheet('Obavještenja','<p>Nema novih obavještenja.</p>');
+ q('#home .location').onclick=()=>sheet('Grad','<p>Preporuke su trenutno dostupne za <b style="display:inline;font-size:inherit">Kotor</b>. Ostali gradovi stižu uskoro.</p>');
+ qa('#welcome button')[1].onclick=()=>go('home');
+ const mi=qa('#profile .menuitem');
+ mi[0].onclick=()=>{sTab='Planovi';go('saved')};mi[1].onclick=()=>{sTab='Mesta';go('saved')};
+ mi[2].lastElementChild.innerHTML='›';mi[2].onclick=()=>sheet('Obavještenja','<p>Nema novih obavještenja.</p>');
+ mi[3].onclick=()=>sheet('Pomoć i podrška','<ol><li>Na početnoj izaberi koliko vremena imaš.</li><li>Izaberi jednu ili više tema (Hrana, Kafa, Atrakcije…).</li><li>Tapni „Pronađi moj plan”.</li><li>Sačuvaj plan ili mjesto srcem; nađeš ih u „Sačuvano”.</li><li>„Prikaži na mapi” otvara stanice na Google mapi.</li></ol>');
+ mi[4].onclick=()=>sheet('O aplikaciji','<p><b style="display:inline;font-size:inherit">Blizu</b> — lokalni vodič za nezaboravne trenutke.</p><p>Mjesta i udaljenosti dolaze uživo iz OpenStreetMap-a prema tvojoj lokaciji.</p><p>Fotografije: Wikimedia Commons; licence i autori su navedeni na stranici svake fotografije.</p>');
+ q('#profile .plancta').onclick=()=>{sTab='Sve';go('saved')}}
+window.LVweather=(la,lo)=>fetch('https://api.open-meteo.com/v1/forecast?latitude='+la+'&longitude='+lo+'&current=temperature_2m&timezone=auto').then(r=>r.json()).then(j=>{qa('#home .topbar > div')[1].textContent='☀️ '+Math.round(j.current.temperature_2m)+'°C'}).catch(()=>{});
+})();
 
-
-function cats(){$("em").classList.toggle("hide",cat!="info");$("em").innerHTML=EMH.replace(/<p.*<\/p>/,function(){var n={us:"911",ca:"911",gb:"999",au:"000"}[PLACE.cc]||"112";return'<p style="margin:6px 0 0"><a href="tel:'+n+'">'+n+'</a> – hitna služba (policija, vatrogasci, hitna pomoć)</p>'});$("cat").innerHTML=CT.map(function(c){return '<button style="--c:'+KC[c[0]]+'" class="cc '+(cat==c[0]?"on":"")+'" onclick="'+(c[0]=="dogadjaji"?"openEv()":c[0]=="jesti"?"openFood()":"cat=cat=='"+c[0]+"'?'sve':'"+c[0]+"';cats();load()")+'"><b>'+ic(c[0],24)+'</b>'+c[2]+'</button>'}).join("")}
-function dist(p){return km(me,p.c)}
-function fmt(d){return d<1?Math.round(d*1000)+" m":d.toFixed(1).replace(".",",")+" km"}
-function walk(d){return d<=1.5?ic("walk",14)+" ~"+Math.max(1,Math.round(d/4.5*60))+" min":ic("car",14)+" ~"+Math.max(2,Math.round(d/35*60))+" min"}
-function card(p,i){var d=dist(p),o=p.oh?openNow(p.oh):null,pn=o===true?'<span class="pill ok">Otvoreno</span>':o===false?'<span class="pill no">Zatvoreno</span>':"";
- return'<div class="card'+(sel==p.id?' sel':'')+'" id="c_'+p.id+'" style="--c:'+(KC[p.k]||"#888")+';--i:'+Math.min(i||0,10)+'"><div class="th" data-pid="'+p.id+'" style="background-image:linear-gradient(135deg,'+p.g+')" onclick="det(\''+p.id+'\')">'+ic(p.k,34)+'</div><div class="cb"><div class="kl">'+KN[p.k]+'</div><h3 onclick="det(\''+p.id+'\')">'+p.n+'</h3><p>'+p.s.replace(/⭐/g,"★")+'</p><div class="pr"><span class="pill">'+ic("pin",12)+fmt(d)+'</span><span class="pill">'+walk(d)+'</span><span class="pill ok" data-rt="'+p.id+'" style="display:none"></span>'+pn+'</div></div><button class="add'+(saved[p.id]?' on':'')+'" aria-label="Sklopi" onclick="sv(\''+p.id+'\')">'+ic(saved[p.id]?"check":"plus",18)+'</button></div>'}
-function render0(){
- var C=PLACE;if(!me||!C.n)return;
- $("where").innerHTML=E(C.n)+(gpsOn&&WID!=null?' <i class="lv" title="Lokacija uživo"></i>':"");
- $("ttl").textContent=cat=="sve"?"Popularno u blizini":CT.filter(function(c){return c[0]==cat})[0][2];
- var L=P.filter(function(p){return (R==0||dist(p)<=R)&&(cat=="sve"||p.k==cat)&&p.h<=H&&(!Q||nz(p.n).indexOf(nz(Q))>=0)&&(!OO||(p.oh&&openNow(p.oh)===true))}).sort(function(a,b){return dist(a)-dist(b)}).slice(0,60);var LV=(ALL||Q||cat!="sve")?L:L.slice(0,5);$("all").classList.toggle("hide",!(cat=="sve"&&!Q&&L.length>5));$("all").textContent=ALL?"Manje":"Vidi sve";clearTimeout(MT);MT=setTimeout(function(){miniMap(L)},300);
- $("list").innerHTML=L.length?LV.map(card).join(""):'<p style="padding:20px;color:var(--mut)">'+(busy?"⏳ Učitavam mesta iz OpenStreetMap-a…":"Nema mesta za taj filter – proširi radijus, dodaj vremena ili izaberi drugu kategoriju.")+'</p>';
- drawRadar(L);if(!$("ev").classList.contains("hide"))evRender();if(!$("food").classList.contains("hide"))fdRender();var S=Object.keys(SI).map(function(k){return SI[k]}).sort(function(a,b){return dist(a)-dist(b)});
- $("slist").innerHTML=S.length?S.map(card).join(""):'<p style="padding:20px;color:var(--mut)">Još nema sačuvanih mesta. Tapni „Sklopi" na nekom mestu.</p>'}
-function sv(id){var p=P.filter(function(x){return x.id==id})[0]||SI[id];if(saved[id]){delete saved[id];delete SI[id]}else if(p){saved[id]=true;SI[id]=p}try{localStorage.setItem("blizu_saved",JSON.stringify(saved));localStorage.setItem("blizu_si",JSON.stringify(SI))}catch(e){}render();if(!$("det").classList.contains("hide"))det(id)}
-var GL={};
-function galR(a){var g=$("gal");if(g&&a&&a.length)g.innerHTML=a.map(function(u){return'<img src="'+E(u)+'" alt="" loading="lazy" onerror="this.remove()">'}).join("")}
-function galGet(p){if(GL[p.id]!==undefined)return galR(GL[p.id]);var tk=p.k=="jesti"?nz(dec(p.n)).split(/[^a-z0-9]+/).filter(function(w){return w.length>=4&&!STOP.test(w)}):null;if(tk&&!tk.length){GL[p.id]=[];return}
- fetch("https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord="+p.c[0]+"%7C"+p.c[1]+"&ggsradius="+(tk?200:150)+"&ggsnamespace=6&ggslimit=25&prop=imageinfo&iiprop=url%7Cmime&iiurlwidth=400&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query?Object.keys(j.query.pages).map(function(k){return j.query.pages[k]}):[];q=q.filter(function(x){var i=(x.imageinfo||[])[0];if(!(i&&i.mime=="image/jpeg"&&!/logo|map|flag|plan|coat|icon|sign|menu/i.test(x.title)))return false;if(!tk)return true;var t=nz(x.title);return tk.some(function(w){return t.indexOf(w)>=0})}).sort(function(a,b){return a.index-b.index});var a=q.slice(0,3).map(function(x){return x.imageinfo[0].thumburl});GL[p.id]=a;galR(a)}).catch(function(){})}
-function shr(id){var p=P.filter(function(x){return x.id==id})[0]||SI[id],u="https://www.google.com/maps/search/?api=1&query="+p.c[0]+","+p.c[1];if(navigator.share)navigator.share({title:dec(p.n),url:u}).catch(function(){});else{try{navigator.clipboard.writeText(u);$("shb").textContent="Link kopiran"}catch(e){window.open(u,"_blank")}}}
-function det(id){var p=P.filter(function(x){return x.id==id})[0]||SI[id]||(window.SP||{})[id];if(!p)return;var d=dist(p),o=p.oh?openNow(p.oh):null,pn=o===true?'<span class="pill ok">Otvoreno</span>':o===false?'<span class="pill no">Zatvoreno</span>':"",tel=p.ph?'<a class="btn o2" href="tel:'+E(p.ph.replace(/[^+\d]/g,""))+'">'+ic("phone",18)+' Pozovi</a>':'<button class="btn o2" id="shb" onclick="shr(\''+id+'\')">'+ic("compass",18)+' Podijeli</button>';show("det");
- $("det").innerHTML='<div class="hero" style="background:linear-gradient(135deg,'+p.g+')"><button onclick="show(DB||\'app\')" aria-label="Nazad">'+ic("back",20)+'</button>'+ic(p.k,64).replace("ic","ic big")+'<button onclick="sv(\''+id+'\')" aria-label="Sačuvaj">'+ic("heart",20,saved[id])+'</button></div><div class="body"><h1>'+p.n+'</h1><div class="dm"><span style="color:'+(KC[p.k]||"#888")+'">'+p.s.replace(/⭐/g,"★")+'</span> · '+fmt(d)+' '+pn+'</div>'
- +'<div class="dtiles"><div class="dt">'+ic("clock",20)+'<span><small>Radno vrijeme</small><b id="hrt">'+p.hr+'</b></span></div><div class="dt">'+ic("pin",20)+'<span><small>Udaljenost</small><b>'+fmt(d)+' · '+walk(d)+'</b></span></div></div>'
- +'<div class="dact">'+tel+'<button class="btn gr" onclick="sv(\''+id+'\')">'+ic(saved[id]?"check":"plus",18)+(saved[id]?" Dodato u plan":" Dodaj u plan")+'</button></div>'
- +(p.d&&p.d!="Podaci: OpenStreetMap."?'<p class="dd">'+p.d+'</p>':"")+'<div id="gx" data-id="'+id+'"></div><div id="wk"></div><div class="gal" id="gal"></div>'+gmaps(p,d)+'<p class="meta" style="text-align:center;margin:14px 0 0">Izvor: OpenStreetMap</p></div>';
- if(p.k=="jesti")gx(p);if(p.k=="videti")wiki(p);if(p.k=="odmoriti")sea(p);detPh(p);galGet(p)}
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")==0){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}}
-</script><script>
-
-(function(){var u=window.BLIZU_GATE||"img/gate.jpg",im=new Image();im.onload=function(){["gph","gph2","gph3"].forEach(function(i){var e=document.getElementById(i);e.style.backgroundImage="url("+u+")";e.classList.add("on")})};im.src=u})();
-</script><script>
-var TGK={priroda:["odmoriti"],kultura:["videti","dogadjaji"],hrana:["jesti"]};
-var PK={time:{t:"Raspoloživo vrijeme",o:[[1,"1 sat"],[2,"2 sata"],[3,"3 sata"],[5,"5+ sati"]]},budget:{t:"Budžet po osobi",o:[[0,"Besplatno"],[10,"10 €"],[20,"20 €"],[50,"50 €"]]},interest:{t:"Tip aktivnosti",o:[["mix","Iznenadi me"],["jesti","Hrana"],["videti","Otkrivanje"],["odmoriti","Odmor"]]},move:{t:"Kretanje",o:[["walk","Pješke"],["car","Autom"]]}};
-function prows(){for(var k in PK){var o=PK[k].o.filter(function(x){return x[0]===planCfg[k]})[0];$("pv_"+k).textContent=o?o[1]:""}document.querySelectorAll(".ichip").forEach(function(b){b.classList.toggle("on",planCfg.tags.indexOf(b.dataset.t)>=0)})}
-function pl(){show("plan");prows()}
-function ppick(k){var d=PK[k];$("psel").innerHTML='<div class="psh"><div class="pshh"><b>'+d.t+'</b><button onclick="pclose()" aria-label="Zatvori">✕</button></div>'+d.o.map(function(x,i){return'<button class="popt'+(planCfg[k]===x[0]?" on":"")+'" onclick="pset(\''+k+"',"+i+')">'+x[1]+"<i></i></button>"}).join("")+"</div>";$("psel").classList.add("open")}
-function pset(k,i){planCfg[k]=PK[k].o[i][0];pclose();prows()}
-function pclose(){$("psel").classList.remove("open")}
-function ptag(t){var a=planCfg.tags,i=a.indexOf(t);if(i<0)a.push(t);else a.splice(i,1);prows()}
-function pgen(){RB="gen";makePlan();setTimeout(function(){$("planResult").scrollIntoView({behavior:"smooth",block:"start"})},60)}
-try{$("pph").insertAdjacentHTML("afterbegin",document.querySelector("#gate .gbg").outerHTML.replace(/id="g(sky|wat|sun)"/g,'id="p$1"').replace(/url\(#g(sky|wat|sun)\)/g,"url(#p$1)").replace('class="gbg"','class="pbg"'))}catch(e){}
-prows();
-</script><script>
-var BK=null,DB=null,RM=null,_s=show;show=function(v){if(v=="app"||v=="plan"){BK=null;DB=null}_s(v)};
-function pmin(m){return m>=60?Math.floor(m/60)+" h"+(m%60?" "+m%60+" min":""):m+" min"}
-var RMODE="walk";
-function route(pts,cb){var m=RMODE=="car"?"car":"foot",u="https://routing.openstreetmap.de/routed-"+m+"/route/v1/driving/"+pts.map(function(c){return c[1].toFixed(6)+","+c[0].toFixed(6)}).join(";")+"?overview=full&geometries=geojson";fetch(u).then(function(r){return r.json()}).then(function(j){var r=j&&j.routes&&j.routes[0];if(!r)return;cb({l:r.geometry.coordinates.map(function(c){return[c[1],c[0]]}),d:r.distance,t:r.duration})}).catch(function(){})}
-var MD=3,MDD=[];
-function mdSave(){var st=[];MDD.forEach(function(day){day.forEach(function(p){st.push({id:p.id,travel:10,stay:p.k=="odmoriti"?90:60,price:p.k=="jesti"?12:0,p:p})})});if(!st.length)return;var id="plan_"+Date.now(),cost=st.reduce(function(a,x){return a+x.price},0),pl={id:id,city:PLACE.n,time:0,days:MD,budget:cost,interest:"mix",move:"walk",items:st.map(function(x){return x.id}),created:Date.now(),estimatedMinutes:st.reduce(function(a,x){return a+x.stay+x.travel},0),estimatedCost:cost,saved:true,stops:st};window._blizuPlans=window._blizuPlans||{};_blizuPlans[id]=pl;var a=plansAll();a[id]=pl;plansSave(a);var b=$("mdsv");b.textContent="✓ Itinerar sačuvan";b.classList.add("done")}
-function mdOpen(){show("multi");mdRender()}
-function mdRender(){$("mdc").innerHTML=[2,3,5].map(function(n){return'<button class="chip'+(MD==n?" on":"")+'" onclick="MD='+n+';mdRender()">'+n+" dana</button>"}).join("");
- var pools={},SL=["videti","jesti","odmoriti","jesti"],days=[],tot=0;["videti","jesti","odmoriti"].forEach(function(k){pools[k]=P.filter(function(p){return p.k==k&&p.c}).sort(function(a,b){return dist(a)-dist(b)})});
- for(var d=0;d<MD;d++){var day=[];SL.forEach(function(k){var p=pools[k].shift();if(p)day.push(p)});if(day.length){days.push(day);tot+=day.length}}
- var h=days.map(function(day,i){return'<div class="mdh"><span>Dan '+(i+1)+'</span><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/'+day.map(function(p){return p.c[0]+","+p.c[1]}).join("/")+'">Ruta u Google mapama</a></div>'+day.map(function(p,j){return'<div class="stop" onclick="DB=\'multi\';det(\''+p.id+'\')"><div class="sn">'+(j+1)+'</div><div class="sb"><b>'+p.n+"</b><p>"+p.s+" · "+fmt(dist(p))+'</p></div><div class="th" data-pid="'+p.id+'" style="background-image:linear-gradient(135deg,'+p.g+')">'+ic(p.k,26)+"</div></div>"}).join("")}).join("");
- $("mdt").textContent=(PLACE&&PLACE.n?PLACE.n:"Tvoj itinerar")+" – "+MD+" dana";var cst=0;days.forEach(function(dd){dd.forEach(function(p){if(p.k=="jesti")cst+=12})});$("mds").textContent=tot?MD+" dana · "+tot+" aktivnosti · ~"+cst+" €":"";
- MDD=days;$("mdList").innerHTML=(h?h+'<div style="padding:16px"><button class="btn pgo" id="mdsv" onclick="mdSave()">Sačuvaj itinerar</button></div>':"")||'<p style="padding:20px;color:var(--mut)">Nema dovoljno mjesta. Na početnoj izaberi „Bez ograničenja“ pa pokušaj ponovo.</p>';lazyPh()}
-function ptMore(){var m=window.BLIZU_PARTNER_MAIL||"";if(m)location.href="mailto:"+m+"?subject="+encodeURIComponent("BLIZU – lokalni partner");else $("ptm").textContent="Kontakt za partnere uskoro."}
-function resMap(list){lf(function(){var Lf=window.L,el=$("resmc");if(!el)return;if(RM){RM.remove();RM=null}
- RM=Lf.map(el,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,touchZoom:false,doubleClickZoom:false,boxZoom:false,keyboard:false}).setView(me,14);Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(RM);
- var pts=[me];Lf.marker(me,{icon:Lf.divIcon({className:"",html:'<div class="mk me"></div>',iconSize:[18,18]})}).addTo(RM);
- list.forEach(function(p,i){pts.push(p.c);Lf.marker(p.c,{icon:Lf.divIcon({className:"",html:'<div class="mk" style="background:#0f8b6d">'+(i+1)+"</div>",iconSize:[28,28],iconAnchor:[14,14]})}).addTo(RM)});
- var M=RM,dl=Lf.polyline(pts,{color:"#0f8b6d",weight:4,dashArray:"2 9",lineCap:"round"}).addTo(M);route(pts,function(g){if(RM!==M)return;M.removeLayer(dl);Lf.polyline(g.l,{color:"#0f8b6d",weight:5,lineCap:"round"}).addTo(M)});
- var fit=function(){RM.invalidateSize();RM.fitBounds(pts,{padding:[34,34],maxZoom:16})};fit();setTimeout(fit,250)})}
-function resShow(plan){RMODE=plan.move||"walk";var st=(plan.stops||[]).map(function(x){var p=P.filter(function(q){return q.id==x.id})[0]||SI[x.id]||x.p;if(p){window.SP=window.SP||{};SP[x.id]=p}return p?{p:p,x:x}:null}).filter(Boolean);if(!st.length)return;
- var T=plan.days?plan.days+" dana":plan.time==1?"1 sat":plan.time==5?"5+ sati":plan.time+" sata",io={jesti:"hrana",videti:"otkrivanje",odmoriti:"odmor"}[plan.interest],act=(plan.move=="walk"?"Šetnja":"Vožnja")+(io?" + "+io:"");
- $("rt").textContent="Tvoj plan za "+T;$("rs").innerHTML='<i class="dot"></i>'+E(plan.city||"")+" · "+(plan.budget?plan.budget+" €":"Besplatno")+" · "+act;
- $("resList").innerHTML=st.map(function(o,i){var p=o.p,x=o.x,pr=x.price>0?"oko "+x.price+" €":"Besplatno",op=p.oh?openNow(p.oh):null;
-  return'<div class="stop" style="animation-delay:'+i*70+'ms"><div class="sn">'+(i+1)+'</div><div class="sb"><b>'+p.n+'</b><span class="sm">'+x.stay+" min · "+pr+'</span> <span class="pill ok" data-rt="'+p.id+'" style="display:none"></span><p>'+p.s+" · "+ic(plan.move=="walk"?"walk":"car",12)+" "+x.travel+" min"+(op===true?" · otvoreno":op===false?" · zatvoreno":"")+'</p><button class="sl" onclick="DB=\'planres\';det(\''+p.id+'\')">Detalji ›</button></div><div class="th" data-pid="'+p.id+'" style="background-image:linear-gradient(135deg,'+p.g+')">'+ic(p.k,26)+"</div></div>"}).join("");
- $("rn").textContent="Ukupno ≈ "+pmin(plan.estimatedMinutes)+" · oko "+plan.estimatedCost+" € po osobi. Vremena i cijene su procjene; provjeri radno vrijeme prije polaska.";
- $("rg").href="https://www.google.com/maps/dir/"+st.map(function(o){return o.p.c[0]+","+o.p.c[1]}).join("/");
- $("rmb").onclick=function(){BK=DB="planres";mapPlan(plan.id)};
- var b=$("rsave");b.textContent=plan.saved?"✓ Plan sačuvan":"Sačuvaj plan";b.classList.toggle("done",!!plan.saved);b.onclick=function(){savePlan(plan.id)};
- show("planres");lazyPh();resMap(st.map(function(o){return o.p}))}
-function savePlan(id){var all={};try{all=JSON.parse(localStorage.getItem("blizu_plans")||"{}")}catch(e){}if(all[id]){all[id].saved=true;try{localStorage.setItem("blizu_plans",JSON.stringify(all))}catch(e){}}var b=$("rsave");b.textContent="✓ Plan sačuvan";b.classList.add("done")}
-</script><script>
-var EF="svi",MO=["jan","feb","mar","apr","maj","jun","jul","avg","sep","okt","nov","dec"];
-function openEv(){if(cat!="sve"&&cat!="dogadjaji"){cat="sve";cats();load()}show("ev");evRender()}
-function evRender(){var ch=[["svi","Svi"],["danas","Danas"],["vikend","Ovaj vikend"],["free","Besplatno"],["open","Otvoreno sada"]];
- $("evc").innerHTML=ch.map(function(c){return'<button class="chip'+(EF==c[0]?" on":"")+'" onclick="EF=\''+c[0]+'\';evRender()">'+c[1]+"</button>"}).join("");
- var now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),city=nz(PLACE.n||""),all=window.BLIZU_EVENTS||[];
- var evs=all.map(function(e){var d=new Date(e.date+"T00:00");return{e:e,d:d,df:Math.round((d-t0)/864e5)}}).filter(function(x){if(x.e.city&&nz(x.e.city)!=city)return false;if(isNaN(x.df)||x.df<0)return false;if(EF=="danas")return x.df==0;if(EF=="vikend")return x.df<8&&(x.d.getDay()==0||x.d.getDay()==6);if(EF=="free")return!x.e.price;return EF!="open"}).sort(function(a,b){return a.d-b.d||String(a.e.time).localeCompare(String(b.e.time))});
- var vs=(EF=="svi"||EF=="open")?P.filter(function(p){return p.k=="dogadjaji"&&(R==0||dist(p)<=R)&&(EF!="open"||openNow(p.oh)===true)}).sort(function(a,b){return dist(a)-dist(b)}).slice(0,30):[],h="";
- h+=evs.map(function(x,i){var e=x.e,w=(x.df==0?"Danas":x.df==1?"Sutra":x.d.getDate()+". "+MO[x.d.getMonth()])+(e.time?" · "+e.time:"")+(e.place?" · "+e.place:""),bg=e.img?"url('"+encodeURI(e.img)+"')":"linear-gradient(135deg,"+GR.dogadjaji+")",go=e.lat&&e.lng?" onclick=\"window.open('https://www.google.com/maps/search/?api=1&query="+e.lat+","+e.lng+"','_blank')\"":"";
-  return'<div class="evc" style="animation-delay:'+i*50+'ms"'+go+'><div class="th" style="background-image:'+bg+'">'+(e.img?"":ic("dogadjaji",34))+'</div><div class="evb"><div><b>'+E(e.title||"")+'</b><span class="evw">'+E(w)+'</span></div>'+(e.price?'<span class="tag pr">'+E(e.price)+" €</span>":'<span class="tag">Besplatno</span>')+"</div></div>"}).join("");
- if(!all.length&&(EF=="svi"))h='<div class="evn">Datume i programe događaja za sada ne povlačimo iz javnih izvora. Ispod su pozorišta, bioskopi, klubovi i kulturni centri u blizini. Vlastite događaje možeš dodati u <b>config.js</b>.</div>'+h;
- if(vs.length)h+=(evs.length?'<div class="h2t">Mjesta za izlazak</div>':"")+vs.map(function(p,i){var d=dist(p),o=p.oh?openNow(p.oh):null;return'<div class="evc" style="animation-delay:'+i*40+'ms" onclick="DB=\'ev\';det(\''+p.id+'\')"><div class="th" data-pid="'+p.id+'" style="background-image:linear-gradient(135deg,'+p.g+')">'+ic("dogadjaji",34)+'</div><button class="evh" aria-label="Sačuvaj" onclick="event.stopPropagation();sv(\''+p.id+'\')">'+ic("heart",18,saved[p.id])+'</button><div class="evb"><div><b>'+p.n+'</b><span class="evw">'+p.s+" · "+fmt(d)+"</span></div>"+(o===true?'<span class="tag">Otvoreno</span>':o===false?'<span class="tag no">Zatvoreno</span>':"")+"</div></div>"}).join("");
- if(!evs.length&&!vs.length)h='<div class="evn">'+(busy?"Učitavam…":"Nema rezultata za ovaj filter u tvojoj blizini.")+"</div>";
- $("evl").innerHTML=h;lazyPh()}
-</script><script>
-var FF="near";
-function openFood(){if(cat!="sve"&&cat!="jesti"){cat="sve";cats();load()}show("food");fdRender()}
-var RT={};
-function rtPrice(x){return{PRICE_LEVEL_INEXPENSIVE:"€",PRICE_LEVEL_MODERATE:"€€",PRICE_LEVEL_EXPENSIVE:"€€€",PRICE_LEVEL_VERY_EXPENSIVE:"€€€€"}[x]||""}
-var RTOK=false,RTDEAD=false;
-function rtGet(p,cb){if(RTDEAD){RT[p.id]=null;return cb()}fetch(window.BLIZU_API+"/api/enrich?name="+encodeURIComponent(dec(p.n))+"&lat="+p.c[0]+"&lng="+p.c[1]).then(function(r){return r.json()}).then(function(g){if(!g||g.error){RTDEAD=true;RT[p.id]=null;return cb()}RT[p.id]=g.rating||g.photo?{r:g.rating||0,n:g.n||0,p:rtPrice(g.price),ph:g.photo||""}:null;if(g.rating&&!RTOK){RTOK=true;if(!$("food").classList.contains("hide"))fdRender()}cb()}).catch(function(){RT[p.id]=null;cb()})}
-function rtShow(p){var v=RT[p.id];if(!v||!v.r)return;document.querySelectorAll('[data-rt="'+p.id+'"]').forEach(function(e){e.textContent="★ "+String(v.r).replace(".",",")+(v.p?" · "+v.p:"");e.style.display=""})}
-function rtPhoto(p){var v=RT[p.id];if(!v||!v.ph)return;var u=window.BLIZU_API+"/api/photo?ref="+encodeURIComponent(v.ph);document.querySelectorAll('.th[data-pid="'+p.id+'"]').forEach(function(t){if(t.classList.contains("gp"))return;var im=new Image();im.referrerPolicy="origin";im.onload=function(){t.style.backgroundImage="url("+u+")";t.classList.add("ph","gp")};im.src=u})}
-function rtVis(p){var f=function(){rtShow(p);rtPhoto(p)};if(RT[p.id]!==undefined)return f();rtGet(p,f)}
-function rtFill(a){if(!window.BLIZU_API)return;var pend=0,srt=FF=="best"||FF=="price";a.forEach(function(p){rtShow(p);if(RT[p.id]!==undefined)return;pend++;rtGet(p,function(){rtShow(p);if(--pend==0&&srt&&!$("food").classList.contains("hide"))fdRender()})})}
-function fdRender(){var ch=[["near","Najbliži"],["open","Otvoreno sada"],["rest","Restorani"],["caf","Kafići"],["bar","Barovi"]];if(window.BLIZU_API&&RTOK){ch.unshift(["best","Najbolje ocijenjeni"]);ch.splice(2,0,["price","Cijena"])}
- $("fdc").innerHTML=ch.map(function(c){return'<button class="chip'+(FF==c[0]?" on":"")+'" onclick="FF=\''+c[0]+'\';fdRender()">'+c[1]+"</button>"}).join("");
- var L=P.filter(function(p){if(p.k!="jesti"||!(R==0||dist(p)<=R))return false;if(FF=="open")return openNow(p.oh)===true;if(FF=="rest")return p.s.indexOf("Restoran")==0;if(FF=="caf")return p.s.indexOf("Kafić")==0;if(FF=="bar")return/^(Bar|Pab)/.test(p.s);return true}).sort(function(a,b){return dist(a)-dist(b)}).slice(0,40);var near=L.slice(0,20);if(FF=="best")L=L.slice().sort(function(a,b){return((RT[b.id]?RT[b.id].r:0)-(RT[a.id]?RT[a.id].r:0))||dist(a)-dist(b)});if(FF=="price")L=L.slice().sort(function(a,b){var pa=RT[a.id]&&RT[a.id].p?RT[a.id].p.length:9,pb=RT[b.id]&&RT[b.id].p?RT[b.id].p.length:9;return(pa-pb)||dist(a)-dist(b)});
- $("fdn").textContent=L.length?L.length+(L.length==1?" mjesto":" mjesta")+" · "+(R==0?"cijela regija":R<1?"do 500 m":"do "+R+" km")+" · poredano po udaljenosti":"";
- $("fdl").innerHTML=L.length?L.map(function(p,i){var d=dist(p),o=p.oh?openNow(p.oh):null;return'<div class="fi" style="animation-delay:'+Math.min(i,10)*40+'ms" onclick="DB=\'food\';det(\''+p.id+'\')"><div class="th" data-pid="'+p.id+'" style="background-image:linear-gradient(135deg,'+p.g+')">'+ic("jesti",28)+'</div><div class="fb"><b>'+p.n+'</b><span class="fs">'+p.s+'</span><div class="pr"><span class="pill">'+ic("pin",12)+fmt(d)+'</span><span class="pill">'+walk(d)+"</span>"+'<span class="pill ok" data-rt="'+p.id+'" style="display:none"></span>'+(o===true?'<span class="pill ok">Otvoreno</span>':o===false?'<span class="pill no">Zatvoreno</span>':"")+'</div></div><button class="fh" aria-label="Sačuvaj" onclick="event.stopPropagation();sv(\''+p.id+'\')">'+ic("heart",20,saved[p.id])+"</button></div>"}).join(""):'<p style="padding:20px;color:var(--mut)">'+(busy?"Učitavam mjesta…":"Nema rezultata za ovaj filter. Proširi radijus na početnoj ili izaberi drugi filter.")+"</p>";lazyPh();rtFill(near)}
-</script><script>
-var PS="saved",RB="gen",_t=tab;tab=function(n){_t(n);if(n==2)mpRender()};
-function resBack(){if(RB=="plans"){show("app");tab(2)}else show("plan")}
-function plansAll(){var a={};try{a=JSON.parse(localStorage.getItem("blizu_plans")||"{}")}catch(e){}return a}
-function plansSave(a){try{localStorage.setItem("blizu_plans",JSON.stringify(a))}catch(e){}}
-function tlab(h){return h==1?"1 sat":h==5?"5+ sati":h+" sata"}
-function mpRender(){$("pseg").innerHTML=[["saved","Sačuvani"],["hist","Istorija"],["places","Mjesta"]].map(function(c){return'<button class="'+(PS==c[0]?"on":"")+'" onclick="PS=\''+c[0]+'\';mpRender()">'+c[1]+"</button>"}).join("");
- $("slist").classList.toggle("hide",PS!="places");$("mplans").classList.toggle("hide",PS=="places");if(PS=="places")return;
- var all=plansAll(),arr=Object.keys(all).map(function(k){return all[k]}).sort(function(a,b){return b.created-a.created});if(PS=="saved")arr=arr.filter(function(x){return x.saved});
- window.SP=window.SP||{};
- $("mplans").innerHTML=arr.length?arr.map(function(pl,i){var st=pl.stops||[],n=st.length||(pl.items||[]).length,f=st[0]&&st[0].p;st.forEach(function(x){if(x.p)SP[x.id]=x.p});
-  return'<div class="mp" style="animation-delay:'+Math.min(i,8)*45+'ms" onclick="mpOpen(\''+pl.id+'\')"><div class="th"'+(st[0]?' data-pid="'+st[0].id+'"':"")+' style="background-image:linear-gradient(135deg,'+(f?f.g:GR.videti)+')">'+ic(f?f.k:"videti",28)+'</div><div class="mb2"><b>'+E((pl.city||"Plan")+(pl.days?" – "+pl.days+" dana":" – plan za "+tlab(pl.time)))+'</b><span class="ms">'+(pl.days?pl.days+" dana":tlab(pl.time))+" · "+(pl.budget?pl.budget+" €":"Besplatno")+'</span><span class="ms">'+n+(n==1?" stanica":n<5?" stanice":" stanica")+'</span></div><button class="mm" aria-label="Opcije" onclick="event.stopPropagation();mpMenu(\''+pl.id+'\')">⋯</button></div>'}).join(""):'<p style="padding:24px 20px;color:var(--mut);text-align:center">'+(PS=="saved"?"Još nema sačuvanih planova. Sklopi plan i tapni „Sačuvaj plan“.":"Još nema napravljenih planova.")+"</p>";lazyPh()}
-function mpOpen(id){var pl=plansAll()[id];if(!pl)return;RB="plans";var ok=(pl.stops||[]).some(function(x){return x.p||SI[x.id]||P.some(function(q){return q.id==x.id})});if(!ok){alert("Mjesta ovog plana nijesu sačuvana na uređaju. Napravi novi plan.");return}resShow(pl)}
-function mpMenu(id){var pl=plansAll()[id];if(!pl)return;$("msel").innerHTML='<div class="psh"><div class="pshh"><b>Plan</b><button onclick="$(\'msel\').classList.remove(\'open\')" aria-label="Zatvori">✕</button></div><button class="popt" onclick="$(\'msel\').classList.remove(\'open\');mpOpen(\''+id+'\')">Otvori plan</button><button class="popt" onclick="mpSv(\''+id+'\')">'+(pl.saved?"Ukloni iz sačuvanih":"Sačuvaj plan")+'</button><button class="popt red" onclick="mpDel(\''+id+'\')">Obriši</button></div>';$("msel").classList.add("open")}
-function mpSv(id){var a=plansAll();if(a[id]){a[id].saved=!a[id].saved;plansSave(a)}$("msel").classList.remove("open");mpRender()}
-function mpDel(id){var a=plansAll();delete a[id];plansSave(a);if(window._blizuPlans)delete _blizuPlans[id];$("msel").classList.remove("open");mpRender()}
-</script><script>
-var _t2=tab;tab=function(n){_t2(n);$("tabProfile").classList.toggle("hide",n!=4);$("n4").classList.toggle("on",n==4)};
-try{$("promo").insertAdjacentHTML("afterbegin",document.querySelector("#gate .gbg").outerHTML.replace(/id="g(sky|wat|sun)"/g,'id="q$1"').replace(/url\(#g(sky|wat|sun)\)/g,"url(#q$1)").replace('class="gbg"','class="pbg"'))}catch(e){}
-function applyTheme(v){if(v=="light"||v=="dark")document.documentElement.dataset.theme=v;else document.documentElement.removeAttribute("data-theme")}
-var TH="system";try{TH=localStorage.getItem("blizu_theme")||"system"}catch(e){}applyTheme(TH);
-function pfOpen(t,b){$("pfsel").innerHTML='<div class="psh"><div class="pshh"><b>'+t+'</b><button onclick="pfClose()" aria-label="Zatvori">✕</button></div><div class="pfb">'+b+"</div></div>";$("pfsel").classList.add("open")}
-function pfClose(){$("pfsel").classList.remove("open")}
-function wipe(all){try{Object.keys(localStorage).filter(function(k){return all?k.indexOf("blizu_")==0:/^blizu_(e_|ph3|hero2)/.test(k)}).forEach(function(k){localStorage.removeItem(k)})}catch(e){}}
-function pfSet(){pfOpen("Podešavanja",'<p><b>Tema</b></p>'+[["system","Prema uređaju"],["light","Svijetla"],["dark","Tamna"]].map(function(o){return'<button class="popt'+(TH==o[0]?" on":"")+'" onclick="pfTheme(\''+o[0]+'\')">'+o[1]+"<i></i></button>"}).join("")+'<p style="margin-top:14px">Keširani podaci o mjestima i fotografijama čuvaju se na uređaju radi bržeg učitavanja.</p><button class="btn" style="background:var(--bg);color:var(--ink);box-shadow:none" onclick="wipe(0);pfOpen(\'Podešavanja\',\'<p>Keš je obrisan.</p>\')">Obriši keširane podatke</button>')}
-function pfTheme(v){TH=v;try{localStorage.setItem("blizu_theme",v)}catch(e){}applyTheme(v);pfSet()}
-function pfPriv(){pfOpen("Privatnost",'<p>Tvoja lokacija se koristi samo na uređaju i ne čuva se na serveru.</p><p>Planovi, sačuvana mjesta i postavke čuvaju se lokalno na ovom uređaju.</p><p>Za mape, mjesta, vrijeme i fotografije aplikacija koristi javne servise (OpenStreetMap, Open-Meteo, Wikipedia i Wikimedia). Njima se šalju koordinate područja koje pretražuješ.</p><button class="btn red" onclick="if(confirm(\'Obrisati sve planove, sačuvana mjesta i postavke?\')){wipe(1);location.reload()}">Obriši sve podatke aplikacije</button>')}
-function pfHelp(){pfOpen("Pomoć i podrška",'<p><b>Kako da dobijem plan?</b><br>Na početnoj tapni „Sklopi mi nešto sada“, izaberi vrijeme, budžet i tip aktivnosti, pa „Generiši plan“.</p><p><b>Ne vidim mjesta?</b><br>Provjeri vezu i dozvolu za lokaciju, ili izaberi mjesto ručno. Javni serveri su povremeno preopterećeni, pa probaj ponovo.</p><p><b>Hitni brojevi</b><br><a href="tel:112">112</a> opšti · <a href="tel:122">122</a> policija · <a href="tel:123">123</a> vatrogasci · <a href="tel:124">124</a> hitna pomoć</p>')}
-function pfAbout(){pfOpen("O aplikaciji",'<p><b>BLIZU</b><br>Stigao si. Šta sada? Otkrij hranu, atrakcije, događaje i sklopi plan prema vremenu i budžetu.</p><p>Podaci: © OpenStreetMap contributors. Sunce i more: Open-Meteo. Opisi i fotografije: Wikipedia i Wikimedia Commons.</p>')}
-</script><script>
-function askLoc(){var ok=false;try{ok=localStorage.getItem("blizu_priv")=="1"}catch(e){}if(ok)gps();else show("priv")}
-function pvOk(){try{localStorage.setItem("blizu_priv","1")}catch(e){}show("gate");gps()}
-</script><script>
-var MC=[["Kotor",42.4247,18.7712],["Budva",42.2864,18.84],["Podgorica",42.4304,19.2594],["Tivat",42.4364,18.6961],["Herceg Novi",42.4531,18.5375]].map(function(c){return{n:c[0],cn:"Crna Gora",cc:"me",la:c[1],lo:c[2],sub:"Crna Gora",pre:1}}),MI=MC,MS=null,MAV={};
-function man(o){show(o?"man":"gate");if(o){MS=null;$("sq").value="";$("mok").disabled=true;MI=MC;mRows()}}
-function mAv(n,el){if(MAV[n]!==undefined){if(MAV[n])el.style.backgroundImage="url("+MAV[n]+")";return}fetch("https://sr.wikipedia.org/w/api.php?action=query&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=120&titles="+encodeURIComponent(n)+"&format=json&origin=*").then(function(r){return r.json()}).then(function(j){var q=j.query.pages,u=(q[Object.keys(q)[0]].thumbnail||{}).source||0;MAV[n]=u;if(u){var im=new Image();im.onload=function(){el.style.backgroundImage="url("+u+")";el.textContent=""};im.src=u}}).catch(function(){MAV[n]=0})}
-function mRows(){var o=$("sres");o.innerHTML=MI.length?MI.map(function(x,i){return'<div class="mrow'+(MS&&MS.n==x.n&&MS.la==x.la?" on":"")+'" style="animation-delay:'+Math.min(i,8)*35+'ms" onclick="mPick('+i+')"><div class="mav" data-n="'+E(x.n)+'">'+E(x.n.charAt(0))+'</div><div class="mt"><b>'+E(x.n)+'</b><small>'+E(x.sub)+'</small></div><span class="mrad"></span></div>'}).join(""):"<p>Nema rezultata.</p>";
- if(MI===MC)o.querySelectorAll(".mav").forEach(function(el){mAv(el.dataset.n,el)})}
-function mPick(i){MS=MI[i];$("mok").disabled=false;document.querySelectorAll(".mrow").forEach(function(r,k){r.classList.toggle("on",k==i)})}
-function mOk(){if(!MS)return;me=[MS.la,MS.lo];gpsOn=false;PLACE={n:MS.n,cn:MS.cn,cc:MS.cc,c:me};start()}
-var ST2;function srch(q){clearTimeout(ST2);if(q.trim().length<2){MI=MC;mRows();return}ST2=setTimeout(function(){fetch("https://geocoding-api.open-meteo.com/v1/search?count=8&language=sr&name="+encodeURIComponent(q.trim())).then(function(r){return r.json()}).then(function(j){MI=(j.results||[]).map(function(x){return{n:lat(x.name),cn:lat(x.country||""),cc:x.country_code||"",la:x.latitude,lo:x.longitude,sub:lat([x.admin1,x.country].filter(Boolean).join(", "))}});mRows()}).catch(function(){MI=[];$("sres").innerHTML="<p>Pretraga nije dostupna.</p>"})},350)}
-</script></body></html>
+</script>
+<script>
+/* ===== BLIZU: prava lokacija + mjesta uživo ===== */
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function km(a,b){const r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.sin(dl/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dg/2)**2;return 12742*Math.asin(Math.sqrt(x))}
+const CY={"А":"A","Б":"B","В":"V","Г":"G","Д":"D","Ђ":"Đ","Е":"E","Ж":"Ž","З":"Z","И":"I","Ј":"J","К":"K","Л":"L","Љ":"Lj","М":"M","Н":"N","Њ":"Nj","О":"O","П":"P","Р":"R","С":"S","Т":"T","Ћ":"Ć","У":"U","Ф":"F","Х":"H","Ц":"C","Ч":"Č","Џ":"Dž","Ш":"Š"};
+function lat(s){s=String(s||'');if(!/[\u0400-\u04FF]/.test(s))return s;let o='';for(const c of s){const u=c.toUpperCase();if(!/[\u0400-\u04FF]/.test(c)){o+=c;continue}const m=CY[u];if(m===undefined)return s;o+=c===u?m:m.toLowerCase()}return o}
+const LV=window.LV={me:null,city:'',country:'',gps:false,wid:null,la:null,tk:0,loading:false,fail:false,lr:0};
+const CATS=['Hrana','Kafa','Atrakcije','More','Kultura','Priroda','Događaji','Porodica','Par'];
+const MINS={Hrana:40,Kafa:20,Atrakcije:40,More:45,Kultura:40,Priroda:40,'Događaji':60,Porodica:45,Par:40};
+const EMO={Hrana:'🍴',Kafa:'☕',Atrakcije:'📍',More:'🏖',Kultura:'🏛',Priroda:'⛰','Događaji':'🎵',Porodica:'👨‍👩‍👧',Par:'♥'};
+const GRAD={Hrana:['#e0793a','#a8431e'],Kafa:['#8a5a3c','#4b2e1e'],Atrakcije:['#2f7d8c','#0e3f55'],More:['#2aa5c9','#0b5e82'],Kultura:['#8a5cb0','#472b73'],Priroda:['#4f9e5a','#235c33'],'Događaji':['#c04ab0','#6a1f73'],Porodica:['#e7a928','#b06a12'],Par:['#e0566e','#8c2240']};
+function ph(c){const g=GRAD[c]||GRAD.Atrakcije;return 'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><text x="200" y="175" font-size="90" text-anchor="middle">'+(EMO[c]||'📍')+'</text></svg>')}
+const HL={castle:'Dvorac',fort:'Tvrđava',monument:'Spomenik',ruins:'Ruševine',archaeological_site:'Arheološko nalazište',memorial:'Memorijal'};
+function cls(t){const o=[],a=t.amenity,tr=t.tourism,h=t.historic,l=t.leisure;
+ if(a==='restaurant')o.push(['Hrana','Restoran'],['Par','Restoran']);
+ else if(a==='fast_food')o.push(['Hrana','Brza hrana']);
+ else if(a==='bar'||a==='pub')o.push(['Hrana',a==='pub'?'Pub':'Bar']);
+ else if(a==='cafe')o.push(['Kafa','Kafa']);
+ else if(a==='ice_cream')o.push(['Kafa','Sladoled'],['Porodica','Sladoled']);
+ else if(a==='theatre')o.push(['Događaji','Pozorište'],['Kultura','Pozorište']);
+ else if(a==='cinema')o.push(['Događaji','Bioskop']);
+ else if(a==='arts_centre')o.push(['Događaji','Kulturni centar'],['Kultura','Kulturni centar']);
+ else if(a==='nightclub')o.push(['Događaji','Noćni klub']);
+ if(tr==='attraction')o.push(['Atrakcije','Atrakcija']);
+ if(tr==='viewpoint')o.push(['Priroda','Vidikovac'],['Atrakcije','Vidikovac'],['Par','Vidikovac']);
+ if(tr==='museum'||tr==='gallery'){const n=tr==='museum'?'Muzej':'Galerija';o.push(['Kultura',n],['Atrakcije',n])}
+ if(h){const n=HL[h]||'Znamenitost';o.push(['Atrakcije',n],['Kultura',n])}
+ if(t.natural==='beach')o.push(['More','Plaža'],['Porodica','Plaža'],['Par','Plaža']);
+ if(l==='beach_resort')o.push(['More','Plaža']);
+ if(l==='marina')o.push(['More','Marina'],['Par','Marina']);
+ if(l==='park')o.push(['Priroda','Park'],['Porodica','Park']);
+ return o}
+function fmtD(k){const m=k*1000;return m<1000?(Math.max(10,Math.round(m/10)*10))+' m':(k<10?k.toFixed(1):Math.round(k)).toString().replace('.',',')+' km'}
+function imgOf(t){const i=t.image||'',w=t.wikimedia_commons||'',f=/^File:/i.test(w)?w:/^File:/i.test(i)?i:'';if(f)return 'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(f.replace(/^File:/i,''))+'?width=640';return /^https?:\/\/.+\.(jpe?g|png|webp)(\?|$)/i.test(i)?i:''}
+function uniq(){const s=new Set(),o=[];CATS.forEach(c=>(DATA[c]||[]).forEach(x=>{if(!s.has(x.title)){s.add(x.title);o.push(x)}}));return o}
+function build(els){
+ const out=[],seen=new Map();
+ for(const el of els){const t=el.tags||{};const p=el.type==='node'?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
+  const cs=cls(t);if(!cs.length)continue;
+  let nm=lat(t['name:sr']||t.name||'');if(!nm){if(t.natural==='beach')nm='Plaža';else continue}
+  const prev=seen.get(nm);if(prev){if(km(prev,p)<0.15)continue;nm=nm+' ('+(prev.n=(prev.n||1)+1)+')'}else{const k=[p[0],p[1]];k.n=1;seen.set(nm,k)}
+  const c0=cs[0][0],cu=cs[0][1],cu2=t.cuisine?String(t.cuisine).split(';').slice(0,2).map(s=>s.replace(/_/g,' ')).join(', '):'';
+  const cats=[...new Set(cs.map(x=>x[0]))];
+  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:MINS[c0],img:imgOf(t)||ph(c0),_hasImg:!!imgOf(t),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
+ }
+ return out}
+function setData(items){
+ CATS.forEach(c=>DATA[c]=[]);
+ items.forEach(x=>x.cats.forEach(c=>DATA[c].push(x)));
+ refreshDist();
+}
+function refreshDist(){
+ const me=LV.me;
+ uniq().forEach(x=>{if(me&&x.c){x.d=km(me,x.c);x.distance=fmtD(x.d)}});
+ CATS.forEach(c=>(DATA[c]||[]).sort((a,b)=>(a.d==null?1e9:a.d)-(b.d==null?1e9:b.d)));
+ DATA.Hrana&&CATS.forEach(c=>{if(DATA[c].length>30)DATA[c].length=30});
+ window.rebuildAll&&window.rebuildAll();
+}
+/* ---- dohvat mjesta ---- */
+const OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const QS='nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream|theatre|cinema|arts_centre|nightclub)$"][name];nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];';
+async function fetchEls(c,rd){
+ const key='blizu_pl2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd,ch=LS.get(key,null);
+ if(ch&&Date.now()-ch.t<216e5&&ch.e&&ch.e.length)return ch.e;
+ let els=null;
+ if(window.BLIZU_API){try{const r=await fetch(window.BLIZU_API+'/api/places?lat='+c[0].toFixed(4)+'&lng='+c[1].toFixed(4)+'&r='+rd+'&cat=sve');if(r.ok){const j=await r.json();els=j.elements||null}}catch(e){}}
+ if(!els){const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];('+QS.replace(/@/g,A)+');out center tags 400;';
+  for(const u of OVP){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(t);if(!r.ok)continue;els=(await r.json()).elements;if(els)break}catch(e){}}}
+ if(els&&els.length)LS.set(key,{t:Date.now(),e:els.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});
+ return els}
+async function loadPlaces(keep){
+ const tk=++LV.tk,c=LV.me;if(!c)return;
+ if(!keep){LV.loading=true;LV.fail=false}
+ let els=await fetchEls(c,4000);if(tk!==LV.tk)return;
+ let items=els?build(els):null;
+ if(els&&items.length<10){const e2=await fetchEls(c,15000);if(tk!==LV.tk)return;if(e2){const i2=build(e2);if(i2.length>items.length)items=i2}}
+ LV.loading=false;
+ if(!items){if(!keep||!uniq().length){LV.fail=true;CATS.forEach(c=>DATA[c]=[]);window.rebuildAll&&rebuildAll()}refreshView(true);return}
+ LV.fail=false;setData(items);refreshView(true);photos();
+}
+/* ---- fotografije mjesta ---- */
+const PHC=LS.get('blizu_ph4',{});let bt=0;
+function bump(){clearTimeout(bt);bt=setTimeout(()=>{const a=document.querySelector('.screen.active');if(a&&a.id==='discover'&&window.renderDiscover)renderDiscover()},900)}
+function setPh(x,u){const im=new Image();im.onload=()=>{x.img=u;bump()};im.src=u}
+function photos(){
+ const list=uniq().filter(x=>!x._hasImg).slice(0,30);let i=0;
+ const fn=async x=>{
+  if(PHC[x.id]!==undefined){if(PHC[x.id])setPh(x,PHC[x.id]);return}
+  let u='';
+  try{
+   if(x._wd){const j=await (await fetch('https://www.wikidata.org/w/api.php?action=wbgetclaims&entity='+x._wd+'&property=P18&format=json&origin=*')).json();const v=j.claims&&j.claims.P18&&j.claims.P18[0]&&j.claims.P18[0].mainsnak.datavalue.value;if(v)u='https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(v)+'?width=640'}
+   if(!u&&x.cat0!=='Hrana'&&x.cat0!=='Kafa'){for(const lg of['sr','en']){const j=await (await fetch('https://'+lg+'.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord='+x.c[0]+'%7C'+x.c[1]+'&ggsradius=100&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*')).json(),q=j.query&&j.query.pages;if(q){u=(q[Object.keys(q)[0]].thumbnail||{}).source||'';if(u)break}}}
+  }catch(e){}
+  PHC[x.id]=u;LS.set('blizu_ph4',PHC);if(u)setPh(x,u)};
+ const worker=async()=>{while(i<list.length){const x=list[i++];await fn(x)}};
+ worker();worker();worker()}
+/* ---- prikaz ---- */
+function refreshView(force){
+ const a=document.querySelector('.screen.active');if(!a)return;const id=a.id,y=window.scrollY;
+ if(id==='discover'){window.renderDiscover()}
+ else if(force&&(id==='plan'||id==='map'||id==='saved')){go(id);window.scrollTo(0,y)}}
+function updateLabel(){const el=document.querySelector('#home .location');if(!el)return;
+ el.innerHTML='⌖ '+esc(LV.city||'Izaberi lokaciju')+(LV.country?', '+esc(LV.country):'')+'⌄ '+(LV.gps&&LV.wid!=null?'<i class="lv" title="Lokacija uživo"></i> ':'')+'<span class="weather">☀️</span>'}
+LV.empty=()=>LV.loading?'<div class="empty">⏳ Učitavam mjesta u tvojoj blizini…</div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
+LV.reload=()=>loadPlaces();
+const loc=x=>x.c?x.c[0].toFixed(6)+','+x.c[1].toFixed(6):x.title+' '+(LV.city||'');
+LV.q=x=>'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(loc(x))+(LV.gps&&LV.me?'&origin='+LV.me[0].toFixed(6)+','+LV.me[1].toFixed(6):'');
+LV.dir=it=>{const l=it[it.length-1],w=it.slice(0,-1).map(loc).join('|');return 'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(loc(l))+(w?'&waypoints='+encodeURIComponent(w):'')+(LV.gps&&LV.me?'&origin='+LV.me[0].toFixed(6)+','+LV.me[1].toFixed(6):'')};
+LV.embed=x=>'https://maps.google.com/maps?q='+encodeURIComponent(loc(x))+'&z=16&output=embed';
+/* ---- plan ---- */
+window.makePlan=function(){
+ const target=durations[selectedTime]||120;
+ let pool=selectedItems();if(!pool.length)pool=uniq();
+ const sn=new Set();pool=pool.filter(x=>!sn.has(x.title)&&sn.add(x.title));
+ if(!pool.length)return [];
+ const items=[],used=new Set();let last=LV.me,mins=0;
+ const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)/4.5*60)):0;
+ const pick=list=>list.filter(x=>!used.has(x.title)).map(x=>({x,t:tr(last,x.c)})).filter(o=>mins+o.t+o.x.mins<=target).sort((a,b)=>a.t-b.t)[0];
+ const add=o=>{items.push(o.x);used.add(o.x.title);mins+=o.t+o.x.mins;last=o.x.c||last};
+ [...selectedCats].forEach(c=>{const o=pick(DATA[c]||[]);if(o)add(o)});
+ for(let g=0;g<12;g++){const o=pick(pool);if(!o)break;add(o)}
+ if(!items.length)items.push(pool[0]);
+ return items};
+const _rp=window.renderPlan;
+window.renderPlan=function(){_rp();const s=$('planSteps');if(s&&!s.children.length){s.innerHTML=LV.empty();$('planTotal').textContent='';$('planCount').textContent=''}};
+/* ---- lokacija ---- */
+function rev(c){fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=sr&lat='+c[0]+'&lon='+c[1]).then(r=>r.json()).then(j=>{const a=j.address||{},n=a.city||a.town||a.village||a.municipality||a.county||'';if(n&&LV.me&&km(LV.me,c)<2&&LV.gps){LV.city=lat(n);LV.country=lat(a.country||'');updateLabel()}}).catch(()=>{})}
+function setLoc(c,name,country){
+ LV.me=c;LV.la=c;LV.city=name||'Tvoja okolina';LV.country=country||'';
+ CATS.forEach(k=>DATA[k]=[]);window.rebuildAll&&rebuildAll();
+ updateLabel();if(window.LVweather)LVweather(c[0],c[1]);loadPlaces()}
+function upd(p){
+ if(!LV.gps||!p||!p.coords)return;
+ const n=[p.coords.latitude,p.coords.longitude];
+ if(LV.me&&km(LV.me,n)*1000<15)return;
+ LV.me=n;
+ if(km(LV.la,n)*1000>=300){LV.la=n;loadPlaces(true);rev(n);if(window.LVweather)LVweather(n[0],n[1])}
+ else if(Date.now()-LV.lr>4000){LV.lr=Date.now();refreshDist();refreshView(false)}}
+function watch(){if(!navigator.geolocation||LV.wid!=null)return;
+ LV.wid=navigator.geolocation.watchPosition(upd,e=>{if(e&&e.code===1){stopWatch();LV.gps=false;updateLabel();toast('Lokacija je isključena – uključi je u podešavanjima uređaja')}},{enableHighAccuracy:true,maximumAge:10000,timeout:30000});updateLabel()}
+function stopWatch(){if(LV.wid!=null&&navigator.geolocation)navigator.geolocation.clearWatch(LV.wid);LV.wid=null}
+document.addEventListener('visibilitychange',()=>{if(document.hidden||!LV.gps||!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(upd,()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:10000})});
+LV.useGps=function(){
+ if(!navigator.geolocation){LV.cityPicker('Uređaj ne podržava lokaciju – izaberi grad.');return}
+ LV.city='Tražim lokaciju…';LV.country='';updateLabel();go('home');
+ navigator.geolocation.getCurrentPosition(p=>{LV.gps=true;setLoc([p.coords.latitude,p.coords.longitude],'Tvoja okolina','');watch();rev(LV.me)},
+  e=>{LV.gps=false;LV.city='';updateLabel();LV.cityPicker(e&&e.code===1?'Pristup lokaciji je odbijen – izaberi grad ručno.':'Lokacija nije dostupna – izaberi grad ručno.')},
+  {enableHighAccuracy:true,maximumAge:0,timeout:15000})};
+LV.pick=function(i){const x=(window._lvr||[])[i];if(!x)return;stopWatch();LV.gps=false;closeSheet();setLoc([x.latitude,x.longitude],lat(x.name),lat(x.country||''));go('home')};
+function closeSheet(){const s=$('sheet');if(s)s.classList.remove('on')}
+LV.cityPicker=function(msg){
+ openSheet('Izaberi lokaciju',(msg?'<p>'+esc(msg)+'</p>':'')+'<button class="primary" id="lvGps" style="margin:6px 0 12px">📍 Koristi moju lokaciju</button><input class="srch" id="lvQ" type="search" placeholder="Upiši grad ili mjesto…" style="width:100%;margin:0 0 10px"><div id="lvRes"></div>');
+ setTimeout(()=>{const q=$('lvQ'),r=$('lvRes'),g=$('lvGps');if(!q)return;let t;
+  g.onclick=()=>{closeSheet();LV.useGps()};
+  q.oninput=()=>{clearTimeout(t);const v=q.value.trim();if(v.length<2){r.innerHTML='';return}
+   t=setTimeout(()=>fetch('https://geocoding-api.open-meteo.com/v1/search?count=6&language=sr&name='+encodeURIComponent(v)).then(x=>x.json()).then(j=>{const a=window._lvr=j.results||[];r.innerHTML=a.length?a.map((x,i)=>'<button class="savebtn" style="margin:6px 0;text-align:left;padding:12px 16px" onclick="LV.pick('+i+')">'+esc(lat(x.name))+'<br><small style="font-weight:400;color:#6b747b">'+esc(lat([x.admin1,x.country].filter(Boolean).join(', ')))+'</small></button>').join(''):'<p>Nema rezultata.</p>'}).catch(()=>{r.innerHTML='<p>Pretraga nije dostupna.</p>'}),350)}},50)};
+/* ---- povezivanje dugmadi ---- */
+const wb=document.querySelectorAll('#welcome button');
+wb[0].onclick=()=>LV.useGps();wb[1].onclick=()=>LV.cityPicker('');
+document.querySelector('#home .location').onclick=()=>LV.cityPicker('');
+CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
+})();
+</script>
+</body></html>
