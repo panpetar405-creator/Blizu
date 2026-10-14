@@ -188,11 +188,13 @@ export default {
       }
     }
     // 2) ostalo: uživo sa Overpass-a, uz keš od 6 h u KV
-    const key = `live:${lat.toFixed(3)}:${lng.toFixed(3)}:${r}:${cat}`;
+    // zaokruži na mrežu od ~1 km i radijus na 1 km: bliski korisnici dijele isti keš (važi za bilo koju lokaciju u svijetu)
+    const sl = Math.round(lat * 100) / 100, sg = Math.round(lng * 100) / 100, sr = Math.min(15000, Math.ceil((r + 800) / 1000) * 1000);
+    const key = `live:${sl.toFixed(2)}:${sg.toFixed(2)}:${sr}:${cat}`;
     const hit = await env.PLACES.get(key, "json");
     if (hit) return json({ elements: hit, source: "cache" }, req);
     try {
-      const els = await overpass(query(`(around:${r},${lat},${lng})`, cats, cat === "sve" ? 400 : 300), true);
+      const els = await overpass(query(`(around:${sr},${sl},${sg})`, cats, cat === "sve" ? 400 : 300), true);
       await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: 21600 });
       await env.PLACES.put("stale:" + key, JSON.stringify(els), { expirationTtl: 604800 }); // 7 dana, samo za slučaj kvara
       return json({ elements: els, source: "live" }, req);

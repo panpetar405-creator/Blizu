@@ -226,7 +226,7 @@ function renderSaved(){qa('#saved .pill').forEach(p=>p.classList.toggle('active'
  $('savedList').innerHTML=out.length?out.join(''):'<div class="empty">Još nema sačuvanog.<br>Tapni srce na mjestu ili sačuvaj plan.</div>'}
 /* početna + profil */
 {const hb=qa('#home .iconbtn');hb[0].onclick=()=>go('profile');hb[1].onclick=()=>sheet('Obavještenja','<p>Nema novih obavještenja.</p>');
- q('#home .location').onclick=()=>sheet('Grad','<p>Preporuke su trenutno dostupne za <b style="display:inline;font-size:inherit">Kotor</b>. Ostali gradovi stižu uskoro.</p>');
+ q('#home .location').onclick=()=>sheet('Grad','<p>Preporuke se prave za lokaciju na kojoj se nalaziš ili koju izabereš.</p>');
  qa('#welcome button')[1].onclick=()=>go('home');
  const mi=qa('#profile .menuitem');
  mi[0].onclick=()=>{sTab='Planovi';go('saved')};mi[1].onclick=()=>{sTab='Mesta';go('saved')};
@@ -287,7 +287,7 @@ function build(els){
   const prev=seen.get(nm);if(prev){if(km(prev,p)<0.15)continue;nm=nm+' ('+(prev.n=(prev.n||1)+1)+')'}else{const k=[p[0],p[1]];k.n=1;seen.set(nm,k)}
   const c0=cs[0][0],cu=cs[0][1],cu2=t.cuisine?String(t.cuisine).split(';').slice(0,2).map(s=>s.replace(/_/g,' ')).join(', '):'';
   const cats=[...new Set(cs.map(x=>x[0]))];
-  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:minsOf(c0,cu),_oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',_addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:t.cuisine||'',_feats:[t.outdoor_seating==='yes'&&'Terasa',t.wheelchair==='yes'&&'Pristup za invalidska kolica',(t['payment:cards']==='yes'||t['payment:credit_cards']==='yes'||t['payment:visa']==='yes')&&'Plaćanje karticom',t.takeaway==='yes'&&'Za ponijeti',t.delivery==='yes'&&'Dostava',(t.internet_access==='wlan'||t.internet_access==='yes')&&'Wi‑Fi',t.air_conditioning==='yes'&&'Klima'].filter(Boolean),img:imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'?'https://commons.wikimedia.org/wiki/Special:FilePath/Cafe%20Life%20at%20Night%20-%20Old%20Town%20-%20Kotor%20-%20Montenegro.jpg?width=1400':ph(c0)),_hasImg:!!imgOf(t)||(/stari grad|old town/i.test(nm)&&c0==='Kafa'),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
+  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:minsOf(c0,cu),_oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',_addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:t.cuisine||'',_feats:[t.outdoor_seating==='yes'&&'Terasa',t.wheelchair==='yes'&&'Pristup za invalidska kolica',(t['payment:cards']==='yes'||t['payment:credit_cards']==='yes'||t['payment:visa']==='yes')&&'Plaćanje karticom',t.takeaway==='yes'&&'Za ponijeti',t.delivery==='yes'&&'Dostava',(t.internet_access==='wlan'||t.internet_access==='yes')&&'Wi‑Fi',t.air_conditioning==='yes'&&'Klima'].filter(Boolean),img:imgOf(t)||ph(c0),_hasImg:!!imgOf(t),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
  }
  return applyCurated(out)}
 function setData(items){
@@ -418,9 +418,10 @@ function planNeed(){
 const normT=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'dj');
 function applyCurated(out){
  const cur=window.BLIZU_CURATED||[];
- if(cur.length)out.forEach(x=>{const n=normT(x.title);for(const c of cur){let hit=false;
-  if(c.match){try{hit=new RegExp(normT(c.match),'i').test(n)}catch(e){}}
-  if(!hit&&c.lat!=null&&x.c&&km([c.lat,c.lng],x.c)<0.12)hit=true;
+ /* unos važi samo uz geografsku odrednicu: near:[lat,lng,km] (uz match) ili lat/lng (tačno mjesto) */
+ if(cur.length)out.forEach(x=>{if(!x.c)return;const n=normT(x.title);for(const c of cur){let hit=false;
+  if(c.lat!=null&&km([c.lat,c.lng],x.c)<0.12)hit=true;
+  else if(c.match&&c.near&&km([c.near[0],c.near[1]],x.c)<=(c.near[2]||5)){try{hit=new RegExp(normT(c.match),'i').test(n)}catch(e){}}
   if(hit){x._cur=c;if(c.mins)x.mins=c.mins;break}}});
  const im=window.BLIZU_IMG||{},sq=t=>normT(t).replace(/[^a-z0-9]+/g,'');
  if(Object.keys(im).length)out.forEach(x=>{const k=sq(x.title);for(const key in im)if(sq(key)===k){x.img=im[key];x._hasImg=true}});
