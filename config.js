@@ -15,6 +15,3 @@ window.BLIZU_PARTNER_MAIL = "";
 
 // Opciono: vlastita slika za određeno mjesto. Ključ = naziv malim slovima, bez kvačica (Babić -> "babic").
 window.BLIZU_IMG = { "babic": "img/babic.png" };
-
-// Redesign reference imagery (local fallback; live location imagery can still override it)
-window.BLIZU_GATE = "img/redesign/kotor-hero.jpg";
