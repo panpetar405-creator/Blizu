@@ -52,29 +52,45 @@ function cors(req) {
   const o = req.headers.get("Origin");
   return { "Access-Control-Allow-Origin": ORIGINS.includes(o) ? o : ORIGINS[0], Vary: "Origin" };
 }
-function json(obj, req, status = 200) {
-  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...cors(req) } });
+function json(obj, req, status = 200, extra = {}) {
+  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...cors(req), ...extra } });
 }
 function query(A, cats, limit) {
   return "[out:json][timeout:60];(" + cats.map((k) => QF[k].replace(/@/g, A)).join("") + ");out center tags " + limit + ";";
 }
-async function overpass(q) {
+async function ovpOne(u, q, ms, signal) {
+  const ac = new AbortController();
+  const tm = setTimeout(() => ac.abort(), ms);
+  if (signal) signal.addEventListener("abort", () => ac.abort());
+  try {
+    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ac.signal });
+    if (!r.ok) return null;
+    const j = await r.json();
+    // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
+    if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length) return null;
+    return (j.elements || []).map(slim);
+  } catch (e) {
+    return null;
+  } finally {
+    clearTimeout(tm);
+  }
+}
+// par=true: svi serveri uporedo, prvi odgovor pobjeđuje (za žive upite korisnika).
+// par=false: redom, nježnije prema javnim serverima (za cron osvježavanje).
+async function overpass(q, par) {
   for (let round = 0; round < 2; round++) {
-    for (const u of OVP) {
-      const ac = new AbortController();
-      const tm = setTimeout(() => ac.abort(), OVP_TIMEOUT_MS);
-      try {
-        const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ac.signal });
-        if (r.ok) {
-          const j = await r.json();
-          // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
-          if (!(j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length)) {
-            return (j.elements || []).map(slim);
-          }
-        }
-      } catch (e) {
-      } finally {
-        clearTimeout(tm);
+    if (par) {
+      const stop = new AbortController();
+      const res = await new Promise((resolve) => {
+        let n = OVP.length;
+        OVP.forEach((u) => ovpOne(u, q, 12000, stop.signal).then((v) => { if (v) resolve(v); else if (--n === 0) resolve(null); }));
+      });
+      stop.abort();
+      if (res) return res;
+    } else {
+      for (const u of OVP) {
+        const v = await ovpOne(u, q, OVP_TIMEOUT_MS);
+        if (v) return v;
       }
     }
     if (round === 0) await sleep(1500);
@@ -162,13 +178,13 @@ export default {
     for (const [id, c] of Object.entries(CITIES)) {
       if (km([lat, lng], c) * 1000 + r <= COVER_M) {
         const out = []; let t = 0;
-        for (const k of cats) {
-          const d = await env.PLACES.get(`c:${id}:${k}`, "json");
+        const ds = await Promise.all(cats.map((k) => env.PLACES.get(`c:${id}:${k}`, "json")));
+        for (const d of ds) {
           if (!d) continue;
           t = Math.max(t, d.t);
           for (const el of d.els) { const p = pos(el); if (p && km([lat, lng], p) * 1000 <= r) out.push(el); }
         }
-        if (out.length || t) return json({ elements: out, source: "kv", updated: t }, req);
+        if (out.length || t) return json({ elements: out, source: "kv", updated: t }, req, 200, { "Cache-Control": "public, max-age=300" });
       }
     }
     // 2) ostalo: uživo sa Overpass-a, uz keš od 6 h u KV
@@ -176,7 +192,7 @@ export default {
     const hit = await env.PLACES.get(key, "json");
     if (hit) return json({ elements: hit, source: "cache" }, req);
     try {
-      const els = await overpass(query(`(around:${r},${lat},${lng})`, cats, cat === "sve" ? 400 : 300));
+      const els = await overpass(query(`(around:${r},${lat},${lng})`, cats, cat === "sve" ? 400 : 300), true);
       await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: 21600 });
       await env.PLACES.put("stale:" + key, JSON.stringify(els), { expirationTtl: 604800 }); // 7 dana, samo za slučaj kvara
       return json({ elements: els, source: "live" }, req);
@@ -189,8 +205,8 @@ export default {
       for (const [id, c] of Object.entries(CITIES)) { const d = km([lat, lng], c); if (d < bd) { bd = d; best = id; } }
       if (best && bd <= NEAR_FALLBACK_KM) {
         const out = [];
-        for (const k of cats) {
-          const d = await env.PLACES.get(`c:${best}:${k}`, "json");
+        const ds = await Promise.all(cats.map((k) => env.PLACES.get(`c:${best}:${k}`, "json")));
+        for (const d of ds) {
           if (!d) continue;
           for (const el of d.els) { const p = pos(el); if (p && km([lat, lng], p) * 1000 <= r) out.push(el); }
         }

@@ -301,23 +301,51 @@ function refreshDist(){
 /* ---- dohvat mjesta ---- */
 const OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 const QS='nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream|theatre|cinema|arts_centre|nightclub)$"][name];nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];';
-async function fetchEls(c,rd){
- const key='blizu_pl2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd,ch=LS.get(key,null);
- if(ch&&Date.now()-ch.t<216e5&&ch.e&&ch.e.length)return ch.e;
- let els=null;
- if(window.BLIZU_API){try{const r=await fetch(window.BLIZU_API+'/api/places?lat='+c[0].toFixed(4)+'&lng='+c[1].toFixed(4)+'&r='+rd+'&cat=sve');if(r.ok){const j=await r.json();els=j.elements||null}}catch(e){}}
- if(!els){const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];('+QS.replace(/@/g,A)+');out center tags 400;';
-  for(const u of OVP){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(t);if(!r.ok)continue;els=(await r.json()).elements;if(els)break}catch(e){}}}
+const plKey=(c,rd)=>'blizu_pl2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd;
+const plGet=(c,rd)=>{const ch=LS.get(plKey(c,rd),null);return ch&&ch.e&&ch.e.length?ch:null};
+const plSig=els=>(els||[]).map(e=>e.type[0]+e.id).join(',');
+/* vrati prvi uspješan (istinit) rezultat; null tek kad svi propadnu */
+function firstOk(ps){return new Promise(res=>{let n=ps.length;if(!n)return res(null);ps.forEach(p=>p.then(v=>{if(v)res(v);else if(--n===0)res(null)},()=>{if(--n===0)res(null)}))})}
+function ovpPost(u,q){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);
+ fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal})
+  .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
+function workerGet(c,rd){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
+ fetch(window.BLIZU_API+'/api/places?lat='+c[0].toFixed(4)+'&lng='+c[1].toFixed(4)+'&r='+rd+'&cat=sve',{signal:ac.signal})
+  .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
+async function netEls(c,rd){
+ const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];('+QS.replace(/@/g,A)+');out center tags 400;';
+ const ov=()=>firstOk(OVP.map(u=>ovpPost(u,q))); /* svi javni serveri uporedo, prvi odgovor pobjeđuje */
+ if(!window.BLIZU_API)return ov();
+ const w=workerGet(c,rd);
+ const r=await Promise.race([w,new Promise(x=>setTimeout(()=>x(undefined),4000))]);
+ if(r)return r; /* Worker odgovorio u 4 s */
+ return firstOk([w,ov()]); /* Worker spor ili pao: uključi i javne servere, ko prije */}
+async function fetchEls(c,rd,force){
+ const key=plKey(c,rd),ch=plGet(c,rd);
+ if(ch&&!force&&Date.now()-ch.t<216e5)return ch.e;
+ const els=await netEls(c,rd);
  if(els&&els.length)LS.set(key,{t:Date.now(),e:els.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});
- return els}
+ return els||(ch?ch.e:null)} /* ako mreža ne uspije, bolji je stari keš nego greška */
 async function loadPlaces(keep){
  const tk=++LV.tk,c=LV.me;if(!c)return;
- if(!keep){LV.loading=true;LV.fail=false;refreshView(true)}
- let els=await fetchEls(c,4000);if(tk!==LV.tk)return;
+ const old=plGet(c,4000);let shown=false,oldSig='';
+ if(!keep){
+  /* stale-while-revalidate: odmah prikaži snimljenu listu, a osvježi u pozadini */
+  const it=old?build(old.e):[];
+  if(it.length){LV.loading=false;LV.fail=false;setData(it);refreshView(true);photos();shown=true;oldSig=plSig(old.e)}
+  else{LV.loading=true;LV.fail=false;refreshView(true)}}
+ const stale=!old||Date.now()-old.t>=216e5;
+ let els=await fetchEls(c,4000,shown&&stale);if(tk!==LV.tk)return;
  let items=els?build(els):null;
- if(els&&items.length<10){const e2=await fetchEls(c,15000);if(tk!==LV.tk)return;if(e2){const i2=build(e2);if(i2.length>items.length)items=i2}}
+ if(items&&items.length){
+  LV.loading=false;LV.fail=false;
+  if(!(shown&&plSig(els)===oldSig)){setData(items);refreshView(true);photos()}
+  /* malo rezultata: prikaži odmah ovo što imamo, a širi krug dovuci u pozadini */
+  if(items.length<10){const e2=await fetchEls(c,15000);if(tk!==LV.tk)return;if(e2){const i2=build(e2);if(i2.length>items.length){setData(i2);refreshView(true);photos()}}}
+  return}
+ {const e2=await fetchEls(c,15000);if(tk!==LV.tk)return;if(e2){const i2=build(e2);if(i2.length)items=i2}}
  LV.loading=false;
- if(!items){if(!keep||!uniq().length){LV.fail=true;CATS.forEach(c=>DATA[c]=[]);window.rebuildAll&&rebuildAll()}refreshView(true);return}
+ if(!items||!items.length){if(!keep||!uniq().length){LV.fail=true;CATS.forEach(k=>DATA[k]=[]);window.rebuildAll&&rebuildAll()}refreshView(true);return}
  LV.fail=false;setData(items);refreshView(true);photos();
 }
 /* ---- fotografije mjesta ---- */
