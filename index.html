@@ -24,7 +24,26 @@
 .savebtn.on{background:#fff4d1;border-color:var(--yellow)}
 .detailbody a.primary{display:block;text-align:center;text-decoration:none;width:100%;margin-top:10px;box-sizing:border-box}
 .savedcard{position:relative;align-items:center}.savedcard>div{flex:1;min-width:0}.savedcard b.heart{position:static;box-shadow:none;background:none;width:34px;height:34px;flex:none}
-.empty{padding:36px 10px;text-align:center;color:#6b747b;line-height:1.5}
+ .empty{padding:36px 10px;text-align:center;color:#6b747b;line-height:1.5}
+.place-loader{padding:28px 16px 24px;text-align:center;color:var(--muted);overflow:hidden}
+.loader-radar{width:94px;height:94px;margin:0 auto 22px;position:relative;display:grid;place-items:center}
+.loader-radar:before,.loader-radar:after{content:"";position:absolute;inset:5px;border:1.5px solid #ffc40066;border-radius:50%;animation:radarPulse 2.2s ease-out infinite}
+.loader-radar:after{animation-delay:1.1s}
+.loader-core{width:58px;height:58px;border-radius:22px;background:linear-gradient(145deg,#fff7d1,#ffe36c);display:grid;place-items:center;box-shadow:0 7px 24px #e6b40025;position:relative;z-index:1;animation:pinFloat 2s ease-in-out infinite}
+.loader-core svg{width:28px;height:28px;stroke:#183746;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.loader-orbit{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px #ffc40025;top:7px;left:41px;transform-origin:6px 40px;animation:orbitSpin 3.5s linear infinite}
+.loader-title{font-size:16px;font-weight:800;color:var(--ink);margin:0 0 6px}
+.loader-sub{font-size:13px;color:var(--muted);margin:0 0 24px}
+.loader-skeletons{display:grid;gap:9px;text-align:left;max-width:310px;margin:0 auto}
+.loader-skeleton{height:58px;border:1px solid #e9e8e4;background:#fff;border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center}
+.loader-skeleton .sk-thumb,.loader-skeleton .sk-line{background:linear-gradient(100deg,#eeefed 20%,#fafaf8 38%,#eeefed 56%);background-size:220% 100%;animation:shimmer 1.5s ease-in-out infinite}
+.sk-thumb{width:38px;height:38px;border-radius:12px;flex:none}
+.sk-lines{flex:1;display:grid;gap:7px}.sk-line{height:7px;border-radius:8px}.sk-line:first-child{width:64%}.sk-line:last-child{width:88%;height:5px;opacity:.75}
+@keyframes radarPulse{0%{transform:scale(.58);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+@keyframes pinFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+@keyframes orbitSpin{to{transform:rotate(360deg)}}
+@keyframes shimmer{to{background-position-x:-220%}}
+@media(prefers-reduced-motion:reduce){.loader-radar:before,.loader-radar:after,.loader-core,.loader-orbit,.sk-thumb,.sk-line{animation:none!important}}
 .hidden{display:none!important}
 
 .i{flex:none;vertical-align:-.2em}
@@ -321,7 +340,7 @@ function refreshView(force){
  else if(force&&(id==='plan'||id==='map'||id==='saved')){go(id);window.scrollTo(0,y)}}
 function updateLabel(){const el=document.querySelector('#home .location');if(!el)return;
  el.innerHTML=ic('pin',16)+' '+esc(LV.city||'Izaberi lokaciju')+(LV.country?', '+esc(LV.country):'')+ic('down',16)+(LV.gps&&LV.wid!=null?' <i class="lv" title="Lokacija uživo"></i>':'')+'<span class="weather">'+ic('sun',20)+'</span>'}
-LV.empty=()=>LV.loading?'<div class="empty">⏳ Učitavam mjesta u tvojoj blizini…</div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
+LV.empty=()=>LV.loading?'<div class="place-loader" role="status" aria-live="polite"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta blizu tebe</p><p class="loader-sub">Istražujemo okolinu i slažemo najbolje prijedloge…</p><div class="loader-skeletons" aria-hidden="true"><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div></div></div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
 LV.reload=()=>loadPlaces();
 const loc=x=>x.c?x.c[0].toFixed(6)+','+x.c[1].toFixed(6):x.title+' '+(LV.city||'');
 LV.q=x=>'https://www.google.com/maps/dir/?api=1&travelmode=walking&destination='+encodeURIComponent(loc(x))+(LV.gps&&LV.me?'&origin='+LV.me[0].toFixed(6)+','+LV.me[1].toFixed(6):'');
