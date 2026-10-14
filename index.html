@@ -485,6 +485,7 @@ window.makePlan=function(){
   const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)/4.5*60)):0;
   const pick=(list,floor=-1e9)=>{let best=null;
    for(const x of list){if(used.has(x.title))continue;const t=tr(last,x.c),arr=mins+t;if(arr+x.mins>target)continue;
+    if(strict&&t>25)continue; /* predaleko pješice: preskoči, osim ako nema ništa bliže */
     const st=openState(x,arr);if(strict&&st.o===false)continue;
     let sc=qualityOf(x)+(strict?fitAt(x,arr):0)-t*0.9+(st.o===true?2:0);
     if(lastC&&x.cat0===lastC)sc-=8;
