@@ -12,7 +12,7 @@
 .heart{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;background:#fffffff0;color:#13212a;font-size:19px;display:grid;place-items:center;box-shadow:0 2px 8px #0003}
 .heart.on{color:#e03a4e}
 .card{position:relative;cursor:pointer}
-.stops{display:flex;gap:8px;padding:12px 4px 0;background:#fff}.stops button{width:36px;height:36px;border-radius:50%;background:#062b3a;color:#fff;font-weight:800}.stops button.on{background:var(--yellow);color:#111}
+.stops{display:flex;gap:8px;padding:12px 4px 10px;background:#fff;position:relative;z-index:2}.stops+.place-card{margin-top:0;border-radius:0}.stops button{flex:0 0 36px}.stops button{width:36px;height:36px;border-radius:50%;background:#062b3a;color:#fff;font-weight:800}.stops button.on{background:var(--yellow);color:#111}
 .mapimg{border:0;display:block}
 .srch{display:block;width:calc(100% - 36px);margin:10px 18px 0;height:42px;border-radius:21px;border:1px solid #d6dbde;padding:0 16px;font:inherit;background:#fff;color:#13212a}
 #sheet{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center;z-index:100}#sheet.on{display:flex}
