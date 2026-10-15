@@ -174,8 +174,8 @@ qa('.back,.iconbtn').forEach(b=>{if(b.dataset.back)b.onclick=back});
 let PLAN=[];
 const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
 renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
- $('planTitle').textContent='Tvoj plan za '+pretty;
- $('planSub').textContent='Plan prema tvom vremenu i izboru: '+[...selectedCats].join(', ')+'. Vreme hodanja je okvirna procena, ne navigaciona garancija.';
+ $('planTitle').textContent=window.PLAN_NOTE?'Tvoj plan za sutra':'Tvoj plan za '+pretty;
+ $('planSub').textContent=(window.PLAN_NOTE?'Počinje sutra u 09:00, jer je danas već kasno za ceo dan. ':'')+'Plan prema tvom vremenu i izboru: '+[...selectedCats].join(', ')+'. Vreme hodanja je okvirna procena, ne navigaciona garancija.';
  $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${window.stepTime?stepTime(x):''}${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p>${window.stepWhy?stepWhy(x):''}</div><b>${ic('right',18)}</b></div>`).join('');
  $('planTotal').innerHTML=ic('clock',16)+' Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
  planSaveBtn()};
@@ -453,7 +453,7 @@ function fitAt(x,off){const t=new Date(Date.now()+off*6e4),h=t.getHours()+t.getM
  if(c==='Događaji')return h>=17?2:-6;
  if(c==='Kafa')return(h>=7&&h<22)?0:-10;
  if(c==='More')return(h>=9&&h<19.5)?2:-12;
- if(c==='Hrana')return h>=11?0:-10;
+ if(c==='Hrana')return(h>=11&&h<23)?0:-10;
  return(h>=8&&h<20)?0:-12}
 const PM={},ORDER=['Kafa','Atrakcije','Kultura','Priroda','More','Porodica','Hrana','Par','Događaji'];
 function clockOf(m){const d=new Date(Math.round((Date.now()+m*6e4)/3e5)*3e5);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
@@ -466,6 +466,7 @@ function stepWhy(x){const m=PM[x.title]||{},g=gxCached(x)||{},c=x._cur||{},a=[];
  if(m.open===true&&m.end!=null)a.push('otvoreno do '+hm(m.end));else if(m.open===false)a.push('moguće zatvoreno');
  if(m.walk>=3)a.push(m.walk+' min hoda');
  let h=a.length?'<p class="why">'+esc(a.join(' · '))+'</p>':'';
+ {const dk=LV.me&&x.c?km(LV.me,x.c):null;const ad=x._addr||(dk!=null?'oko '+(dk<1?Math.max(50,Math.round(dk*20)*50)+' m':dk.toFixed(1).replace('.',',')+' km')+' od tebe':'');if(ad)h='<p class="why">'+esc(ad)+'</p>'+h}
  const why=c.note||((g.rating>=4.5&&g.n>=50)?'Visoko ocijenjeno među posjetiocima.':(x._wd?'Jedna od zapaženih znamenitosti u okolini.':''));
  if(why)h+='<p class="why">'+esc(why)+'</p>';
  if(c.best)h+='<p class="why">Najbolje: '+esc(c.best)+'</p>';
@@ -475,25 +476,34 @@ function stepWhy(x){const m=PM[x.title]||{},g=gxCached(x)||{},c=x._cur||{},a=[];
 window.stepTime=stepTime;window.stepWhy=stepWhy;
 /* ---- plan ---- */
 window.makePlan=function(){
- const target=durations[selectedTime]||120;
+ const target0=durations[selectedTime]||120,day=target0>=300,nowM=new Date().getHours()*60+new Date().getMinutes();
+ let S=0,eff=target0;window.PLAN_NOTE='';
+ if(day){ /* ceo dan: počni ujutro (09:00); ako je već kasno popodne, planiraj sutra */
+  if(nowM<540)S=540-nowM;else if(nowM>=960){S=1440-nowM+540;window.PLAN_NOTE='sutra'}}
+ else{const cap=1410-nowM;if(cap>=60&&target0>cap)eff=cap} /* kraći planovi ne idu iza ~23:30 */
+ const target=S+eff;
  let pool=selectedItems();if(!pool.length)pool=uniq();
  const sn=new Set();pool=pool.filter(x=>!sn.has(x.title)&&sn.add(x.title));
  if(!pool.length)return [];
  Object.keys(PM).forEach(k=>delete PM[k]);
  const run=strict=>{
-  const items=[],used=new Set();let last=LV.me,mins=0,lastC=null,lastRest=-999;
+  const items=[],used=new Set();let last=LV.me,mins=S,lastC=null,lastRest=-999;const cnt={},cntT={};
+  const capT={Restoran:day?3:2,'Brza hrana':1,'Noćni klub':1},capC={Kafa:day?3:2,Hrana:day?4:3,'Događaji':2};
+  const over=x=>{const t=x.type||'';if(capT[t]!==undefined&&(cntT[t]||0)>=capT[t])return true;return(cnt[x.cat0]||0)>=(capC[x.cat0]||4)};
   // Koordinate daju vazdušnu udaljenost, ne stvarnu pešačku rutu. Faktor 1,35 i 4,2 km/h su konzervativnija okvirna procena; navigacija treba da potvrdi stvarnu rutu.
   const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)*1.35/4.2*60)):0;
   const pick=(list,floor=-1e9)=>{let best=null;
    for(const x of list){if(used.has(x.title))continue;const t=tr(last,x.c),arr=mins+t;if(arr+x.mins>target)continue;
     if(strict&&t>25)continue; /* predaleko pješice: preskoči, osim ako nema ništa bliže */
     const st=openState(x,arr);if(strict&&st.o===false)continue;
-    let sc=qualityOf(x)+(strict?fitAt(x,arr):0)-t*0.9+(st.o===true?2:0);
+    const ft=strict?fitAt(x,arr):0;if(strict&&ft<=-10)continue; /* npr. plaža noću, restoran u 04h */
+    if(over(x))continue;
+    let sc=qualityOf(x)+ft-t*0.9+(st.o===true?2:0)-(cnt[x.cat0]||0)*6;
     if(lastC&&x.cat0===lastC)sc-=8;
     if(x.type==='Restoran'&&arr-lastRest<240)sc-=25;
     if(sc>=floor&&(!best||sc>best.s))best={x,t,s:sc,st}}
    return best};
-  const add=o=>{items.push(o.x);used.add(o.x.title);PM[o.x.title]={start:mins+o.t,walk:o.t,open:o.st.o,end:o.st.end};mins+=o.t+o.x.mins;last=o.x.c||last;lastC=o.x.cat0;if(o.x.type==='Restoran')lastRest=mins};
+  const add=o=>{items.push(o.x);used.add(o.x.title);PM[o.x.title]={start:mins+o.t,walk:o.t,open:o.st.o,end:o.st.end};mins+=o.t+o.x.mins;last=o.x.c||last;lastC=o.x.cat0;cnt[o.x.cat0]=(cnt[o.x.cat0]||0)+1;cntT[o.x.type||'']=(cntT[o.x.type||'']||0)+1;if(o.x.type==='Restoran')lastRest=mins};
   [...selectedCats].sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b)).forEach(c=>{const o=pick(DATA[c]||[]);if(o)add(o)});
   for(let g=0;g<12;g++){const o=pick(pool,-12);if(!o)break;add(o)}
   return items};
@@ -740,27 +750,45 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
   function activeTarget() {
     return remaining || durations[selectedTime] || 120;
   }
+  const ALT_MAX_WALK = 20; // najviše min hoda od tvoje lokacije za alternativu
+  let exclude = new Set();  // mjesta iz već prikazanih planova
+  let keep = new Set();     // plan koji ostaje ako nema alternative
+
+  function walkFromMe(x) {
+    const me = window.LV && LV.me;
+    if (!me || !x.c) return 0;
+    const r = Math.PI / 180, dl = (x.c[0] - me[0]) * r, dg = (x.c[1] - me[1]) * r;
+    const h = Math.sin(dl / 2) ** 2 + Math.cos(me[0] * r) * Math.cos(x.c[0] * r) * Math.sin(dg / 2) ** 2;
+    return 12742 * Math.asin(Math.sqrt(h)) * 1.35 / 4.2 * 60;
+  }
+  // Privremeno suzi DATA na dozvoljena mjesta, izračunaj plan i vrati sve kako je bilo.
+  function withData(filter, fn) {
+    const saved = {};
+    Object.keys(DATA).forEach(k => { saved[k] = DATA[k]; DATA[k] = (DATA[k] || []).filter(filter); });
+    try { return fn(); } finally { Object.keys(saved).forEach(k => { DATA[k] = saved[k]; }); }
+  }
+  function setStatus(t) {
+    const st = document.getElementById('blizuPlanBStatus');
+    if (st) st.textContent = t;
+  }
+  function resetAlt() {
+    planB = false;
+    exclude = new Set();
+    keep = new Set();
+  }
+
   window.makePlan = function() {
     const key = selectedTime;
     const old = durations[key];
     durations[key] = activeTarget();
-    let original = selectedItems;
     try {
-      if (planB && lastPlanTitles.length) {
-        selectedItems = function() {
-          const items = originalSelectedItems();
-          const filtered = items.filter(x => !lastPlanTitles.includes(x.title));
-          return filtered.length ? filtered : items;
-        };
-      }
-      const result = baseMakePlan();
-      if (planB && result && result.some(x => lastPlanTitles.includes(x.title))) {
-        // Ako nema dovoljno alternativa, dozvoli najbolji raspoloživi plan umesto praznog ekrana.
-        planB = false;
-      }
-      return result;
+      if (!planB) { setStatus(''); return baseMakePlan(); }
+      let r = withData(x => !exclude.has(x.title) && walkFromMe(x) <= ALT_MAX_WALK, baseMakePlan);
+      if (r && r.length) { setStatus('Prikazan je drugi plan.'); return r; }
+      setStatus('Nema bližih alternativa (do ' + ALT_MAX_WALK + ' min hoda). Ostaje prethodni plan.');
+      r = withData(x => keep.has(x.title), baseMakePlan);
+      return r && r.length ? r : baseMakePlan();
     } finally {
-      selectedItems = original;
       if (old === undefined) delete durations[key]; else durations[key] = old;
     }
   };
@@ -784,9 +812,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
       const v = Number(b.dataset.min);
       if (v === activeTarget()) return;
       remaining = v;
-      planB = false;
-      const st = document.getElementById('blizuPlanBStatus');
-      if (st) st.textContent = '';
+      resetAlt();
       window.renderPlan();
     });
 
@@ -795,7 +821,9 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     alt.innerHTML = '<button type="button" id="blizuPlanB"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg> Pronađi alternativu</button><p id="blizuPlanBStatus" aria-live="polite"></p>';
     steps.insertAdjacentElement('afterend', alt);
     alt.querySelector('#blizuPlanB').addEventListener('click', () => {
-      if (!lastPlanTitles.length) lastPlanTitles = (window.PLAN || []).map(x => x.title);
+      const titles = [...document.querySelectorAll('#planSteps .step h3')].map(h => h.textContent.trim());
+      titles.forEach(t => exclude.add(t));
+      keep = new Set(titles);
       planB = true;
       window.renderPlan();
     });
@@ -809,16 +837,15 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     if (!opts.some(o => o[0] === cur)) { opts.push([cur, durationLabel(cur)]); opts.sort((x, y) => x[0] - y[0]); }
     box.innerHTML = opts.map(o => '<button type="button" data-min="' + o[0] + '"' + (o[0] === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + o[1] + '</button>').join('');
     const on = box.querySelector('.on');
-    if (on && on.scrollIntoView) { try { box.scrollLeft = Math.max(0, on.offsetLeft - 40); } catch (e) {} }
   }
 
   const style = document.createElement('style');
   style.textContent = `
-    #blizuTimeBar{display:flex;align-items:center;gap:10px;margin:6px -18px 2px;padding:10px 0 10px 18px}
-    .blizu-bar-label{flex:none;font-weight:800;font-size:14px;color:#13212a}
-    .blizu-chips{display:flex;gap:7px;overflow-x:auto;padding:2px 18px 2px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    #blizuTimeBar{margin:6px 0 4px;padding:8px 0 4px}
+    .blizu-bar-label{display:block;margin:0 0 8px 2px;font-weight:800;font-size:14px;color:#13212a}
+    .blizu-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
     .blizu-chips::-webkit-scrollbar{display:none}
-    .blizu-chips button{flex:none;min-height:38px;padding:0 14px;border-radius:999px;background:#fff;color:#062b3a;border:1.5px solid #d9dfe2;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+    .blizu-chips button{flex:1 0 auto;min-height:40px;padding:0 11px;border-radius:999px;background:#fff;color:#062b3a;border:1.5px solid #d9dfe2;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap}
     .blizu-chips button.on{background:#062b3a;border-color:#062b3a;color:#ffc400}
     .blizu-chips button:focus-visible,#blizuPlanB:focus-visible{outline:2px solid #12647a;outline-offset:2px}
     #blizuAlt{padding:12px 0 0;text-align:center}
@@ -833,28 +860,11 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     ensureControls();
     paintChips();
     baseRenderPlan();
-    // Prikaz stvarnog plana kao osnove za sledeću alternativu.
-    const steps = document.querySelectorAll('#planSteps .step');
-    const titles = [];
-    steps.forEach(el => {
-      const h = el.querySelector('h3');
-      if (h && h.textContent) titles.push(h.textContent.trim());
-    });
-    if (titles.length) {
-      if (!planB) lastPlanTitles = titles;
-      else {
-        const status = document.getElementById('blizuPlanBStatus');
-        if (status) status.textContent = titles.some(t => lastPlanTitles.includes(t))
-          ? 'Neke stanice su zadržane jer nema dovoljno dostupnih alternativa za izabrano vreme.'
-          : 'Plan je promenjen i koristi druge dostupne stanice.';
-        planB = false;
-      }
-    }
   };
   // Ako korisnik promeni osnovno trajanje na početnom ekranu, resetuj ručno zadato preostalo vreme.
   document.querySelectorAll('.timegrid .chip').forEach(btn => btn.addEventListener('click', () => {
     remaining = null;
-    planB = false;
+    resetAlt();
   }));
 })();
 </script>
