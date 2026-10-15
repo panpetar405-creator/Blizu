@@ -696,6 +696,44 @@ window.makePlan=function(){
  window.stepWhy=x=>{let r='';try{r=reasonOf(x)}catch(err){}
   return(r?'<p class="why reason">'+esc(r)+'</p>':'')+base(x)};
  const st=document.createElement('style');st.textContent='.why.reason{color:#0b5f78;font-weight:700;font-size:13px}';document.head.appendChild(st)})();
+/* ---- stvarno hodanje: posle slaganja plana zameni procenu pešačkim stazama (/api/walk) ---- */
+(function(){
+ const SPEED=4.2,NOTE0=(document.querySelector('#plan .plannote')||{}).textContent||'';
+ const NOTE1='Hodanje je računato po stvarnim pešačkim stazama (oko 4 km/h), a trajanje posete je procena. Proveri rutu pre polaska.';
+ const mm=m=>Math.max(3,Math.round(m/1000/SPEED*60));
+ const c5=c=>c[0].toFixed(5)+','+c[1].toFixed(5);
+ const base=window.renderPlan;if(typeof base!=='function')return;
+ const note=real=>{const n=document.querySelector('#plan .plannote');if(n&&NOTE0)n.textContent=real?NOTE1:NOTE0};
+ function timeline(items,legs){let mins=window.PLAN_S||0;const pm={};
+  items.forEach((x,i)=>{const t=mm(legs[i]),st=openState(x,mins+t);pm[x.title]={start:mins+t,walk:t,open:st.o,end:st.end,real:true};mins+=t+x.mins});
+  return{pm,end:mins}}
+ async function legsFor(pts){
+  const cache=LS.get('blizu_walk',{}),ks=[];let miss=false;
+  for(let i=1;i<pts.length;i++){const k=c5(pts[i-1])+'>'+c5(pts[i]);ks.push(k);if(!cache[k])miss=true}
+  if(!miss)return ks.map(k=>cache[k].m);
+  const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);
+  try{const r=await fetch(window.BLIZU_API+'/api/walk?pts='+pts.map(c5).join(';'),{signal:ac.signal});
+   const j=await r.json();if(!j||!Array.isArray(j.legs)||j.legs.length!==ks.length)return null;
+   ks.forEach((k,i)=>cache[k]={m:j.legs[i],t:Date.now()});
+   const all=Object.keys(cache);if(all.length>400)all.sort((a,b)=>cache[a].t-cache[b].t).slice(0,all.length-400).forEach(k=>delete cache[k]);
+   LS.set('blizu_walk',cache);return j.legs}
+  catch(e){return null}finally{clearTimeout(tm)}}
+ let seq=0;
+ async function refine(){
+  const items=BZ.plan().slice(),sig=window.PLAN_SIG,tk=++seq;
+  if(!window.BLIZU_API||!LV.me||!items.length||items.some(x=>!x.c))return;
+  const legs=await legsFor([LV.me,...items.map(x=>x.c)]);
+  if(!legs||tk!==seq||sig!==window.PLAN_SIG||BZ.plan().map(x=>x.title).join('|')!==items.map(x=>x.title).join('|'))return;
+  /* stvarna dužina nikad kraća od linije; ne prihvataj apsurde */
+  const safe=legs.map((m,i)=>Math.max(m,km(i?items[i-1].c:LV.me,items[i].c)*1000));
+  let it=items.slice(),r=timeline(it,safe);
+  while(r.end>(window.PLAN_END||1e9)&&it.length>1){it.pop();r=timeline(it,safe)}
+  window.PLAN_OVERRIDE={sig,items:it,pm:r.pm,real:true};
+  base();note(true)}
+ window.renderPlan=function(){base();
+  const o=window.PLAN_OVERRIDE;
+  if(o&&o.real&&o.sig===window.PLAN_SIG){note(true);return}
+  note(false);refine()}})();
 const _rp=window.renderPlan;
 window.renderPlan=function(){_rp();headPhotos();const s=$('planSteps');if(s&&!s.children.length){s.innerHTML=LV.empty();$('planTotal').innerHTML='';$('planCount').textContent=''}};
 {const _rp3=window.renderPlan;let PWT=0;

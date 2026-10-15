@@ -1,6 +1,7 @@
 // BLIZU API – Cloudflare Worker
 // Dnevno povlači podatke iz OpenStreetMap-a (cron), čuva ih u KV i služi aplikaciji.
 // Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN, secret GOOGLE_KEY (Places API New).
+// Opciono: secret ORS_KEY (OpenRouteService) za pešačke rute; bez njega se koristi javni OSRM foot server.
 
 const CITIES = {
   tivat: [42.4364, 18.6961],
@@ -133,6 +134,37 @@ async function enrich(env, name, lat, lng) {
   return out;
 }
 
+
+// Pešačke dionice (metri po stvarnim stazama) za niz tačaka: lat,lng;lat,lng;...
+// Sa ORS_KEY koristi OpenRouteService (preporučeno za produkciju); bez ključa javni OSRM "foot" server (samo lagana upotreba).
+async function walkLegs(env, pts) {
+  const key = "walk:" + pts.map((p) => p[0].toFixed(5) + "," + p[1].toFixed(5)).join(";");
+  const hit = await env.PLACES.get(key, "json");
+  if (hit) return hit;
+  let legs;
+  if (env.ORS_KEY) {
+    const n = pts.length;
+    const r = await fetch("https://api.openrouteservice.org/v2/matrix/foot-walking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: env.ORS_KEY },
+      body: JSON.stringify({ locations: pts.map((p) => [p[1], p[0]]), metrics: ["distance"], units: "m", sources: [...Array(n - 1).keys()], destinations: [...Array(n - 1).keys()].map((i) => i + 1) }),
+    });
+    if (!r.ok) throw new Error("ors");
+    const d = (await r.json()).distances;
+    legs = d.map((row, i) => row[i]);
+  } else {
+    const r = await fetch("https://routing.openstreetmap.de/routed-foot/route/v1/foot/" + pts.map((p) => p[1].toFixed(5) + "," + p[0].toFixed(5)).join(";") + "?overview=false", { headers: { "User-Agent": "Blizu/1.0 (walking legs)" } });
+    if (!r.ok) throw new Error("osrm");
+    const j = await r.json();
+    if (j.code !== "Ok" || !j.routes || !j.routes[0]) throw new Error("osrm");
+    legs = j.routes[0].legs.map((l) => l.distance);
+  }
+  if (legs.length !== pts.length - 1 || legs.some((m) => !Number.isFinite(m) || m < 0)) throw new Error("legs");
+  legs = legs.map((m) => Math.round(m));
+  await env.PLACES.put(key, JSON.stringify(legs), { expirationTtl: 604800 });
+  return legs;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -154,6 +186,13 @@ export default {
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
       try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream" }, req, 502); }
+    }
+    if (url.pathname === "/api/walk") {
+      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
+      const pts = (url.searchParams.get("pts") || "").split(";").slice(0, 16).map((t) => t.split(",").map(Number));
+      const okp = (p) => p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 && p.every(Number.isFinite);
+      if (pts.length < 2 || pts.length > 15 || !pts.every(okp) || pts.some((p, i) => i && km(pts[i - 1], p) > 30)) return json({ error: "bad params" }, req, 400);
+      try { return json({ legs: await walkLegs(env, pts) }, req, 200, { "Cache-Control": "public, max-age=3600" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/photo") {
       const ref = url.searchParams.get("ref") || "";
