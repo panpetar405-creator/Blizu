@@ -24,5 +24,13 @@ window.BLIZU_CURATED = [
   { near: [42.4531, 18.5375, 5], match: "kanli kula", mins: 45,
     note: "Tvrđava u Herceg Novom s ljetnjom pozornicom." },
   { near: [42.4364, 18.6961, 4], match: "porto montenegro", mins: 60, best: "predvečerje",
-    note: "Marina u Tivtu sa šetnjom, kafićima i restoranima." }
+    note: "Marina u Tivtu sa šetnjom, kafićima i restoranima." },
+  { near: [42.4531, 18.5375, 5], match: "forte mare|forte-mare", mins: 45,
+    note: "Srednjovjekovna utvrda na obali, odakle počinje Stari grad Herceg Novog." },
+  { near: [42.4531, 18.5375, 5], match: "sahat kula|sat kula|clock tower", mins: 20,
+    note: "Kula sa satom na glavnom ulazu u Stari grad, dobra tačka za početak šetnje." },
+  { near: [42.4531, 18.5375, 6], match: "savina", mins: 40, best: "prijepodne",
+    note: "Manastirski kompleks u hladu borova iznad Herceg Novog.", tip: "Obuci pristojnu odjeću za ulazak u crkvu." },
+  { near: [42.4531, 18.5375, 6], match: "pet danica", mins: 60, best: "predvečerje",
+    note: "Šetnica uz more koja povezuje Igalo i Herceg Novi, sa kafićima i klupama uz obalu." }
 ];

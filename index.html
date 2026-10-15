@@ -217,7 +217,7 @@ let PLAN=[];
 const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
 renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
  $('planTitle').textContent=window.PLAN_NOTE==='sutra'?'Tvoj plan za sutra':window.PLAN_NOTE==='veceras'?'Tvoj plan za večeras':'Tvoj plan za '+(window.PLAN_LABEL||pretty);
- $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.';
+ $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.'+({'kiša':' Zbog kiše nema stanica na otvorenom.','hladno':' Prehladno za kupanje, pa plaže nisu u planu.'}[window.PLAN_WX]||'');
  $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${window.stepTime?stepTime(x):''}${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p>${window.stepWhy?stepWhy(x):''}</div><b>${ic('right',18)}</b></div>`).join('');
  $('planTotal').innerHTML=ic('clock',16)+' Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
  planSaveBtn()};
@@ -380,7 +380,7 @@ async function fetchEls(c,rd,force){
  if(els&&els.length)LS.set(key,{t:Date.now(),e:els.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});
  return els||(ch?ch.e:null)} /* ako mreža ne uspije, bolji je stari keš nego greška */
 async function loadPlaces(keep){
- const tk=++LV.tk,c=LV.me;if(!c)return;
+ const tk=++LV.tk,c=LV.me;if(!c)return;loadWx(c);
  const old=plGet(c,4000);let shown=false,oldSig='';
  if(!keep){
   /* stale-while-revalidate: odmah prikaži snimljenu listu, a osvježi u pozadini */
@@ -495,7 +495,12 @@ function openState(x,off){
 /* ---- kvalitet i doba dana ---- */
 function qualityOf(x){const g=gxCached(x);let s=0;
  if(g&&g.rating){const n=g.n||0,q=(g.rating*n+4*8)/(n+8);s+=(q-3)*12+Math.min(6,Math.log10(n+1)*2.5)}else s+=8.4;
- if(x._wd)s+=3;if(x._cur)s+=14;if(x._hasImg)s+=1;return s}
+ if(x._wd)s+=3;if(x._cur)s+=14;if(x._hasImg)s+=1;
+ if(isThin(x))s-=10;if(sloppyName(x))s-=8;return s}
+/* mjesto bez ikakvog potvrđenog podatka (ocjena, slika, sajt, telefon, radno vrijeme, wikidata, ručni unos) */
+function isThin(x){if(x._cur||x._wd||x._hasImg||x._web||x._phone||x._oh)return false;const g=gxCached(x);return!(g&&g.rating)}
+/* generički ili loše unijet naziv: "Plaža", "Plaža (5)", "cool old tree", "igalo" */
+function sloppyName(x){const t=x.title||'';return/^Plaža( \(\d+\))?$/.test(t)||/^[a-zčćšđž]/.test(t)}
 function fitAt(x,off){const t=new Date(Date.now()+off*6e4),h=t.getHours()+t.getMinutes()/60,ty=x.type||'',c=x.cat0;
  if(ty==='Restoran')return((h>=11.5&&h<15.5)||(h>=18&&h<23))?4:-14;
  if(/^Noćni klub/.test(x.desc||''))return(h>=22||h<4)?4:-30;
@@ -504,6 +509,18 @@ function fitAt(x,off){const t=new Date(Date.now()+off*6e4),h=t.getHours()+t.getM
  if(c==='More')return(h>=9&&h<19.5)?2:-12;
  if(c==='Hrana')return(h>=11&&h<23)?0:-10;
  return(h>=8&&h<20)?0:-12}
+/* ---- vrijeme: prognoza po satima (Open-Meteo) utiče na plan ---- */
+function wxAt(off){const W=window.WX;if(!W)return null;const d=new Date(Date.now()+off*6e4),p=n=>String(n).padStart(2,'0'),k=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':00',i=W.idx[k];return i==null?null:{t:W.t[i],p:W.p[i],c:W.c[i],h:d.getHours()}}
+function wxRain(w){return(w.p!=null&&w.p>=60)||(w.c>=51&&w.c<=67)||w.c>=80}
+function wxOf(x,off){const w=wxAt(off);if(!w||w.t==null)return{adj:0};
+ const c=x.cat0,rain=wxRain(w),out=c==='More'||c==='Priroda',semi=c==='Atrakcije',hot=w.t>=31&&w.h>=12&&w.h<17;
+ let adj=0,block=false,why='';
+ if(rain){if(out){adj-=14;block=true;why='kiša'}else if(semi)adj-=6;else adj+=3}
+ if(hot){if(c==='Priroda'||semi)adj-=8;if(c==='More')adj+=3;else if(!out&&!semi)adj+=2}
+ if(c==='More'&&!rain){if(w.t<16){adj-=12;block=true;why=why||'hladno'}else if(w.t<20)adj-=6;else if(w.t>=23)adj+=5}
+ return{adj,block,why}}
+function loadWx(c){if(!c)return;const k=c[0].toFixed(2)+','+c[1].toFixed(2),W=window.WX;if(W&&W.k===k&&Date.now()-W.at<36e5)return;if(window.WX_BUSY===k)return;window.WX_BUSY=k;
+ fetch('https://api.open-meteo.com/v1/forecast?latitude='+c[0]+'&longitude='+c[1]+'&hourly=temperature_2m,precipitation_probability,weather_code&timezone=auto&forecast_days=3').then(r=>r.json()).then(j=>{const h=j&&j.hourly;if(!h||!h.time)return;const idx={};h.time.forEach((t,i)=>idx[t]=i);window.WX={k,at:Date.now(),idx,t:h.temperature_2m,p:h.precipitation_probability,c:h.weather_code};const pl=document.getElementById('plan');if(pl&&pl.classList.contains('active')&&window.renderPlan)renderPlan()}).catch(()=>{}).finally(()=>{window.WX_BUSY=null})}
 const PM={},ORDER=['Kafa','Atrakcije','Kultura','Priroda','More','Porodica','Hrana','Par','Događaji'];
 function clockOf(m){const d=new Date(Math.round((Date.now()+m*6e4)/3e5)*3e5);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 const PRC={PRICE_LEVEL_INEXPENSIVE:'€',PRICE_LEVEL_MODERATE:'€€',PRICE_LEVEL_EXPENSIVE:'€€€',PRICE_LEVEL_VERY_EXPENSIVE:'€€€€'};
@@ -513,6 +530,7 @@ function stepWhy(x){const m=PM[x.title]||{},g=gxCached(x)||{},c=x._cur||{},a=[];
  if(PRC[g.price])a.push(PRC[g.price]);
  const cu=cuisineSr(x._cuisine);if(cu)a.push(cu);
  if(m.open===true&&m.end!=null)a.push('otvoreno do '+hm(m.end));else if(m.open===false)a.push('moguće zatvoreno');
+ {const w=m.start!=null&&['More','Priroda','Atrakcije'].includes(x.cat0)?wxAt(m.start):null;if(w&&w.t!=null)a.push(Math.round(w.t)+'°C'+(wxRain(w)?' · kiša':''))}
  if(m.walk>=3)a.push(m.walk+' min hoda');
  let h=a.length?'<p class="why">'+esc(a.join(' · '))+'</p>':'';
  {const dk=LV.me&&x.c?km(LV.me,x.c):null;const ad=x._addr||(dk!=null?'oko '+(dk<1?Math.max(50,Math.round(dk*20)*50)+' m':dk.toFixed(1).replace('.',',')+' km')+' od tebe':'');if(ad)h='<p class="why">'+esc(ad)+'</p>'+h}
@@ -526,7 +544,7 @@ window.stepTime=stepTime;window.stepWhy=stepWhy;
 /* ---- plan ---- */
 window.makePlan=function(){
  const target0=durations[selectedTime]||120,day=target0>=300,nowM=new Date().getHours()*60+new Date().getMinutes(),mode=window.PLAN_START||'auto';
- let S=0,eff=target0;window.PLAN_NOTE='';
+ let S=0,eff=target0;window.PLAN_NOTE='';window.PLAN_WX='';
  window.PLAN_LABEL=target0>=420?'ceo dan':(target0<60?target0+' min':Math.floor(target0/60)+' h'+(target0%60?' '+(target0%60)+' min':''));
  if(mode==='tomorrow'){S=1440-nowM+540;window.PLAN_NOTE='sutra'}
  else if(mode==='tonight'){if(nowM<1140){S=1140-nowM;window.PLAN_NOTE='veceras'}}
@@ -549,8 +567,10 @@ window.makePlan=function(){
     if(strict&&t>25)continue; /* predaleko pješice: preskoči, osim ako nema ništa bliže */
     const st=openState(x,arr);if(strict&&st.o===false)continue;
     const ft=strict?fitAt(x,arr):0;if(strict&&ft<=-10)continue; /* npr. plaža noću, restoran u 04h */
+    const w=wxOf(x,arr);if(strict&&w.block){if(w.why)window.PLAN_WX=w.why;continue} /* kiša / hladno: bez stanica na otvorenom */
     if(over(x))continue;
-    let sc=qualityOf(x)+ft-t*0.9+(st.o===true?2:0)-(cnt[x.cat0]||0)*6;
+    if(strict&&t>10&&x.cat0!=='Kafa'&&x.cat0!=='Hrana'&&isThin(x))continue; /* nepotvrđeno i daleko: preskoči */
+    let sc=qualityOf(x)+ft+w.adj-t*0.9+(st.o===true?2:0)-(cnt[x.cat0]||0)*6;
     if(lastC&&x.cat0===lastC)sc-=8;
     if(x.type==='Restoran'&&arr-lastRest<240)sc-=25;
     if(sc>=floor&&(!best||sc>best.s))best={x,t,s:sc,st}}
