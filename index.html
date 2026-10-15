@@ -158,6 +158,18 @@
 @keyframes pinHop{0%,100%{transform:translateY(2px) scale(1.04,.96)}45%{transform:translateY(-7px) scale(.96,1.04)}}
 @keyframes pinShadow{0%,100%{transform:scale(1);opacity:.5}45%{transform:scale(.6);opacity:.25}}
 @media(prefers-reduced-motion:reduce){.loader-core svg,.loader-core:after{animation:none!important}}
+
+.prefs{margin:16px 0 0}
+.prefs-t{width:100%;display:flex;align-items:center;justify-content:space-between;background:#ffffff12;border:1px solid #ffffff22;color:#fff;border-radius:16px;padding:13px 15px;font-weight:700;font-size:15px}
+.prefs-t .n{display:inline-block;background:var(--yellow);color:#111;border-radius:999px;font-size:12px;font-style:normal;padding:1px 8px;margin-left:8px;font-weight:800}
+.prefs-t .n[hidden]{display:none}
+.prefs-t svg{transition:transform .2s}.prefs.open .prefs-t svg{transform:rotate(180deg)}
+.prefs-b{display:none;padding:6px 2px 0}.prefs.open .prefs-b{display:block}
+.prefs-l{font-size:13px;color:#ffffffb8;margin:12px 0 8px;font-weight:700}
+.prefs-r{display:flex;flex-wrap:wrap;gap:8px}
+.prefs-r button{display:inline-flex;align-items:center;gap:6px;background:#ffffff14;border:1px solid #ffffff2a;color:#fff;border-radius:999px;padding:10px 14px;font-weight:700;font-size:14px}
+.prefs-r button.on{background:var(--yellow);border-color:var(--yellow);color:#111}
+.prefs-h{font-size:12px;line-height:1.4;color:#ffffffa0;margin-top:10px}
 </style>
 </head>
 <body>
@@ -255,9 +267,27 @@ function sheet(title,html){let s=$('sheet');if(!s){s=document.createElement('div
 const gmaps=x=>LV.q(x);
 /* navigacija sa istorijom (dugme nazad vraća na prethodni ekran) */
 const hist=[];let cur='welcome';const baseGo=go;
-function after(id){if(id==='map')renderMap();if(id==='saved')renderSaved();if(id==='itiner'&&window.renderItiner)renderItiner();if(id==='rent'&&window.renderRent){renderRent();window.loadRent&&loadRent()}}
+function after(id){if(id==='home'&&window.syncPrefs)syncPrefs();if(id==='map')renderMap();if(id==='saved')renderSaved();if(id==='itiner'&&window.renderItiner)renderItiner();if(id==='rent'&&window.renderRent){renderRent();window.loadRent&&loadRent()}}
 go=function(id){if(id!==cur){hist.push(cur);if(hist.length>30)hist.shift();cur=id}baseGo(id);after(id)};
 function back(){if(cur==='map'&&hist[hist.length-1]!=='plan')hist.push('plan');const p=hist.pop()||'home';cur=p;baseGo(p);after(p)}
+/* još preciznije: sa kim, vrućina, pristupačnost (opciono) */
+{const pb=q('#home .primary');if(pb){const w=document.createElement('div');w.className='prefs';
+w.innerHTML='<button type="button" class="prefs-t" id="prefsT"><span>Još preciznije<i class="n" id="prefsN" hidden></i></span>'+ic('down',18)+'</button><div class="prefs-b"><div class="prefs-l">Sa kim si?</div><div class="prefs-r" id="withRow"><button type="button" data-w="" class="on">Sam/a</button><button type="button" data-w="Par">U paru</button><button type="button" data-w="Porodica">Sa porodicom</button></div><div class="prefs-l">Posebni uslovi</div><div class="prefs-r"><button type="button" id="optHeat">'+ic('sun',16)+' Izbjegavam vrućinu</button><button type="button" id="optAcc">Pristupačne rute</button></div><div class="prefs-h" id="prefsH" hidden>Prikazujemo mjesta označena kao pristupačna i kraće šetnje. Za dio mjesta nemamo taj podatak, pa provjeri prije polaska.</div></div>';
+pb.before(w);
+qa('#home .cat[data-cat="Porodica"],#home .cat[data-cat="Par"]').forEach(b=>b.style.display='none');
+const who=()=>selectedCats.has('Par')?'Par':selectedCats.has('Porodica')?'Porodica':'';
+window.syncPrefs=()=>{const cw=who();qa('#withRow button',w).forEach(b=>b.classList.toggle('on',b.dataset.w===cw));
+ $('optHeat').classList.toggle('on',!!window.PLAN_HEAT);$('optAcc').classList.toggle('on',!!window.PLAN_ACCESS);$('prefsH').hidden=!window.PLAN_ACCESS;
+ const n=(cw?1:0)+(window.PLAN_HEAT?1:0)+(window.PLAN_ACCESS?1:0),b=$('prefsN');b.textContent=n;b.hidden=!n};
+$('prefsT').onclick=()=>w.classList.toggle('open');
+$('withRow').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+ ['Par','Porodica'].forEach(c=>{selectedCats.delete(c);const cb=q('#home .cat[data-cat="'+c+'"]');cb&&cb.classList.remove('sel')});
+ if(b.dataset.w){selectedCats.add(b.dataset.w);const cb=q('#home .cat[data-cat="'+b.dataset.w+'"]');cb&&cb.classList.add('sel')}
+ if(!selectedCats.size){selectedCats.add('Hrana');const cb=q('#home .cat[data-cat="Hrana"]');cb&&cb.classList.add('sel')}
+ syncPrefs()};
+$('optHeat').onclick=()=>{window.PLAN_HEAT=!window.PLAN_HEAT;syncPrefs()};
+$('optAcc').onclick=()=>{window.PLAN_ACCESS=!window.PLAN_ACCESS;syncPrefs()};
+syncPrefs()}}
 /* hardverski taster / gest nazad (Android) vraća na prethodni ekran umjesto da zatvori aplikaciju */
 {let exitAt=0,guarded=false;
 const arm=()=>{if(guarded)return;try{history.pushState({blizu:1},'');guarded=true}catch(e){}};
@@ -280,7 +310,7 @@ let PLAN=[];
 const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
 renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
  $('planTitle').textContent=window.PLAN_NOTE==='sutra'?'Tvoj plan za sutra':window.PLAN_NOTE==='veceras'?'Tvoj plan za večeras':'Tvoj plan za '+(window.PLAN_LABEL||pretty);
- $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.'+({'kiša':' Zbog kiše nema stanica na otvorenom.','hladno':' Prehladno za kupanje, pa plaže nisu u planu.'}[window.PLAN_WX]||'')+({fam:' Prilagođeno porodici: kraće šetnje i bez barova.',par:' Za dvoje: vidikovci, večera i mirnija mjesta.'}[window.PLAN_PROF]||'');
+ $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.'+({'kiša':' Zbog kiše nema stanica na otvorenom.','hladno':' Prehladno za kupanje, pa plaže nisu u planu.'}[window.PLAN_WX]||'')+({fam:' Prilagođeno porodici: kraće šetnje i bez barova.',par:' Za dvoje: vidikovci, večera i mirnija mjesta.'}[window.PLAN_PROF]||'')+(window.PLAN_HEAT?' Manje sunca u najtoplijem dijelu dana.':'')+(window.PLAN_ACCESS?' Kraće šetnje i mjesta bez prepreka kad su poznata.':'');
  $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${window.stepTime?stepTime(x):''}${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p>${window.stepWhy?stepWhy(x):''}</div><b>${ic('right',18)}</b></div>`).join('');
  $('planTotal').innerHTML=ic('clock',16)+' Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
  planSaveBtn()};
@@ -411,7 +441,7 @@ function build(els){
   const prev=seen.get(nm);if(prev){if(km(prev,p)<0.15)continue;nm=nm+' ('+(prev.n=(prev.n||1)+1)+')'}else{const k=[p[0],p[1]];k.n=1;seen.set(nm,k)}
   const c0=cs[0][0],cu=cs[0][1],cu2=t.cuisine?String(t.cuisine).split(';').slice(0,2).map(s=>s.replace(/_/g,' ')).join(', '):'';
   const cats=[...new Set(cs.map(x=>x[0]))];
-  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:minsOf(c0,cu),_oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',_addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:t.cuisine||'',_feats:[t.outdoor_seating==='yes'&&'Terasa',t.wheelchair==='yes'&&'Pristup za invalidska kolica',(t['payment:cards']==='yes'||t['payment:credit_cards']==='yes'||t['payment:visa']==='yes')&&'Plaćanje karticom',t.takeaway==='yes'&&'Za ponijeti',t.delivery==='yes'&&'Dostava',(t.internet_access==='wlan'||t.internet_access==='yes')&&'Wi‑Fi',t.air_conditioning==='yes'&&'Klima'].filter(Boolean),img:imgOf(t)||ph(c0),_hasImg:!!imgOf(t),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
+  out.push({id:el.type+el.id,title:nm,type:c0==='Događaji'?'Događaj':cu,desc:cu+(cu2?' · '+cu2:''),mins:minsOf(c0,cu),_oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',_addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:t.cuisine||'',_wc:t.wheelchair||'',_feats:[t.outdoor_seating==='yes'&&'Terasa',t.wheelchair==='yes'&&'Pristup za invalidska kolica',(t['payment:cards']==='yes'||t['payment:credit_cards']==='yes'||t['payment:visa']==='yes')&&'Plaćanje karticom',t.takeaway==='yes'&&'Za ponijeti',t.delivery==='yes'&&'Dostava',(t.internet_access==='wlan'||t.internet_access==='yes')&&'Wi‑Fi',t.air_conditioning==='yes'&&'Klima'].filter(Boolean),img:imgOf(t)||ph(c0),_hasImg:!!imgOf(t),_wd:t.wikidata||'',cats,c:p,rating:'',ico:EMO[c0],cat0:c0});
  }
  return applyCurated(out)}
 function setData(items){
@@ -626,7 +656,7 @@ window.makePlan=function(){
  else if(mode==='auto'&&day){if(nowM<540)S=540-nowM;else if(nowM>=960){S=1440-nowM+540;window.PLAN_NOTE='sutra'}}
  if(!(mode==='auto'&&day)){const cap=1410-((nowM+S)%1440);if(cap>=60&&target0>cap)eff=cap}
  const target=S+eff;
- const sig=[target0,[...selectedCats].sort().join(),mode,window.PLAN_BUDGET||'',window.PLAN_AVOID?1:0].join('|');
+ const sig=[target0,[...selectedCats].sort().join(),mode,window.PLAN_BUDGET||'',window.PLAN_HEAT?1:0,window.PLAN_ACCESS?1:0,window.PLAN_AVOID?1:0].join('|');
  window.PLAN_S=S;window.PLAN_END=target;
  if(window.PLAN_OVERRIDE&&window.PLAN_OVERRIDE.sig===sig){Object.keys(PM).forEach(k=>delete PM[k]);Object.assign(PM,window.PLAN_OVERRIDE.pm);window.PLAN_SIG=sig;return window.PLAN_OVERRIDE.items.slice()}
  const sigBase=sig.slice(0,sig.lastIndexOf('|'));
@@ -646,7 +676,7 @@ window.makePlan=function(){
  const isMeal=x=>x.type==='Restoran'||x.type==='Brza hrana',isCof=x=>x.cat0==='Kafa';
  const run=lvl=>{
   const items=[],used=new Set();let last=LV.me,mins=S,lastC=null,lastMeal=-999,lastCof=-999;const cnt={},cntT={};
-  const maxWalk=[22,35,60][lvl],floor=[-28,-45,-80][lvl],strict=lvl<2;
+  const maxWalk=(window.PLAN_ACCESS?[13,22,36]:[22,35,60])[lvl],floor=[-28,-45,-80][lvl],strict=lvl<2;
   const capT={Restoran:day?3:2,'Brza hrana':1,'Noćni klub':1},capC={Kafa:day?4:2,Hrana:day?4:3,'Događaji':2,More:day?2:1,Priroda:2,Kultura:3,Atrakcije:4};
   const over=x=>{const t=x.type||'';if(capT[t]!==undefined&&(cntT[t]||0)>=capT[t])return true;return(cnt[x.cat0]||0)>=(capC[x.cat0]||(day?5:4))};
   const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)*1.35/4.2*60)):0;
@@ -654,6 +684,9 @@ window.makePlan=function(){
    if(fam){if(ty==='Bar'||ty==='Pub'||ty==='Noćni klub'||(x.cat0==='Događaji'&&h>=21)||t>15)skip=true;
     if(ty==='Park'||ty==='Plaža'||ty==='Sladoled')a+=4;else if(ty==='Restoran')a+=2;else if(ty==='Brza hrana')a+=1;else if(ty==='Muzej'||ty==='Galerija')a-=2}
    if(par){if(ty==='Vidikovac'||ty==='Marina')a+=5;else if(ty==='Restoran')a+=3;else if(ty==='Bar')a+=(h>=18?3:0);else if(ty==='Plaža')a+=(h>=17?3:0);else if(ty==='Brza hrana')a-=6;else if(ty==='Sladoled'||ty==='Park')a-=4}
+   if(window.PLAN_HEAT&&h>=12&&h<17){const hotOut=ty==='Park'||ty==='Vidikovac'||x.cat0==='Priroda'||x.cat0==='Atrakcije'||(x.cat0==='Događaji'&&ty!=='Muzej');
+    if(hotOut)a-=11;else if(ty==='Plaža')a+=4;else if(x.cat0==='Kultura'||ty==='Muzej'||ty==='Galerija'||ty==='Sladoled')a+=5;else if(x.cat0==='Kafa'||ty==='Restoran')a+=((x._feats||[]).includes('Klima')?5:2)}
+   if(window.PLAN_ACCESS){if(x._wc==='no')skip=true;else if(x._wc==='yes')a+=9;else if(x._wc==='limited')a+=2;else if(ty==='Vidikovac'||x.cat0==='Priroda'||ty==='Plaža')a-=10;else if(x.cat0==='Atrakcije')a-=3}
    if(window.PLAN_BUDGET==='low'){const g=gxCached(x),pr=g&&g.price;if(pr==='PRICE_LEVEL_INEXPENSIVE')a+=4;else if(pr==='PRICE_LEVEL_EXPENSIVE')a-=10;else if(pr==='PRICE_LEVEL_VERY_EXPENSIVE')a-=16;else if(x.type==='Brza hrana'||x.type==='Sladoled')a+=2}
    return{a,skip}};
   const pick=()=>{let best=null;
