@@ -216,8 +216,8 @@ qa('.back,.iconbtn').forEach(b=>{if(b.dataset.back)b.onclick=back});
 let PLAN=[];
 const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
 renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
- $('planTitle').textContent=window.PLAN_NOTE?'Tvoj plan za sutra':'Tvoj plan za '+pretty;
- $('planSub').textContent=(window.PLAN_NOTE?'Počinje sutra u 09:00, jer je danas već kasno za ceo dan. ':'')+'Savršen plan za '+pretty+', prilagođen tvom vremenu i izboru: '+[...selectedCats].join(', ')+'.';
+ $('planTitle').textContent=window.PLAN_NOTE==='sutra'?'Tvoj plan za sutra':window.PLAN_NOTE==='veceras'?'Tvoj plan za večeras':'Tvoj plan za '+(window.PLAN_LABEL||pretty);
+ $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.';
  $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${window.stepTime?stepTime(x):''}${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p>${window.stepWhy?stepWhy(x):''}</div><b>${ic('right',18)}</b></div>`).join('');
  $('planTotal').innerHTML=ic('clock',16)+' Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
  planSaveBtn()};
@@ -525,11 +525,14 @@ function stepWhy(x){const m=PM[x.title]||{},g=gxCached(x)||{},c=x._cur||{},a=[];
 window.stepTime=stepTime;window.stepWhy=stepWhy;
 /* ---- plan ---- */
 window.makePlan=function(){
- const target0=durations[selectedTime]||120,day=target0>=300,nowM=new Date().getHours()*60+new Date().getMinutes();
+ const target0=durations[selectedTime]||120,day=target0>=300,nowM=new Date().getHours()*60+new Date().getMinutes(),mode=window.PLAN_START||'auto';
  let S=0,eff=target0;window.PLAN_NOTE='';
- if(day){ /* ceo dan: počni ujutro (09:00); ako je već kasno popodne, planiraj sutra */
+ window.PLAN_LABEL=target0>=420?'ceo dan':(target0<60?target0+' min':Math.floor(target0/60)+' h'+(target0%60?' '+(target0%60)+' min':''));
+ if(mode==='tomorrow'){S=1440-nowM+540;window.PLAN_NOTE='sutra'}
+ else if(mode==='tonight'){if(nowM<1140){S=1140-nowM;window.PLAN_NOTE='veceras'}}
+ else if(mode==='auto'&&day){ /* ceo dan: počni ujutro (09:00); ako je već kasno popodne, planiraj sutra */
   if(nowM<540)S=540-nowM;else if(nowM>=960){S=1440-nowM+540;window.PLAN_NOTE='sutra'}}
- else{const cap=1410-nowM;if(cap>=60&&target0>cap)eff=cap} /* kraći planovi ne idu iza ~23:30 */
+ if(!(mode==='auto'&&day)){const cap=1410-((nowM+S)%1440);if(cap>=60&&target0>cap)eff=cap} /* ne ide iza ~23:30 */
  const target=S+eff;
  let pool=selectedItems();if(!pool.length)pool=uniq();
  const sn=new Set();pool=pool.filter(x=>!sn.has(x.title)&&sn.add(x.title));
@@ -826,7 +829,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     keep = new Set();
   }
 
-  window.makePlan = function() {
+  const makePlanCore = function() {
     const key = selectedTime;
     const old = durations[key];
     durations[key] = activeTarget();
@@ -841,6 +844,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
       if (old === undefined) delete durations[key]; else durations[key] = old;
     }
   };
+  window.makePlan = function() { const r = makePlanCore(); paintStart(); return r; };
 
   const CHIPS = [[30,'30 min'],[60,'1 h'],[120,'2 h'],[180,'3 h'],[240,'4 h'],[420,'Ceo dan']];
 
@@ -853,7 +857,14 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     bar.id = 'blizuTimeBar';
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', 'Koliko vremena ti je ostalo');
-    bar.innerHTML = '<span class="blizu-bar-label">Ostalo ti je</span><div id="blizuChips" class="blizu-chips"></div>';
+    bar.innerHTML = '<span class="blizu-bar-label">Kada kreće</span><div id="blizuStart" class="blizu-chips" style="margin-bottom:14px"></div><span class="blizu-bar-label">Ostalo ti je</span><div id="blizuChips" class="blizu-chips"></div>';
+    bar.querySelector('#blizuStart').addEventListener('click', e => {
+      const b = e.target.closest('button[data-start]');
+      if (!b) return;
+      window.PLAN_START = b.dataset.start;
+      resetAlt();
+      window.renderPlan();
+    });
     list.insertBefore(bar, list.firstChild);
     bar.querySelector('#blizuChips').addEventListener('click', e => {
       const b = e.target.closest('button[data-min]');
@@ -878,6 +889,18 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     });
   }
 
+  function paintStart() {
+    const box = document.getElementById('blizuStart');
+    if (!box) return;
+    const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+    const m = window.PLAN_START || 'auto';
+    const cur = m === 'auto' ? (window.PLAN_NOTE === 'sutra' ? 'tomorrow' : 'now') : m;
+    const opts = [['now', 'Sada']];
+    if (nowM < 1140) opts.push(['tonight', 'Večeras 19:00']);
+    opts.push(['tomorrow', 'Sutra 09:00']);
+    box.innerHTML = opts.map(o => '<button type="button" data-start="' + o[0] + '"' + (o[0] === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + o[1] + '</button>').join('');
+  }
+
   function paintChips() {
     const box = document.getElementById('blizuChips');
     if (!box) return;
@@ -891,6 +914,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
   const style = document.createElement('style');
   style.textContent = `
     #blizuTimeBar{margin:6px 0 4px;padding:8px 0 4px}
+    #blizuStart button{flex:1 1 0}
     .blizu-bar-label{display:block;margin:0 0 8px 2px;font-weight:800;font-size:14px;color:#13212a}
     .blizu-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
     .blizu-chips::-webkit-scrollbar{display:none}
@@ -907,12 +931,14 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
 
   window.renderPlan = function() {
     ensureControls();
+    paintStart();
     paintChips();
     baseRenderPlan();
   };
   // Ako korisnik promeni osnovno trajanje na početnom ekranu, resetuj ručno zadato preostalo vreme.
   document.querySelectorAll('.timegrid .chip').forEach(btn => btn.addEventListener('click', () => {
     remaining = null;
+    window.PLAN_START = 'auto';
     resetAlt();
   }));
 })();
