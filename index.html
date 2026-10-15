@@ -551,6 +551,11 @@ window.makePlan=function(){
  else if(mode==='auto'&&day){if(nowM<540)S=540-nowM;else if(nowM>=960){S=1440-nowM+540;window.PLAN_NOTE='sutra'}}
  if(!(mode==='auto'&&day)){const cap=1410-((nowM+S)%1440);if(cap>=60&&target0>cap)eff=cap}
  const target=S+eff;
+ const sig=[target0,[...selectedCats].sort().join(),mode,window.PLAN_BUDGET||'',window.PLAN_AVOID?1:0].join('|');
+ window.PLAN_S=S;window.PLAN_END=target;
+ if(window.PLAN_OVERRIDE&&window.PLAN_OVERRIDE.sig===sig){Object.keys(PM).forEach(k=>delete PM[k]);Object.assign(PM,window.PLAN_OVERRIDE.pm);window.PLAN_SIG=sig;return window.PLAN_OVERRIDE.items.slice()}
+ if(window.PLAN_SEENSIG!==sig){window.PLAN_SEEN=new Set();window.PLAN_SEENSIG=sig;window.PLAN_OVERRIDE=null}
+ window.PLAN_SIG=sig;
  const fam=[...selectedCats].includes('Porodica'),par=[...selectedCats].includes('Par'),realSel=[...selectedCats].filter(c=>c!=='Porodica'&&c!=='Par');
  window.PLAN_PROF=fam&&par?'':fam?'fam':par?'par':'';
  /* IZBOR TEME = težina, ne ograda. Pool je sve u okolini; izabrane kategorije dobijaju prednost.
@@ -609,6 +614,51 @@ window.makePlan=function(){
  Object.keys(PM).forEach(k=>delete PM[k]);
  if(!best.items.length){const x=pool[0];PM[x.title]={start:0,walk:0,open:null};return[x]}
  Object.assign(PM,best.pm);return best.items};
+/* ---- zamena / izbacivanje jedne stanice (ostale ostaju, vremena se preračunavaju) ---- */
+(function(){
+ const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)*1.35/4.2*60)):0;
+ const say=m=>{try{window.toast&&toast(m)}catch(e){}};
+ function retime(items){const S=window.PLAN_S||0;let last=LV.me,mins=S;const pm={};
+  items.forEach(x=>{const t=tr(last,x.c),st=openState(x,mins+t);pm[x.title]={start:mins+t,walk:t,open:st.o,end:st.end};mins+=t+x.mins;last=x.c||last});
+  return{pm,end:mins}}
+ function commit(items){const r=retime(items);
+  window.PLAN_OVERRIDE={sig:window.PLAN_SIG,items:items.slice(),pm:r.pm};
+  window.renderPlan&&window.renderPlan()}
+ function swapStop(i){
+  const cur=BZ.plan().slice(),old=cur[i];if(!old)return;
+  const seen=window.PLAN_SEEN||(window.PLAN_SEEN=new Set());seen.add(old.title);
+  const inPlan=new Set(cur.map(x=>x.title)),prev=i>0?cur[i-1].c:LV.me,next=cur[i+1]?cur[i+1].c:null;
+  const arr=(PM[old.title]||{}).start||0,isMeal=x=>x.type==='Restoran'||x.type==='Brza hrana';
+  const cand=[];
+  for(const x of uniq()){
+   if(!x.c||inPlan.has(x.title)||seen.has(x.title))continue;
+   const t=tr(prev,x.c);if(t>35||x.mins>old.mins+20)continue;
+   if(openState(x,arr+t).o===false)continue;
+   const ft=fitAt(x,arr+t);if(ft<=-10)continue;
+   const w=wxOf(x,arr+t);if(w.block)continue;
+   if(isMeal(old)&&!isMeal(x))continue;
+   const sc=qualityOf(x)+ft+w.adj-(t+(next?tr(x.c,next):0))*0.9+(x.cat0===old.cat0?12:0)+(x.type===old.type?4:0);
+   cand.push({x,sc})}
+  cand.sort((a,b)=>b.sc-a.sc);
+  for(const c of cand){const n=cur.slice();n[i]=c.x;
+   if(retime(n).end<=(window.PLAN_END||1e9)){commit(n);return}}
+  say('Nema bolje zamene u blizini')}
+ function dropStop(i){const cur=BZ.plan().slice();if(cur.length<2){say('Plan mora imati bar jednu stanicu');return}
+  cur.splice(i,1);commit(cur)}
+ window.swapStop=swapStop;window.dropStop=dropStop;
+ /* dugmad ispod svake stanice */
+ const box=document.getElementById('planSteps');if(!box)return;
+ const st=document.createElement('style');
+ st.textContent='.stepact{display:flex;gap:8px;margin-top:8px}.stepact button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:#eef0f1;color:#062b3a;border:0;cursor:pointer}.stepact button:focus-visible{outline:2px solid #12647a}';
+ document.head.appendChild(st);
+ const inject=()=>box.querySelectorAll('.step').forEach(s=>{if(s.querySelector('.stepact'))return;
+  const d=document.createElement('div');d.className='stepact';
+  d.innerHTML='<button type="button" data-act="swap">↻ Zameni</button><button type="button" data-act="del">Izbaci</button>';
+  s.children[1].appendChild(d)});
+ new MutationObserver(inject).observe(box,{childList:true});inject();
+ box.addEventListener('click',e=>{const b=e.target.closest('.stepact button');if(!b)return;
+  e.stopImmediatePropagation();e.stopPropagation();
+  const i=+b.closest('.step').dataset.i;b.dataset.act==='swap'?swapStop(i):dropStop(i)},true)})();
 const _rp=window.renderPlan;
 window.renderPlan=function(){_rp();headPhotos();const s=$('planSteps');if(s&&!s.children.length){s.innerHTML=LV.empty();$('planTotal').innerHTML='';$('planCount').textContent=''}};
 {const _rp3=window.renderPlan;let PWT=0;
