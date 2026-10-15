@@ -37,3 +37,20 @@
 ## Napomena
 
 Izmene su urađene u izvornom kodu, ali produkciona ispravnost nije potvrđena bez pristupa Cloudflare okruženju, konfiguraciji tajni, stvarnom domenu i testovima na uređajima.
+
+
+## Druga iteracija — prilagođavanje preostalog vremena i alternativni plan
+
+Dodato u `index.html`:
+
+- Kontrola „Koliko vremena ti je još ostalo?” sa izborom od 15 do 420 minuta.
+- Dugme „Prilagodi plan” koje ponovo pokreće planer sa izabranim vremenskim budžetom.
+- Dugme „Pronađi alternativu” koje pokušava da izabere druga mesta iz dostupnog skupa.
+- „Vrati početno vreme” za povratak na trajanje izabranog u početnom koraku.
+- Pristupačna oznaka kontrole i napomena da su vremena kretanja procene.
+
+### Ograničenja koja ostaju
+
+- Aplikacija i dalje koristi procenu vremena kretanja na osnovu koordinata za rangiranje. Prikaz navigacije otvara Google Maps pešačku rutu; ovo izdanje ne računa sopstvenu mrežnu pešačku rutu unutar aplikacije.
+- Alternativni plan zavisi od količine i raznovrsnosti mesta u trenutnoj kategoriji i okolini. Ako nema dovoljno alternativa, neke stanice mogu ostati iste.
+- Potrebno je testirati ponašanje u pregledaču na mobilnim uređajima i sa stvarnim skupom lokacija pre produkcionog objavljivanja.
