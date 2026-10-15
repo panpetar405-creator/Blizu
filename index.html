@@ -772,22 +772,27 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     box.id = 'blizuTimeAdjust';
     box.setAttribute('aria-label', 'Prilagođavanje plana');
     box.innerHTML = `
-      <div class="blizu-adjust-title">Koliko vremena ti je još ostalo?</div>
-      <div class="blizu-adjust-row">
-        <input id="blizuRemaining" type="range" min="15" max="420" step="15" value="${durations[selectedTime]||120}" aria-label="Preostalo vreme u minutima">
-        <strong id="blizuRemainingLabel">${durationLabel(durations[selectedTime]||120)}</strong>
+      <div class="blizu-adjust-head">
+        <div class="blizu-adjust-title">Koliko vremena ti je ostalo?</div>
+        <strong id="blizuRemainingLabel" class="blizu-adjust-time">${durationLabel(durations[selectedTime]||120)}</strong>
       </div>
+      <input id="blizuRemaining" type="range" min="15" max="420" step="15" value="${durations[selectedTime]||120}" aria-label="Preostalo vreme u minutima">
+      <div class="blizu-adjust-scale" aria-hidden="true"><span>15 min</span><span>3 h</span><span>7 h</span></div>
       <div class="blizu-adjust-actions">
-        <button type="button" id="blizuApplyTime" class="secondary">Prilagodi plan</button>
-        <button type="button" id="blizuPlanB" class="secondary">Pronađi alternativu</button>
-        <button type="button" id="blizuResetTime" class="textbtn">Vrati početno vreme</button>
+        <button type="button" id="blizuApplyTime" class="blizu-btn-main">Prilagodi plan</button>
+        <button type="button" id="blizuPlanB" class="blizu-btn-alt">Pronađi alternativu</button>
       </div>
-      <p class="blizu-adjust-note">Vreme uključuje procenjeno hodanje i trajanje posete. Proveri stvarnu pešačku rutu pre polaska.</p>`;
-    const sub = head.querySelector('#planSub');
-    if (sub) sub.insertAdjacentElement('afterend', box); else head.appendChild(box);
+      <div class="blizu-adjust-foot">
+        <p class="blizu-adjust-note">Vreme uključuje procenjeno hodanje i trajanje posete. Proveri stvarnu pešačku rutu pre polaska.</p>
+        <button type="button" id="blizuResetTime" class="textbtn">Vrati početno</button>
+      </div>`;
+    const list = document.querySelector('#plan .planlist');
+    if (list) list.insertBefore(box, list.firstChild); else head.appendChild(box);
     const slider = box.querySelector('#blizuRemaining');
+    paintSlider(slider);
     slider.addEventListener('input', () => {
       box.querySelector('#blizuRemainingLabel').textContent = durationLabel(Number(slider.value));
+      paintSlider(slider);
     });
     box.querySelector('#blizuApplyTime').addEventListener('click', () => {
       remaining = Number(slider.value);
@@ -808,6 +813,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
       planB = false;
       slider.value = String(durations[selectedTime] || 120);
       box.querySelector('#blizuRemainingLabel').textContent = durationLabel(Number(slider.value));
+      paintSlider(slider);
       window.renderPlan();
     });
     const status = document.createElement('p');
@@ -817,18 +823,36 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     box.appendChild(status);
   }
 
+  function paintSlider(el) {
+    const p = (Number(el.value) - Number(el.min)) / (Number(el.max) - Number(el.min)) * 100;
+    el.style.setProperty('--p', p + '%');
+  }
+
   const style = document.createElement('style');
   style.textContent = `
-    #blizuTimeAdjust{margin:14px 0 8px;padding:14px;background:var(--card,#fff);border:1px solid rgba(80,90,90,.18);border-radius:16px}
-    .blizu-adjust-title{font-weight:750;font-size:14px;margin-bottom:10px}
-    .blizu-adjust-row{display:flex;align-items:center;gap:12px}
-    .blizu-adjust-row input{flex:1;min-width:0;accent-color:var(--accent,#26796d)}
-    .blizu-adjust-row strong{min-width:54px;text-align:right;font-size:14px}
-    .blizu-adjust-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-    .blizu-adjust-actions button{font:inherit;cursor:pointer}
-    .blizu-adjust-actions .textbtn{border:0;background:transparent;padding:8px;color:inherit;text-decoration:underline}
-    .blizu-adjust-note{font-size:12px;line-height:1.45;opacity:.75;margin:9px 0 0}
-    @media(max-width:420px){.blizu-adjust-actions button{flex:1 1 42%}}
+    #blizuTimeAdjust{margin:14px 0 6px;padding:16px 16px 12px;background:#fff;border-radius:22px;box-shadow:0 1px 0 #0000000a,0 10px 28px -14px #062b3a55;color:#13212a}
+    .blizu-adjust-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .blizu-adjust-title{font-weight:800;font-size:15px;line-height:1.25;letter-spacing:-.2px}
+    .blizu-adjust-time{flex:none;background:#062b3a;color:#ffc400;border-radius:999px;padding:6px 13px;font-size:14px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums}
+    #blizuRemaining{-webkit-appearance:none;appearance:none;display:block;width:100%;height:28px;margin:0;background:transparent;--p:30%;cursor:pointer}
+    #blizuRemaining::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:linear-gradient(90deg,#12647a 0,#12647a var(--p),#e4e8ea var(--p),#e4e8ea 100%)}
+    #blizuRemaining::-moz-range-track{height:8px;border-radius:99px;background:#e4e8ea}
+    #blizuRemaining::-moz-range-progress{height:8px;border-radius:99px;background:#12647a}
+    #blizuRemaining::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;background:#ffc400;border:4px solid #fff;box-shadow:0 0 0 1.5px #062b3a,0 3px 8px #0004}
+    #blizuRemaining::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:#ffc400;border:4px solid #fff;box-shadow:0 0 0 1.5px #062b3a,0 3px 8px #0004}
+    #blizuRemaining:focus-visible{outline:2px solid #12647a;outline-offset:4px;border-radius:99px}
+    .blizu-adjust-scale{display:flex;justify-content:space-between;margin:2px 2px 0;font-size:11px;color:#71808a}
+    .blizu-adjust-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .blizu-adjust-actions button{font:inherit;font-weight:800;font-size:14px;line-height:1.15;min-height:48px;padding:10px 12px;border-radius:999px;cursor:pointer}
+    .blizu-btn-main{background:#062b3a;color:#fff;border:0}
+    .blizu-btn-alt{background:#fff;color:#062b3a;border:1.5px solid #062b3a}
+    .blizu-adjust-actions button:active{transform:scale(.98)}
+    .blizu-adjust-foot{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid #e9ecee}
+    .blizu-adjust-foot .textbtn{flex:none;border:0;background:transparent;padding:2px 0;color:#12647a;font:inherit;font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+    .blizu-adjust-note{font-size:11.5px;line-height:1.4;color:#71808a;margin:0}
+    #blizuPlanBStatus{margin:8px 0 0;color:#12647a}
+    #blizuPlanBStatus:empty{display:none}
+    @media(max-width:340px){.blizu-adjust-actions{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
@@ -838,6 +862,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     if (slider && document.activeElement !== slider) {
       slider.value = String(remaining || durations[selectedTime] || 120);
       document.getElementById('blizuRemainingLabel').textContent = durationLabel(Number(slider.value));
+      paintSlider(slider);
     }
     baseRenderPlan();
     // Prikaz stvarnog plana kao osnove za sledeću alternativu.
