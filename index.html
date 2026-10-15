@@ -257,12 +257,13 @@ const gmaps=x=>LV.q(x);
 const hist=[];let cur='welcome';const baseGo=go;
 function after(id){if(id==='map')renderMap();if(id==='saved')renderSaved();if(id==='itiner'&&window.renderItiner)renderItiner();if(id==='rent'&&window.renderRent){renderRent();window.loadRent&&loadRent()}}
 go=function(id){if(id!==cur){hist.push(cur);if(hist.length>30)hist.shift();cur=id}baseGo(id);after(id)};
-function back(){const p=hist.pop()||'home';cur=p;baseGo(p);after(p)}
+function back(){if(cur==='map'&&hist[hist.length-1]!=='plan')hist.push('plan');const p=hist.pop()||'home';cur=p;baseGo(p);after(p)}
 /* hardverski taster / gest nazad (Android) vraća na prethodni ekran umjesto da zatvori aplikaciju */
-{let exitAt=0;const arm=()=>history.pushState({blizu:1},'');history.replaceState({blizu:0},'');arm();
+{let exitAt=0;const arm=()=>history.pushState({blizu:1},'');history.replaceState({blizu:0},'');addEventListener('click',arm,{once:true,capture:true});
 addEventListener('popstate',()=>{
  const sh=document.getElementById('sheet');
  if(sh&&sh.classList.contains('on')){sh.classList.remove('on');arm();return}
+ if(cur==='map'&&hist[hist.length-1]!=='plan')hist.push('plan');
  while(hist.length&&hist[hist.length-1]==='welcome')hist.pop();
  if(hist.length){back();arm();return}
  if(cur!=='home'&&cur!=='welcome'){cur='home';baseGo('home');after('home');arm();return}
