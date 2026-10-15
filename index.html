@@ -143,6 +143,21 @@
 #map #lmap{background:#dfe9e4;z-index:0}
 .mk{width:32px;height:32px;border-radius:50%;background:#062b3a;color:#fff;font:800 14px/28px system-ui,sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 3px 8px #0006;transition:transform .15s}
 .mk.done{background:#12647a}.mk.on{background:#ffc400;color:#111;transform:scale(1.25)}
+
+.loader-radar{width:104px;height:104px}
+.loader-radar:before{border:2px solid #0e547855;inset:2px}
+.loader-radar:after{border:2px solid #ffc40099;inset:2px}
+.loader-core{width:64px;height:64px;border-radius:50%;background:linear-gradient(145deg,#082a42,#0e5478);box-shadow:0 10px 26px #082a4255,inset 0 0 0 2px #ffffff22;animation:none}
+.loader-core svg{width:34px;height:34px;margin-top:-2px;stroke:none;animation:pinHop 1.5s cubic-bezier(.3,0,.3,1) infinite;filter:drop-shadow(0 3px 3px #0004)}
+.loader-core:after{content:"";position:absolute;bottom:13px;left:50%;width:14px;height:4px;margin-left:-7px;border-radius:50%;background:#0006;filter:blur(1px);animation:pinShadow 1.5s cubic-bezier(.3,0,.3,1) infinite}
+.loader-orbit{top:9px;left:48px;width:10px;height:10px;transform-origin:5px 43px;background:#ffc233;box-shadow:0 0 0 3px #ffc23333,0 0 12px #ffc23399}
+.loader-title{color:#082a42}
+.loader-skeleton{border-color:#dbe6ec}
+.loader-skeleton .sk-thumb,.loader-skeleton .sk-line{background:linear-gradient(100deg,#dce7ee 20%,#f4f8fa 38%,#dce7ee 56%);background-size:220% 100%}
+.loader-skeleton:nth-child(odd) .sk-thumb{background:linear-gradient(100deg,#ffe9a6 20%,#fff6d6 38%,#ffe9a6 56%);background-size:220% 100%}
+@keyframes pinHop{0%,100%{transform:translateY(2px) scale(1.04,.96)}45%{transform:translateY(-7px) scale(.96,1.04)}}
+@keyframes pinShadow{0%,100%{transform:scale(1);opacity:.5}45%{transform:scale(.6);opacity:.25}}
+@media(prefers-reduced-motion:reduce){.loader-core svg,.loader-core:after{animation:none!important}}
 </style>
 </head>
 <body>
@@ -481,7 +496,7 @@ function refreshView(force){
  else if(force&&(id==='plan'||id==='map'||id==='saved')){go(id);window.scrollTo(0,y)}}
 function updateLabel(){const el=document.querySelector('#home .location');if(!el)return;
  el.innerHTML=ic('pin',16)+' '+esc(LV.city||'Izaberi lokaciju')+(LV.country?', '+esc(LV.country):'')+ic('down',16)+(LV.gps&&LV.wid!=null?' <i class="lv" title="Lokacija uživo"></i>':'')+'<span class="weather">'+ic('sun',20)+'</span>'}
-LV.empty=()=>LV.loading?'<div class="place-loader" role="status" aria-live="polite"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta blizu tebe</p><p class="loader-sub">Istražujemo okolinu i slažemo najbolje prijedloge…</p><div class="loader-skeletons" aria-hidden="true"><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div></div></div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
+LV.empty=()=>LV.loading?'<div class="place-loader" role="status" aria-live="polite"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path fill="#ffc233" stroke="none" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle fill="#082a42" stroke="none" cx="12" cy="10" r="3"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta blizu tebe</p><p class="loader-sub">Istražujemo okolinu i slažemo najbolje prijedloge…</p><div class="loader-skeletons" aria-hidden="true"><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div><div class="loader-skeleton"><span class="sk-thumb"></span><span class="sk-lines"><i class="sk-line"></i><i class="sk-line"></i></span></div></div></div>':LV.fail?'<div class="empty">Mjesta se nisu učitala. Javni serveri s podacima su povremeno preopterećeni.<br><br><button class="primary" onclick="LV.reload()">Pokušaj ponovo</button></div>':'<div class="empty">Nema rezultata.</div>';
 LV.reload=()=>{if(!LV.me){LV.useGps();return}return loadPlaces().then(()=>{if(LV.fail)toast('Još uvijek ne uspijeva. Pokušaj ponovo za koji trenutak.')})};
 document.addEventListener('click',()=>setTimeout(headPhotos,50));
 const loc=x=>x.c?x.c[0].toFixed(6)+','+x.c[1].toFixed(6):x.title+' '+(LV.city||'');
@@ -1004,7 +1019,7 @@ function renderRent(){
  c.innerHTML=Object.keys(RK).map(k=>'<button class="pill'+(RENT.kind===k?' active':'')+'" data-k="'+k+'">'+RK[k].t+'</button>').join('');
  $('rentTitle').textContent=RK[RENT.kind].h;
  if(!LV.me){l.innerHTML='<div class="empty">Izaberi lokaciju na početnom ekranu da vidiš gdje možeš iznajmiti.</div>';return}
- if(RENT.loading){l.innerHTML='<div class="place-loader" role="status"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta za iznajmljivanje</p><p class="loader-sub">Provjeravamo tvoju okolinu…</p></div>';return}
+ if(RENT.loading){l.innerHTML='<div class="place-loader" role="status"><div class="loader-radar" aria-hidden="true"><div class="loader-core"><svg viewBox="0 0 24 24"><path fill="#ffc233" stroke="none" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle fill="#082a42" stroke="none" cx="12" cy="10" r="3"/></svg></div><span class="loader-orbit"></span></div><p class="loader-title">Tražimo mjesta za iznajmljivanje</p><p class="loader-sub">Provjeravamo tvoju okolinu…</p></div>';return}
  if(RENT.fail){l.innerHTML='<div class="empty">Podaci se nisu učitali. Javni serveri su povremeno preopterećeni.<br><br><button class="primary" id="rentRetry">Pokušaj ponovo</button></div>';return}
  const L=RENT.items.filter(x=>x._rent===RENT.kind);
  l.innerHTML=L.length?L.map(x=>{const oh=x._oh?ohInfo(x._oh,LV.gps):null;const st=oh&&oh.status?'<p><span class="dopen '+(oh.open?'on':'off')+'">'+esc(oh.status)+'</span></p>':'';
