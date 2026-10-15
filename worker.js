@@ -212,7 +212,7 @@ export default {
 
     const lat = parseFloat(url.searchParams.get("lat")), lng = parseFloat(url.searchParams.get("lng"));
     const rawR = parseInt(url.searchParams.get("r") || "5000", 10);
-    const r = Math.max(250, Math.min(Number.isFinite(rawR) ? rawR : 5000, 15000));
+    const r = Math.max(250, Math.min(Number.isFinite(rawR) ? rawR : 5000, 25000));
     const cat = url.searchParams.get("cat") || "sve";
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || (cat !== "sve" && !QF[cat])) return json({ error: "bad params" }, req, 400);
     const cats = cat === "sve" ? CATS.filter((k) => k !== "info") : [cat];
@@ -232,7 +232,7 @@ export default {
     }
     // 2) ostalo: uživo sa Overpass-a, uz keš od 6 h u KV
     // zaokruži na mrežu od ~1 km i radijus na 1 km: bliski korisnici dijele isti keš (važi za bilo koju lokaciju u svijetu)
-    const sl = Math.round(lat * 100) / 100, sg = Math.round(lng * 100) / 100, sr = Math.min(15000, Math.ceil((r + 800) / 1000) * 1000);
+    const sl = Math.round(lat * 100) / 100, sg = Math.round(lng * 100) / 100, sr = Math.min(25000, Math.ceil((r + 800) / 1000) * 1000);
     const key = `live:${sl.toFixed(2)}:${sg.toFixed(2)}:${sr}:${cat}`;
     const hit = await env.PLACES.get(key, "json");
     if (hit) return json({ elements: hit, source: "cache" }, req);

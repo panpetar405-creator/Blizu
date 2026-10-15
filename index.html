@@ -729,11 +729,39 @@ window.makePlan=function(){
   let it=items.slice(),r=timeline(it,safe);
   while(r.end>(window.PLAN_END||1e9)&&it.length>1){it.pop();r=timeline(it,safe)}
   window.PLAN_OVERRIDE={sig,items:it,pm:r.pm,real:true};
-  base();note(true)}
+  base();note(true);window.planNotice&&planNotice()}
  window.renderPlan=function(){base();
   const o=window.PLAN_OVERRIDE;
   if(o&&o.real&&o.sig===window.PLAN_SIG){note(true);return}
   note(false);refine()}})();
+/* ---- slabi podaci: poruka korisniku + automatsko širenje pretrage (do 25 km) ---- */
+(function(){
+ let widenKey='',el=null;
+ function ensure(){if(el&&el.isConnected)return el;const box=document.getElementById('planSteps');if(!box)return null;
+  el=document.createElement('div');el.id='blizuSparse';el.hidden=true;el.setAttribute('role','status');
+  el.style.cssText='margin:10px 0 2px;padding:10px 12px;border-radius:12px;background:#fff4d6;color:#5c4700;font-size:13px;line-height:1.4';
+  box.insertAdjacentElement('beforebegin',el);return el}
+ async function widen(){
+  const c=LV.me;if(!c)return;const k=c[0].toFixed(3)+','+c[1].toFixed(3);if(widenKey===k)return;widenKey=k;
+  const tk=LV.tk,e=await fetchEls(c,25000);if(!e||tk!==LV.tk||LV.me!==c)return;
+  const it=build(e);if(it.length>uniq().length){setData(it);refreshView(true);photos()}}
+ function planNotice(){
+  const P=BZ.plan(),n=ensure();let msg='';
+  if(P.length){
+   const S=window.PLAN_S||0,eff=(window.PLAN_END||0)-S,last=P[P.length-1],m=PM[last.title]||{};
+   const fill=eff>0?((m.start||0)+last.mins-S)/eff:1;
+   const thin=P.filter(x=>isThin(x)).length/P.length,far=Math.max(0,...P.map(x=>(PM[x.title]||{}).walk||0));
+   const msgs=[];
+   if(eff>=90&&(fill<0.6||P.length<2))msgs.push('U ovoj okolini ima malo mesta, pa je plan kraći nego što si tražio.');
+   if(far>35)msgs.push('Neka mesta su daleko jedno od drugog (preko 35 min hoda), razmisli o prevozu.');
+   if(P.length>=2&&thin>=0.5)msgs.push('Za deo mesta nemamo ocene ni radno vreme, proveri pre polaska.');
+   msg=msgs.join(' ');
+   if(eff>=90&&fill<0.6&&window.BLIZU_API)widen().catch(()=>{})}
+  if(n){n.hidden=!msg;n.textContent=msg}
+  return msg}
+ window.planNotice=planNotice;
+ const prev=window.renderPlan;if(typeof prev!=='function')return;
+ window.renderPlan=function(){prev();planNotice()}})();
 const _rp=window.renderPlan;
 window.renderPlan=function(){_rp();headPhotos();const s=$('planSteps');if(s&&!s.children.length){s.innerHTML=LV.empty();$('planTotal').innerHTML='';$('planCount').textContent=''}};
 {const _rp3=window.renderPlan;let PWT=0;
