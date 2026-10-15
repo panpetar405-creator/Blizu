@@ -141,6 +141,16 @@
 #map .mapmode button.on{background:#062b3a;color:#fff}
 #map .mapchip{z-index:1100}
 #map #lmap{background:#dfe9e4;z-index:0}
+/* mapa: popuni ekran, kartica pri dnu, bez preklapanja */
+#map.screen{padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+#map .mapwrap{display:flex;flex-direction:column;height:calc(100svh - 92px - 78px - env(safe-area-inset-bottom,0px));padding:0 14px 12px;gap:10px}
+#map .mapbox{flex:1 1 auto;min-height:200px}
+#map .mapbox .mapimg{height:100%;position:absolute;inset:0}
+#map .place-card{flex:0 0 auto;margin-top:0;position:relative}
+#map .grab{display:none}
+#map .place-card{padding-top:14px}
+#map .stops{padding:8px 8px 12px;margin:0 -4px}
+
 .mk{width:32px;height:32px;border-radius:50%;background:#062b3a;color:#fff;font:800 14px/28px system-ui,sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 3px 8px #0006;transition:transform .15s}
 .mk.done{background:#12647a}.mk.on{background:#ffc400;color:#111;transform:scale(1.25)}
 
@@ -367,7 +377,7 @@ function renderMap(){if(!PLAN.length)PLAN=makePlan();
  if(!PLAN.length){const w=q('#map .mapwrap');if(w)w.innerHTML=window.LV?LV.empty():'';q('#map .logo').textContent='Tvoj plan';return}mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
  q('#map .logo').textContent='Tvoj plan · '+fmtT(total);
  const canAll=PLAN.filter(p=>p.c&&p.c.length>1).length>1;if(!canAll)mapMode='one';if(window._lm){try{window._lm.remove()}catch(e){}window._lm=null}
- q('#map .mapwrap').innerHTML=`<div class="mapbox">${mapMode==='all'?'<div id="lmap" class="mapimg"></div>':'<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="'+LV.embed(x)+'"></iframe>'}<div class="mapchip">${ic('pin',14)} ${mapMode==='all'?'Cijela ruta · '+PLAN.length+' stanica':'Stanica '+(mapIdx+1)+' od '+PLAN.length}</div>${canAll?'<div class="mapmode"><button data-m="one" class="'+(mapMode==='one'?'on':'')+'">Mjesto</button><button data-m="all" class="'+(mapMode==='all'?'on':'')+'">Cijela ruta</button></div>':''}</div><div class="place-card"><div class="grab"></div><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':i<mapIdx?'done':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-row"><img src="${x.img}" alt=""><div class="pinfo"><h3>${esc(x.title)}</h3><div class="mchips"><span>${ic('clock',13)} ${x.mins} min</span><span>${esc(x.type)}</span>${x.distance?'<span>'+ic('pin',13)+' '+esc(x.distance)+'</span>':''}${x.rating?'<span class="rate">★ '+esc(x.rating)+'</span>':''}</div></div></div><div class="actionrow"><button class="mnav" id="mNav">${ic('nav',17)} Navigiraj</button><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav" aria-label="Sačuvaj">${HT(fav)}</button></div></div>`;
+ q('#map .mapwrap').innerHTML=`<div class="mapbox">${mapMode==='all'?'<div id="lmap" class="mapimg"></div>':'<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="'+LV.embed(x)+'"></iframe>'}<div class="mapchip">${ic('pin',14)} ${mapMode==='all'?'Cijela ruta · '+PLAN.length+' stanica':'Stanica '+(mapIdx+1)+' od '+PLAN.length}</div>${canAll?'<div class="mapmode"><button data-m="one" class="'+(mapMode==='one'?'on':'')+'">Mjesto</button><button data-m="all" class="'+(mapMode==='all'?'on':'')+'">Cijela ruta</button></div>':''}</div><div class="place-card"><div class="grab"></div><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':i<mapIdx?'done':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-row"><img src="${x.img}" alt=""><div class="pinfo"><h3>${esc(x.title)}</h3><div class="mchips"><span>${ic('clock',13)} Posjeta ${x.mins} min</span><span>${esc(x.type)}</span>${x.distance?'<span>'+ic('pin',13)+' udaljeno '+esc(x.distance)+'</span>':''}${x.rating?'<span class="rate">★ '+esc(x.rating)+'</span>':''}</div></div></div><div class="actionrow"><button class="mnav" id="mNav">${ic('nav',17)} Navigiraj</button><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav" aria-label="Sačuvaj">${HT(fav)}</button></div></div>`;
  {const st=q('#map .stops'),on=q('#map .stops .on');if(st&&on)st.scrollLeft=on.offsetLeft-st.clientWidth/2+on.offsetWidth/2}
  $('mNav').onclick=()=>window.open(LV.dir([x]),'_blank');
  if(mapMode==='all')loadLeaflet(()=>{const el=document.getElementById('lmap');if(!el||mapMode!=='all'||el._leaflet_id)return;
