@@ -135,6 +135,14 @@
 #map .mnav{flex:2;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--yellow);color:#111;border-radius:999px;padding:14px;font-weight:800;font-size:15px;box-shadow:0 8px 18px #ffc40055}
 #map .actionrow .secondary{flex:1.1}
 #map #mFav{flex:0 0 52px;padding:13px 0}
+
+#map .mapmode{position:absolute;top:12px;right:12px;z-index:1100;display:flex;background:#ffffffee;border-radius:999px;padding:3px;box-shadow:0 4px 14px #0003}
+#map .mapmode button{background:none;color:#34454e;font-weight:800;font-size:12.5px;padding:6px 11px;border-radius:999px}
+#map .mapmode button.on{background:#062b3a;color:#fff}
+#map .mapchip{z-index:1100}
+#map #lmap{background:#dfe9e4;z-index:0}
+.mk{width:32px;height:32px;border-radius:50%;background:#062b3a;color:#fff;font:800 14px/28px system-ui,sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 3px 8px #0006;transition:transform .15s}
+.mk.done{background:#12647a}.mk.on{background:#ffc400;color:#111;transform:scale(1.25)}
 </style>
 </head>
 <body>
@@ -268,17 +276,26 @@ window.openItem=openItem;window.BZ={plans:()=>plans,persist:()=>persist(),plan:(
 function openItemRefresh(){if(!curItem)return;const fav=favs.includes(curItem.title),b=$('dSave');if(b){b.classList.toggle('on',fav);b.innerHTML=HT(fav)+' &nbsp; '+(fav?'Sačuvano':'Sačuvaj mjesto')}}
 function toggleFav(t){const i=favs.indexOf(t);if(i>=0){favs.splice(i,1);toast('Uklonjeno iz sačuvanih')}else{favs.push(t);const _it=ALL.find(x=>x.title===t);if(_it){const _f=LS.get('blizu_favitems',{});_f[t]=_it;LS.set('blizu_favitems',_f)}toast('Sačuvano')}persist()}
 /* mapa */
-let mapIdx=0;
+let mapIdx=0,mapMode='one';
 function dirUrl(){const it=PLAN.length?PLAN:makePlan();return it.length?LV.dir(it):'https://www.google.com/maps'}
 function renderMap(){if(!PLAN.length)PLAN=makePlan();
  if(!PLAN.length){const w=q('#map .mapwrap');if(w)w.innerHTML=window.LV?LV.empty():'';q('#map .logo').textContent='Tvoj plan';return}mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
  q('#map .logo').textContent='Tvoj plan · '+fmtT(total);
- q('#map .mapwrap').innerHTML=`<div class="mapbox"><iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${LV.embed(x)}"></iframe><div class="mapchip">${ic('pin',14)} Stanica ${mapIdx+1} od ${PLAN.length}</div></div><div class="place-card"><div class="grab"></div><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':i<mapIdx?'done':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-row"><img src="${x.img}" alt=""><div class="pinfo"><h3>${esc(x.title)}</h3><div class="mchips"><span>${ic('clock',13)} ${x.mins} min</span><span>${esc(x.type)}</span>${x.distance?'<span>'+ic('pin',13)+' '+esc(x.distance)+'</span>':''}${x.rating?'<span class="rate">★ '+esc(x.rating)+'</span>':''}</div></div></div><div class="actionrow"><button class="mnav" id="mNav">${ic('nav',17)} Navigiraj</button><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav" aria-label="Sačuvaj">${HT(fav)}</button></div></div>`;
+ const canAll=PLAN.filter(p=>p.c&&p.c.length>1).length>1;if(!canAll)mapMode='one';if(window._lm){try{window._lm.remove()}catch(e){}window._lm=null}
+ q('#map .mapwrap').innerHTML=`<div class="mapbox">${mapMode==='all'?'<div id="lmap" class="mapimg"></div>':'<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="'+LV.embed(x)+'"></iframe>'}<div class="mapchip">${ic('pin',14)} ${mapMode==='all'?'Cela ruta · '+PLAN.length+' stanica':'Stanica '+(mapIdx+1)+' od '+PLAN.length}</div>${canAll?'<div class="mapmode"><button data-m="one" class="'+(mapMode==='one'?'on':'')+'">Mjesto</button><button data-m="all" class="'+(mapMode==='all'?'on':'')+'">Cijela ruta</button></div>':''}</div><div class="place-card"><div class="grab"></div><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':i<mapIdx?'done':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-row"><img src="${x.img}" alt=""><div class="pinfo"><h3>${esc(x.title)}</h3><div class="mchips"><span>${ic('clock',13)} ${x.mins} min</span><span>${esc(x.type)}</span>${x.distance?'<span>'+ic('pin',13)+' '+esc(x.distance)+'</span>':''}${x.rating?'<span class="rate">★ '+esc(x.rating)+'</span>':''}</div></div></div><div class="actionrow"><button class="mnav" id="mNav">${ic('nav',17)} Navigiraj</button><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav" aria-label="Sačuvaj">${HT(fav)}</button></div></div>`;
  {const st=q('#map .stops'),on=q('#map .stops .on');if(st&&on)st.scrollLeft=on.offsetLeft-st.clientWidth/2+on.offsetWidth/2}
  $('mNav').onclick=()=>window.open(LV.dir([x]),'_blank');
+ if(mapMode==='all')loadLeaflet(()=>{const el=document.getElementById('lmap');if(!el||mapMode!=='all'||el._leaflet_id)return;
+  const pts=PLAN.map((p,i)=>({p,i})).filter(o=>o.p.c&&o.p.c.length>1),m=L.map(el,{zoomControl:false,attributionControl:true}).setView(pts[0].p.c,14);window._lm=m;
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(m);
+  L.control.zoom({position:'bottomright'}).addTo(m);
+  L.polyline(pts.map(o=>o.p.c),{color:'#12647a',weight:4,opacity:.75,dashArray:'7 9'}).addTo(m);
+  pts.forEach(o=>L.marker(o.p.c,{zIndexOffset:o.i===mapIdx?1000:0,icon:L.divIcon({className:'',iconSize:[32,32],iconAnchor:[16,16],html:'<div class="mk '+(o.i===mapIdx?'on':o.i<mapIdx?'done':'')+'">'+(o.i+1)+'</div>'})}).on('click',()=>{mapIdx=o.i;renderMap()}).addTo(m));
+  m.fitBounds(pts.map(o=>o.p.c),{padding:[36,36],maxZoom:16});setTimeout(()=>m.invalidateSize(),60)});
 
  $('mDet').onclick=()=>openItem(x.title);$('mFav').onclick=()=>{toggleFav(x.title);$('mFav').innerHTML=HT(favs.includes(x.title))}}
-q('#map .mapwrap').addEventListener('click',e=>{const b=e.target.closest('.stops button');if(b){mapIdx=+b.dataset.i;renderMap()}});
+function loadLeaflet(cb){if(window.L)return cb();if(window._llq){window._llq.push(cb);return}window._llq=[cb];const l=document.createElement('link');l.rel='stylesheet';l.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(l);const j=document.createElement('script');j.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';j.onload=()=>{const q=window._llq;window._llq=null;q.forEach(f=>f())};j.onerror=()=>{window._llq=null;mapMode='one';renderMap()};document.head.appendChild(j)}
+q('#map .mapwrap').addEventListener('click',e=>{const mm=e.target.closest('.mapmode button');if(mm){mapMode=mm.dataset.m;renderMap();return}const b=e.target.closest('.stops button');if(b){mapIdx=+b.dataset.i;renderMap()}});
 {const r=qa('#map .iconbtn')[1];r.innerHTML=ic('nav',19);r.title='Otvori rutu u Google mapama';r.onclick=()=>window.open(dirUrl(),'_blank')}
 /* otkrij */
 let dFilter='Sve',dQ='';
