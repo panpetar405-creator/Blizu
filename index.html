@@ -111,6 +111,30 @@
 #detail a.primary{min-height:56px;margin-top:12px}
 #detail .dop{margin:26px 2px 8px;font-size:22px;font-weight:800;color:#fff}
 #detail .dopis p{margin:0 2px 10px;color:#a9bcc6;font-size:16px;line-height:1.5}
+
+#map .mapwrap{padding:14px 14px 100px;background:#fff}
+#map .mapbox{position:relative;border-radius:28px;overflow:hidden;box-shadow:0 12px 30px #062b3a30;background:#d6f5e0}
+#map .mapimg{display:block;width:100%;height:310px;border:0;border-radius:0}
+#map .mapchip{position:absolute;top:12px;left:12px;display:inline-flex;align-items:center;gap:6px;background:#062b3af0;color:#fff;border-radius:999px;padding:8px 13px;font-size:12.5px;font-weight:800;box-shadow:0 4px 14px #0003;pointer-events:none}
+#map .mapchip svg{color:var(--yellow)}
+#map .place-card{margin-top:-30px;border-radius:28px;padding:10px 16px 16px;z-index:3;border:1px solid #edf0f2;box-shadow:0 -8px 28px #062b3a26,0 10px 26px #062b3a14}
+#map .grab{width:40px;height:4px;border-radius:4px;background:#d9dee1;margin:0 auto 12px}
+#map .stops{display:flex;gap:9px;padding:2px 2px 14px;margin:0 -4px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;background:none;position:static}
+#map .stops::-webkit-scrollbar{display:none}
+#map .stops button{flex:0 0 38px;width:38px;height:38px;font-size:14px;scroll-snap-align:center;background:#062b3a;transition:transform .15s}
+#map .stops button.done{background:#12647a}
+#map .stops button.on{background:var(--yellow);color:#111;transform:scale(1.12);box-shadow:0 0 0 4px #ffc40040}
+#map .place-row{align-items:flex-start;gap:14px}
+#map .place-row img{width:78px;height:78px;border-radius:18px;object-fit:cover;flex:0 0 78px;box-shadow:0 4px 12px #0002}
+#map .pinfo{min-width:0;flex:1}
+#map .place-row h3{margin:2px 0 9px;font-size:17px;line-height:1.2;color:#13212a}
+#map .mchips{display:flex;flex-wrap:wrap;gap:6px}
+#map .mchips span{display:inline-flex;align-items:center;gap:4px;background:#f0f4f6;color:#34454e;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}
+#map .mchips .rate{background:#fff3c4;color:#6b5200}
+#map .actionrow{margin-top:16px;gap:10px;align-items:stretch}
+#map .mnav{flex:2;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--yellow);color:#111;border-radius:999px;padding:14px;font-weight:800;font-size:15px;box-shadow:0 8px 18px #ffc40055}
+#map .actionrow .secondary{flex:1.1}
+#map #mFav{flex:0 0 52px;padding:13px 0}
 </style>
 </head>
 <body>
@@ -249,7 +273,10 @@ function dirUrl(){const it=PLAN.length?PLAN:makePlan();return it.length?LV.dir(i
 function renderMap(){if(!PLAN.length)PLAN=makePlan();
  if(!PLAN.length){const w=q('#map .mapwrap');if(w)w.innerHTML=window.LV?LV.empty():'';q('#map .logo').textContent='Tvoj plan';return}mapIdx=Math.min(mapIdx,PLAN.length-1);const x=PLAN[mapIdx],total=PLAN.reduce((a,b)=>a+b.mins,0),fav=favs.includes(x.title);
  q('#map .logo').textContent='Tvoj plan · '+fmtT(total);
- q('#map .mapwrap').innerHTML=`<iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${LV.embed(x)}"></iframe><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-card"><div class="place-row"><img src="${x.img}"><div><h3>${mapIdx+1} &nbsp; ${esc(x.title)} <span style="float:right">${x.mins} min</span></h3><div style="color:#777;font-size:12px">${esc(x.type)} · ${esc(x.distance||'')}</div>${x.rating?'<div class="rating">⭐ '+esc(x.rating)+'</div>':''}</div></div><div class="actionrow"><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav">${HT(fav)}</button></div></div>`;
+ q('#map .mapwrap').innerHTML=`<div class="mapbox"><iframe class="mapimg" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${LV.embed(x)}"></iframe><div class="mapchip">${ic('pin',14)} Stanica ${mapIdx+1} od ${PLAN.length}</div></div><div class="place-card"><div class="grab"></div><div class="stops">${PLAN.map((s,i)=>`<button class="${i===mapIdx?'on':i<mapIdx?'done':''}" data-i="${i}">${i+1}</button>`).join('')}</div><div class="place-row"><img src="${x.img}" alt=""><div class="pinfo"><h3>${esc(x.title)}</h3><div class="mchips"><span>${ic('clock',13)} ${x.mins} min</span><span>${esc(x.type)}</span>${x.distance?'<span>'+ic('pin',13)+' '+esc(x.distance)+'</span>':''}${x.rating?'<span class="rate">★ '+esc(x.rating)+'</span>':''}</div></div></div><div class="actionrow"><button class="mnav" id="mNav">${ic('nav',17)} Navigiraj</button><button class="secondary" id="mDet">${ic('list',17)} Detalji</button><button class="secondary" id="mFav" aria-label="Sačuvaj">${HT(fav)}</button></div></div>`;
+ {const st=q('#map .stops'),on=q('#map .stops .on');if(st&&on)st.scrollLeft=on.offsetLeft-st.clientWidth/2+on.offsetWidth/2}
+ $('mNav').onclick=()=>window.open(LV.dir([x]),'_blank');
+
  $('mDet').onclick=()=>openItem(x.title);$('mFav').onclick=()=>{toggleFav(x.title);$('mFav').innerHTML=HT(favs.includes(x.title))}}
 q('#map .mapwrap').addEventListener('click',e=>{const b=e.target.closest('.stops button');if(b){mapIdx=+b.dataset.i;renderMap()}});
 {const r=qa('#map .iconbtn')[1];r.innerHTML=ic('nav',19);r.title='Otvori rutu u Google mapama';r.onclick=()=>window.open(dirUrl(),'_blank')}
