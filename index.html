@@ -217,7 +217,7 @@ let PLAN=[];
 const planKey=()=>selectedTime+'|'+[...selectedCats].sort().join(',');
 renderPlan=function(){PLAN=makePlan();const total=PLAN.reduce((a,b)=>a+b.mins,0),pretty=selectedTime==='Ceo dan'?'ceo dan':selectedTime;
  $('planTitle').textContent=window.PLAN_NOTE==='sutra'?'Tvoj plan za sutra':window.PLAN_NOTE==='veceras'?'Tvoj plan za večeras':'Tvoj plan za '+(window.PLAN_LABEL||pretty);
- $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.'+({'kiša':' Zbog kiše nema stanica na otvorenom.','hladno':' Prehladno za kupanje, pa plaže nisu u planu.'}[window.PLAN_WX]||'');
+ $('planSub').textContent=(window.PLAN_NOTE==='sutra'?'Kreće sutra u 09:00. ':window.PLAN_NOTE==='veceras'?'Kreće večeras u 19:00. ':'')+'Savršen plan za '+(window.PLAN_LABEL||pretty)+', prilagođen tvom vremenu i izboru.'+({'kiša':' Zbog kiše nema stanica na otvorenom.','hladno':' Prehladno za kupanje, pa plaže nisu u planu.'}[window.PLAN_WX]||'')+({fam:' Prilagođeno porodici: kraće šetnje i bez barova.',par:' Za dvoje: vidikovci, večera i mirnija mjesta.'}[window.PLAN_PROF]||'');
  $('planSteps').innerHTML=PLAN.map((x,i)=>`<div class="step" data-i="${i}"><img class="thumb" src="${x.img}" alt="${esc(x.title)}"><div><div class="mins">${window.stepTime?stepTime(x):''}${x.mins} min</div><h3>${esc(x.title)}</h3><p>${esc(x.desc)}</p>${window.stepWhy?stepWhy(x):''}</div><b>${ic('right',18)}</b></div>`).join('');
  $('planTotal').innerHTML=ic('clock',16)+' Ukupno: '+fmtT(total);$('planCount').textContent=PLAN.length+(PLAN.length===1?' stanica':PLAN.length<5?' stanice':' stanica');
  planSaveBtn()};
@@ -552,7 +552,9 @@ window.makePlan=function(){
   if(nowM<540)S=540-nowM;else if(nowM>=960){S=1440-nowM+540;window.PLAN_NOTE='sutra'}}
  if(!(mode==='auto'&&day)){const cap=1410-((nowM+S)%1440);if(cap>=60&&target0>cap)eff=cap} /* ne ide iza ~23:30 */
  const target=S+eff;
- let pool=selectedItems();if(!pool.length)pool=uniq();
+ const fam=[...selectedCats].includes('Porodica'),par=[...selectedCats].includes('Par'),realSel=[...selectedCats].filter(c=>c!=='Porodica'&&c!=='Par');
+ window.PLAN_PROF=fam&&par?'':fam?'fam':par?'par':'';
+ let pool=selectedItems();if(!pool.length||(!realSel.length&&(fam||par)))pool=uniq();
  const sn=new Set();pool=pool.filter(x=>!sn.has(x.title)&&sn.add(x.title));
  if(!pool.length)return [];
  Object.keys(PM).forEach(k=>delete PM[k]);
@@ -562,6 +564,13 @@ window.makePlan=function(){
   const over=x=>{const t=x.type||'';if(capT[t]!==undefined&&(cntT[t]||0)>=capT[t])return true;return(cnt[x.cat0]||0)>=(capC[x.cat0]||4)};
   // Koordinate daju vazdušnu udaljenost, ne stvarnu pešačku rutu. Faktor 1,35 i 4,2 km/h su konzervativnija okvirna procena; navigacija treba da potvrdi stvarnu rutu.
   const tr=(a,b)=>a&&b?Math.max(3,Math.round(km(a,b)*1.35/4.2*60)):0;
+  /* porodica: kraće šetnje, bez barova; par: vidikovci, večera, zalazak; povoljno: niže cijene (kad su poznate) */
+  const profAdj=(x,arr,t)=>{let a=0,skip=false;const ty=x.type||'',h=Math.floor(((nowM+arr)%1440)/60);
+   if(fam){if(ty==='Bar'||ty==='Pub'||ty==='Noćni klub'||(x.cat0==='Događaji'&&h>=21)||t>15)skip=true;
+    if(ty==='Park'||ty==='Plaža'||ty==='Sladoled')a+=4;else if(ty==='Restoran')a+=2;else if(ty==='Brza hrana')a+=1;else if(ty==='Muzej'||ty==='Galerija')a-=2}
+   if(par){if(ty==='Vidikovac'||ty==='Marina')a+=5;else if(ty==='Restoran')a+=3;else if(ty==='Bar')a+=(h>=18?3:0);else if(ty==='Plaža')a+=(h>=17?3:0);else if(ty==='Brza hrana')a-=6;else if(ty==='Sladoled'||ty==='Park')a-=4}
+   if(window.PLAN_BUDGET==='low'){const g=gxCached(x),pr=g&&g.price;if(pr==='PRICE_LEVEL_INEXPENSIVE')a+=4;else if(pr==='PRICE_LEVEL_EXPENSIVE')a-=10;else if(pr==='PRICE_LEVEL_VERY_EXPENSIVE')a-=16;else if(ty==='Brza hrana'||ty==='Sladoled')a+=2}
+   return{a,skip}};
   const pick=(list,floor=-1e9)=>{let best=null;
    for(const x of list){if(used.has(x.title))continue;const t=tr(last,x.c),arr=mins+t;if(arr+x.mins>target)continue;
     if(strict&&t>25)continue; /* predaleko pješice: preskoči, osim ako nema ništa bliže */
@@ -569,14 +578,15 @@ window.makePlan=function(){
     const ft=strict?fitAt(x,arr):0;if(strict&&ft<=-10)continue; /* npr. plaža noću, restoran u 04h */
     const w=wxOf(x,arr);if(strict&&w.block){if(w.why)window.PLAN_WX=w.why;continue} /* kiša / hladno: bez stanica na otvorenom */
     if(over(x))continue;
+    const pa=profAdj(x,arr,t);if(strict&&pa.skip)continue;
     if(strict&&t>10&&x.cat0!=='Kafa'&&x.cat0!=='Hrana'&&isThin(x))continue; /* nepotvrđeno i daleko: preskoči */
-    let sc=qualityOf(x)+ft+w.adj-t*0.9+(st.o===true?2:0)-(cnt[x.cat0]||0)*6;
+    let sc=qualityOf(x)+ft+w.adj+pa.a-t*0.9+(st.o===true?2:0)-(cnt[x.cat0]||0)*6;
     if(lastC&&x.cat0===lastC)sc-=8;
     if(x.type==='Restoran'&&arr-lastRest<240)sc-=25;
     if(sc>=floor&&(!best||sc>best.s))best={x,t,s:sc,st}}
    return best};
   const add=o=>{items.push(o.x);used.add(o.x.title);PM[o.x.title]={start:mins+o.t,walk:o.t,open:o.st.o,end:o.st.end};mins+=o.t+o.x.mins;last=o.x.c||last;lastC=o.x.cat0;cnt[o.x.cat0]=(cnt[o.x.cat0]||0)+1;cntT[o.x.type||'']=(cntT[o.x.type||'']||0)+1;if(o.x.type==='Restoran')lastRest=mins};
-  [...selectedCats].sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b)).forEach(c=>{const o=pick(DATA[c]||[]);if(o)add(o)});
+  (realSel.length||!(fam||par)?[...selectedCats]:[...selectedCats,'Kafa','Atrakcije','Priroda','More','Hrana']).sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b)).forEach(c=>{const o=pick(DATA[c]||[]);if(o)add(o)});
   for(let g=0;g<12;g++){const o=pick(pool,-12);if(!o)break;add(o)}
   return items};
  let items=run(true);
@@ -877,7 +887,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     bar.id = 'blizuTimeBar';
     bar.setAttribute('role', 'group');
     bar.setAttribute('aria-label', 'Koliko vremena ti je ostalo');
-    bar.innerHTML = '<span class="blizu-bar-label">Kada kreće</span><div id="blizuStart" class="blizu-chips" style="margin-bottom:14px"></div><span class="blizu-bar-label">Ostalo ti je</span><div id="blizuChips" class="blizu-chips"></div>';
+    bar.innerHTML = '<span class="blizu-bar-label">Kada kreće</span><div id="blizuStart" class="blizu-chips" style="margin-bottom:14px"></div><span class="blizu-bar-label">Ostalo ti je</span><div id="blizuChips" class="blizu-chips"></div><span class="blizu-bar-label" style="margin-top:14px">Budžet</span><div id="blizuBudget" class="blizu-chips"></div>';
     bar.querySelector('#blizuStart').addEventListener('click', e => {
       const b = e.target.closest('button[data-start]');
       if (!b) return;
@@ -886,6 +896,13 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
       window.renderPlan();
     });
     list.insertBefore(bar, list.firstChild);
+    bar.querySelector('#blizuBudget').addEventListener('click', e => {
+      const b = e.target.closest('button[data-budget]');
+      if (!b) return;
+      window.PLAN_BUDGET = b.dataset.budget;
+      resetAlt();
+      window.renderPlan();
+    });
     bar.querySelector('#blizuChips').addEventListener('click', e => {
       const b = e.target.closest('button[data-min]');
       if (!b) return;
@@ -921,6 +938,13 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
     box.innerHTML = opts.map(o => '<button type="button" data-start="' + o[0] + '"' + (o[0] === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + o[1] + '</button>').join('');
   }
 
+  function paintBudget() {
+    const box = document.getElementById('blizuBudget');
+    if (!box) return;
+    const cur = window.PLAN_BUDGET === 'low' ? 'low' : 'any';
+    box.innerHTML = [['any', 'Svejedno'], ['low', 'Povoljno']].map(o => '<button type="button" data-budget="' + o[0] + '"' + (o[0] === cur ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + '>' + o[1] + '</button>').join('');
+  }
+
   function paintChips() {
     const box = document.getElementById('blizuChips');
     if (!box) return;
@@ -934,7 +958,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
   const style = document.createElement('style');
   style.textContent = `
     #blizuTimeBar{margin:6px 0 4px;padding:8px 0 4px}
-    #blizuStart button{flex:1 1 0}
+    #blizuStart button,#blizuBudget button{flex:1 1 0}
     .blizu-bar-label{display:block;margin:0 0 8px 2px;font-weight:800;font-size:14px;color:#13212a}
     .blizu-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
     .blizu-chips::-webkit-scrollbar{display:none}
@@ -952,6 +976,7 @@ CATS.forEach(c=>{if(!DATA[c])DATA[c]=[]});
   window.renderPlan = function() {
     ensureControls();
     paintStart();
+    paintBudget();
     paintChips();
     baseRenderPlan();
   };
