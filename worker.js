@@ -137,11 +137,14 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
     if (req.method === "OPTIONS") {
-      return new Response(null, { headers: { ...cors(req), "Access-Control-Allow-Methods": "GET", "Access-Control-Max-Age": "86400" } });
+      return new Response(null, { headers: { ...cors(req), "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400" } });
     }
     if (url.pathname === "/api/refresh") {
       const city = url.searchParams.get("city");
-      if (!env.REFRESH_TOKEN || url.searchParams.get("token") !== env.REFRESH_TOKEN) return json({ error: "forbidden" }, req, 403);
+      // Tajna se prima kroz Authorization zaglavlje, nikada kroz URL koji može završiti u logovima.
+      const auth = req.headers.get("Authorization") || "";
+      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+      if (!env.REFRESH_TOKEN || !token || token !== env.REFRESH_TOKEN) return json({ error: "forbidden" }, req, 403);
       if (!CITIES[city]) return json({ error: "city?", cities: Object.keys(CITIES) }, req, 400);
       return json({ city, result: await refreshCity(env, city) }, req);
     }
@@ -169,9 +172,10 @@ export default {
     if (url.pathname !== "/api/places") return json({ name: "BLIZU API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
 
     const lat = parseFloat(url.searchParams.get("lat")), lng = parseFloat(url.searchParams.get("lng"));
-    const r = Math.min(parseInt(url.searchParams.get("r") || "5000", 10) || 5000, 15000);
+    const rawR = parseInt(url.searchParams.get("r") || "5000", 10);
+    const r = Math.max(250, Math.min(Number.isFinite(rawR) ? rawR : 5000, 15000));
     const cat = url.searchParams.get("cat") || "sve";
-    if (!isFinite(lat) || !isFinite(lng) || (cat !== "sve" && !QF[cat])) return json({ error: "bad params" }, req, 400);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || (cat !== "sve" && !QF[cat])) return json({ error: "bad params" }, req, 400);
     const cats = cat === "sve" ? CATS.filter((k) => k !== "info") : [cat];
 
     // 1) unapred povučeni gradovi (KV)
