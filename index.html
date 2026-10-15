@@ -554,6 +554,8 @@ window.makePlan=function(){
  const sig=[target0,[...selectedCats].sort().join(),mode,window.PLAN_BUDGET||'',window.PLAN_AVOID?1:0].join('|');
  window.PLAN_S=S;window.PLAN_END=target;
  if(window.PLAN_OVERRIDE&&window.PLAN_OVERRIDE.sig===sig){Object.keys(PM).forEach(k=>delete PM[k]);Object.assign(PM,window.PLAN_OVERRIDE.pm);window.PLAN_SIG=sig;return window.PLAN_OVERRIDE.items.slice()}
+ const sigBase=sig.slice(0,sig.lastIndexOf('|'));
+ if(window.PLAN_LOCKSIG!==sigBase){window.PLAN_LOCK=new Set();window.PLAN_LOCKSTART={};window.PLAN_LOCKSIG=sigBase}
  if(window.PLAN_SEENSIG!==sig){window.PLAN_SEEN=new Set();window.PLAN_SEENSIG=sig;window.PLAN_OVERRIDE=null}
  window.PLAN_SIG=sig;
  const fam=[...selectedCats].includes('Porodica'),par=[...selectedCats].includes('Par'),realSel=[...selectedCats].filter(c=>c!=='Porodica'&&c!=='Par');
@@ -598,13 +600,20 @@ window.makePlan=function(){
     if(isMeal(x)){const gap=arr-lastMeal;
      if(gap<210)sc-=25;else if(long&&((h>=12&&h<15)||(h>=18&&h<21.5)))sc+=16;else if(long)sc-=6}
     if(isCof(x)){if(arr-lastCof<100)sc-=14;if(long&&h<11&&!cnt.Kafa)sc+=10}
-    if(avoid.has(x.title))sc-=22;
+    if(avoid.has(x.title)&&!(window.PLAN_LOCK&&window.PLAN_LOCK.has(x.title)))sc-=22;
     if(sc>=floor&&(!best||sc>best.s))best={x,t,s:sc,st}}
    return best};
-  for(let g=0;g<14;g++){const o=pick();if(!o)break;
-   const x=o.x;items.push(x);used.add(x.title);PM[x.title]={start:mins+o.t,walk:o.t,open:o.st.o,end:o.st.end};
-   mins+=o.t+x.mins;last=x.c||last;lastC=x.cat0;cnt[x.cat0]=(cnt[x.cat0]||0)+1;cntT[x.type||'']=(cntT[x.type||'']||0)+1;
-   if(isMeal(x))lastMeal=mins;if(isCof(x))lastCof=mins}
+  const take=(x,t,st)=>{items.push(x);used.add(x.title);PM[x.title]={start:mins+t,walk:t,open:st.o,end:st.end};
+   mins+=t+x.mins;last=x.c||last;lastC=x.cat0;cnt[x.cat0]=(cnt[x.cat0]||0)+1;cntT[x.type||'']=(cntT[x.type||'']||0)+1;
+   if(isMeal(x))lastMeal=mins;if(isCof(x))lastCof=mins};
+  /* zaključane stanice su sidra: ostaju u planu, ostalo se slaže oko njih */
+  const LK=window.PLAN_LOCK||new Set(),LS0=window.PLAN_LOCKSTART||{};
+  const anchors=pool.filter(x=>LK.has(x.title)).sort((a,b)=>(LS0[a.title]||0)-(LS0[b.title]||0));
+  for(let g=0;g<14;g++){const o=pick(),an=anchors.find(a=>!used.has(a.title));
+   if(an){const ta=tr(last,an.c);
+    const force=!o||mins+o.t+o.x.mins+tr(o.x.c,an.c)>(LS0[an.title]||0)+15;
+    if(force&&mins+ta+an.mins<=target){take(an,ta,openState(an,mins+ta));continue}}
+   if(!o)break;take(o.x,o.t,o.st)}
   return{items,fill:(mins-S)/eff,pm:Object.assign({},PM)}};
  /* ako strogi plan ne popuni vreme, postepeno popusti (dalje hodanje, nepotvrđena mesta, radno vreme) */
  let best=null;
@@ -625,7 +634,7 @@ window.makePlan=function(){
   window.PLAN_OVERRIDE={sig:window.PLAN_SIG,items:items.slice(),pm:r.pm};
   window.renderPlan&&window.renderPlan()}
  function swapStop(i){
-  const cur=BZ.plan().slice(),old=cur[i];if(!old)return;
+  const cur=BZ.plan().slice(),old=cur[i];if(!old||(window.PLAN_LOCK&&window.PLAN_LOCK.has(old.title)))return;
   const seen=window.PLAN_SEEN||(window.PLAN_SEEN=new Set());seen.add(old.title);
   const inPlan=new Set(cur.map(x=>x.title)),prev=i>0?cur[i-1].c:LV.me,next=cur[i+1]?cur[i+1].c:null;
   const arr=(PM[old.title]||{}).start||0,isMeal=x=>x.type==='Restoran'||x.type==='Brza hrana';
@@ -643,18 +652,18 @@ window.makePlan=function(){
   for(const c of cand){const n=cur.slice();n[i]=c.x;
    if(retime(n).end<=(window.PLAN_END||1e9)){commit(n);return}}
   say('Nema bolje zamene u blizini')}
- function dropStop(i){const cur=BZ.plan().slice();if(cur.length<2){say('Plan mora imati bar jednu stanicu');return}
+ function dropStop(i){const cur=BZ.plan().slice();if(cur[i]&&window.PLAN_LOCK&&window.PLAN_LOCK.has(cur[i].title))return;if(cur.length<2){say('Plan mora imati bar jednu stanicu');return}
   cur.splice(i,1);commit(cur)}
  window.swapStop=swapStop;window.dropStop=dropStop;
  /* dugmad ispod svake stanice */
  const box=document.getElementById('planSteps');if(!box)return;
  const st=document.createElement('style');
- st.textContent='.stepact{display:flex;gap:8px;margin-top:8px}.stepact button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:#eef0f1;color:#062b3a;border:0;cursor:pointer}.stepact button:focus-visible{outline:2px solid #12647a}';
+ st.textContent='.stepact{display:flex;gap:8px;margin-top:8px}.stepact button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:#eef0f1;color:#062b3a;border:0;cursor:pointer}.stepact button.on{background:#ffc400}.stepact button:focus-visible{outline:2px solid #12647a}';
  document.head.appendChild(st);
- const inject=()=>box.querySelectorAll('.step').forEach(s=>{if(s.querySelector('.stepact'))return;
-  const d=document.createElement('div');d.className='stepact';
-  d.innerHTML='<button type="button" data-act="swap">↻ Zameni</button><button type="button" data-act="del">Izbaci</button>';
-  s.children[1].appendChild(d)});
+ const paint=s=>{const x=BZ.plan()[+s.dataset.i];if(!x)return;const L=window.PLAN_LOCK&&window.PLAN_LOCK.has(x.title);
+  let d=s.querySelector('.stepact');if(!d){d=document.createElement('div');d.className='stepact';s.children[1].appendChild(d)}
+  d.innerHTML=(L?'':'<button type="button" data-act="swap">↻ Zameni</button><button type="button" data-act="del">Izbaci</button>')+'<button type="button" data-act="lock" aria-pressed="'+!!L+'"'+(L?' class="on"':'')+'>'+(L?'🔒 Zaključano':'🔓 Zaključaj')+'</button>'};
+ const inject=()=>box.querySelectorAll('.step').forEach(s=>{if(!s.querySelector('.stepact'))paint(s)});
  new MutationObserver(inject).observe(box,{childList:true});inject();
  box.addEventListener('click',e=>{const b=e.target.closest('.stepact button');if(!b)return;
   e.stopImmediatePropagation();e.stopPropagation();
