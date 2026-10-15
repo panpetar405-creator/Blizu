@@ -668,6 +668,34 @@ window.makePlan=function(){
  box.addEventListener('click',e=>{const b=e.target.closest('.stepact button');if(!b)return;
   e.stopImmediatePropagation();e.stopPropagation();
   const i=+b.closest('.step').dataset.i;b.dataset.act==='swap'?swapStop(i):dropStop(i)},true)})();
+/* ---- "Zašto je ovo u planu": jedna kratka rečenica po stanici ---- */
+(function(){
+ function reasonOf(x){
+  const P=BZ.plan(),i=P.findIndex(y=>y.title===x.title);if(i<0)return'';
+  const m=PM[x.title]||{},lk=window.PLAN_LOCK&&window.PLAN_LOCK.has(x.title);
+  const h=m.start!=null?((new Date().getHours()*60+new Date().getMinutes()+m.start)%1440)/60:null;
+  const ty=x.type||'',c=x.cat0,meal=ty==='Restoran'||ty==='Brza hrana';
+  const w=m.start!=null?wxAt(m.start):null,dry=w&&w.t!=null&&!wxRain(w);
+  const th=selectedItems().some(y=>y.title===x.title),g=gxCached(x)||{};
+  let a;
+  if(lk)a='Zaključano, ostaje u tvom planu';
+  else if(meal&&h!=null&&h>=12&&h<15)a='Ručak u pravo vreme';
+  else if(meal&&h!=null&&h>=18&&h<22)a='Večera da dan lepo završiš';
+  else if(c==='Kafa'&&i===0&&h!=null&&h<11)a='Kafa za lagan početak dana';
+  else if(c==='Kafa')a='Predah između stanica';
+  else if(ty==='Vidikovac'&&h!=null&&h>=17)a='Vidikovac u lepo vreme pred zalazak';
+  else if((c==='More'||c==='Priroda')&&dry)a=Math.round(w.t)+'°C u to doba, dobro za '+(c==='More'?'more':'prirodu');
+  else if(th)a='Prema tvom izboru: '+String(c).toLowerCase();
+  else a='Dodato da dan bude raznovrsniji';
+  let e='';
+  if(g.rating>=4.5&&g.n>=50)e='visoko ocenjeno';
+  else if(i>0&&m.walk>0&&m.walk<=5)e='tek '+m.walk+' min od prethodne stanice';
+  else if(m.open===true&&m.end!=null)e='otvoreno do '+hm(m.end);
+  return a+(e?' · '+e:'')}
+ const base=window.stepWhy;if(typeof base!=='function')return;
+ window.stepWhy=x=>{let r='';try{r=reasonOf(x)}catch(err){}
+  return(r?'<p class="why reason">'+esc(r)+'</p>':'')+base(x)};
+ const st=document.createElement('style');st.textContent='.why.reason{color:#0b5f78;font-weight:700;font-size:13px}';document.head.appendChild(st)})();
 const _rp=window.renderPlan;
 window.renderPlan=function(){_rp();headPhotos();const s=$('planSteps');if(s&&!s.children.length){s.innerHTML=LV.empty();$('planTotal').innerHTML='';$('planCount').textContent=''}};
 {const _rp3=window.renderPlan;let PWT=0;
