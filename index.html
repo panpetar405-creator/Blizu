@@ -1108,7 +1108,7 @@ window.renderItiner=renderItiner;
 (function(){
  const box=document.getElementById('homeRecs');if(!box)return;
  const st=document.createElement('style');
- st.textContent='#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+ st.textContent='#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scroll-padding-left:18px;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recimg i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:38px;font-weight:800;color:#ffffff33}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
  document.head.appendChild(st);
  const nzz=t=>(t||'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
  const BAD=/mesar|mesnic|butcher|pekar|bakery|market|prodavnic|kiosk|trafik|apotek|automat|bife|zalogaj|take\s*away/;
@@ -1116,7 +1116,9 @@ window.renderItiner=renderItiner;
  function allItems(){const seen=new Set(),o=[];Object.keys(DATA).forEach(c=>(DATA[c]||[]).forEach(x=>{if(x&&x.c&&x.title&&!x._rent&&!seen.has(x.title)){seen.add(x.title);o.push(x)}}));return o}
  const dd=x=>x.d==null?1e9:x.d;
  const rank=x=>dd(x)-(realImg(x)?0.15:0);
- const card=(x,badge,g)=>'<button class="reccard" data-t="'+esc(x.title)+'"><div class="recimg"'+(realImg(x)?' style="background-image:url(\''+String(x.img).replace(/'/g,'%27')+'\')"':'')+'>'+(badge?'<span class="recbadge'+(g?' g':'')+'">'+badge+'</span>':'')+'</div><div class="recb"><b>'+esc(x.title)+'</b><small>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</small></div></button>';
+ const imgOf=x=>{if(realImg(x))return x.img;try{const g=gxCached(x);if(g&&g.photo&&window.BLIZU_API)return window.BLIZU_API+'/api/photo?ref='+encodeURIComponent(g.photo)}catch(e){}return''};
+ const tried=new Set();
+ const card=(x,badge,g)=>{const u=imgOf(x);return '<button class="reccard" data-t="'+esc(x.title)+'"><div class="recimg"'+(u?' style="background-image:url(\''+u.replace(/'/g,'%27')+'\')"':'')+'>'+(u?'':'<i>'+esc((x.title||'?').charAt(0).toUpperCase())+'</i>')+(badge?'<span class="recbadge'+(g?' g':'')+'">'+badge+'</span>':'')+'</div><div class="recb"><b>'+esc(x.title)+'</b><small>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</small></div></button>'};
  const sec=(t,sub,html)=>html?'<div class="recsec"><div class="rech"><h2>'+t+'</h2>'+(sub?'<span>'+sub+'</span>':'')+'</div><div class="recrow">'+html+'</div></div>':'';
  function render(){
   if(typeof DATA==='undefined'||LV.loading){box.innerHTML='';return}
@@ -1141,7 +1143,11 @@ window.renderItiner=renderItiner;
   const tod=pick(all.filter(P.f).sort((a,b)=>rank(a)-rank(b)),6);
   box.innerHTML=sec('Otvoreno sada','u blizini',open.map(x=>card(x,'otvoreno',1)).join(''))
    +sec('Događaji','',evHtml+venues.map(x=>card(x,'',0)).join(''))
-   +sec(P.t,'preporuka',tod.map(x=>card(x,'',0)).join(''))}
+   +sec(P.t,'preporuka',tod.map(x=>card(x,'',0)).join(''));
+  /* fotografije: Google (preko Worker-a) za prikazane kartice bez slike, najviše 14 */
+  if(window.BLIZU_API&&typeof gxMany==='function'){
+   const need=[...open,...venues,...tod].filter(x=>!imgOf(x)&&!tried.has(x.title)).slice(0,14);
+   if(need.length){need.forEach(x=>tried.add(x.title));gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
  box.addEventListener('click',e=>{const c=e.target.closest('.reccard');if(!c)return;if(c.dataset.u){window.open(c.dataset.u,'_blank','noopener');return}if(window.openItem)openItem(c.dataset.t)});
  window.renderHomeRecs=render;render()})();
 /* ---- iznajmi: bicikli, e-trotineti, auta ---- */
