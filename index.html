@@ -1149,7 +1149,10 @@ window.renderItiner=renderItiner;
    const need=[...open,...venues,...tod].filter(x=>!imgOf(x)&&!tried.has(x.title)).slice(0,14);
    if(need.length){need.forEach(x=>{tried.add(x.title);/* stari keš bez polja photo: osvježi jednom */try{const g=gxCached(x);if(g&&g.photo===undefined&&!g.none)delete GXL[gxKey(x)]}catch(e){}});gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
  box.addEventListener('click',e=>{const c=e.target.closest('.reccard');if(!c)return;if(c.dataset.u){window.open(c.dataset.u,'_blank','noopener');return}if(window.openItem)openItem(c.dataset.t)});
- window.renderHomeRecs=render;render()})();
+ const safe=()=>{try{render()}catch(e){console.error('homeRecs',e)}};
+ window.renderHomeRecs=safe;safe();
+ /* podaci stižu asinhrono: dok je početna otvorena i prazna, pokušaj ponovo */
+ setInterval(()=>{const h=document.getElementById('home');if(h&&h.classList.contains('active')&&!box.children.length)safe()},1200)})();
 /* ---- iznajmi: bicikli, e-trotineti, auta ---- */
 const RK={bike:{t:'Bicikli',h:'Iznajmljivanje bicikala',g:['#2f9e6a','#0d5a45'],i:'<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>'},
  scooter:{t:'E-trotineti',h:'Iznajmljivanje e-trotineta',g:['#2aa5c9','#0b5e82'],i:'<circle cx="6" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M8.5 18H14l3-13h3M14 5h-2"/>'},
