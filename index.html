@@ -1165,14 +1165,18 @@ window.renderItiner=renderItiner;
    if(need.length){need.forEach(x=>{tried.add(x.title);/* stari keš bez polja photo: osvježi jednom */try{const g=gxCached(x);if(g&&g.photo===undefined&&!g.none)delete GXL[gxKey(x)]}catch(e){}});gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
  box.addEventListener('click',e=>{const c=e.target.closest('.reccard');if(!c)return;if(c.dataset.u){window.open(c.dataset.u,'_blank','noopener');return}if(window.openItem)openItem(c.dataset.t)});
  /* dijagnostika: otvori aplikaciju sa ?debug=1 da vidiš zašto nema fotografija */
- if(/[?&]debug=1/.test(location.search)){
+ const runDbg=()=>{
+  if(document.getElementById('dbgBox'))return;
   const d=document.createElement('pre');d.style.cssText='position:fixed;left:8px;right:8px;top:96px;z-index:99;background:#000d;color:#9f9;font:11px/1.4 monospace;padding:8px;border-radius:8px;white-space:pre-wrap;max-height:40vh;overflow:auto';d.textContent='debug: čekam podatke…';document.body.appendChild(d);
   const run=async()=>{const x=allItems().find(y=>y.c);if(!x){setTimeout(run,1500);return}
    let o='origin: '+location.origin+'\nAPI: '+window.BLIZU_API+'\nmjesto: '+x.title+'\n';
    try{const r=await fetch(window.BLIZU_API+'/api/enrich?name='+encodeURIComponent(x.title)+'&lat='+x.c[0]+'&lng='+x.c[1]);o+='enrich status: '+r.status+'\n'+(await r.text()).slice(0,300)+'\n';
     try{const g=JSON.parse(o.split('\n')[4]);if(g.photo){const q=await fetch(window.BLIZU_API+'/api/photo?ref='+encodeURIComponent(g.photo));o+='photo status: '+q.status}}catch(e){}}
    catch(e){o+='enrich greška: '+e}
-   d.textContent=o};run()}
+   d.textContent=o};run();d.id='dbgBox';d.onclick=()=>d.remove()};
+ if(/[?&]debug=1/.test(location.search))runDbg();
+ /* bez adresne trake: 5 dodira na oznaku „u blizini“ otvara dijagnostiku */
+ {let n=0,t0=0;box.addEventListener('click',e=>{if(!e.target.closest('.rech span'))return;const now=Date.now();n=now-t0>3000?1:n+1;t0=now;if(n>=5){n=0;runDbg()}})}
  const safe=()=>{try{render()}catch(e){console.error('homeRecs',e)}};
  window.renderHomeRecs=safe;safe();
  /* podaci stižu asinhrono: dok je početna otvorena i prazna, pokušaj ponovo */
