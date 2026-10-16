@@ -1038,14 +1038,16 @@ const KIND={videti:['Atrakcije','Kultura','Događaji'],jesti:['Hrana'],odmoriti:
 /* Pravi dnevni plan: jutarnja kafa → šetnja → posjeta → ručak → šetnja → večera → večernji događaj */
 const nz=t=>(t||'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const IT_BAD=/mesar|mesnic|butcher|pekar|bakery|market|prodavnic|kiosk|trafik|apotek|automat|bife|zalogaj|pica\s*bar|pizza\s*to\s*go|take\s*away/;
-const IT_DAY=[
- {k:'cafe',t:'09:00',m:30,label:'Jutarnja kafa'},
- {k:'walk',t:'10:00',m:60,label:'Šetnja',pref:['park','plaza','priroda']},
- {k:'visit',t:'11:30',m:90,label:'Posjeta'},
- {k:'meal',t:'13:30',m:75,label:'Ručak'},
- {k:'walk',t:'15:30',m:60,label:'Popodnevna šetnja',pref:['vidikovac','marina','more']},
- {k:'meal',t:'19:30',m:90,label:'Večera'},
- {k:'event',t:'21:30',m:90,label:'Večernji događaj'}];
+let IT_START=540;
+const IT_SEQ=[
+ {k:'cafe',m:30,label:'Jutarnja kafa'},
+ {k:'walk',m:60,label:'Šetnja',pref:['park','plaza','priroda']},
+ {k:'visit',m:90,label:'Posjeta'},
+ {k:'meal',m:75,label:'Ručak',min:750},
+ {k:'walk',m:60,label:'Popodnevna šetnja',pref:['vidikovac','marina','more']},
+ {k:'meal',m:90,label:'Večera',min:1140},
+ {k:'event',m:90,label:'Večernji događaj',min:1260}];
+const itHM=m=>String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
 function buildItin(n){
  const all=[];Object.values(DATA).forEach(l=>(l||[]).forEach(x=>{if(x&&x.c&&x.title&&!all.some(y=>y.title===x.title))all.push(x)}));
  const T=x=>nz(x.type),C=x=>nz(x.cat0),ok=x=>!IT_BAD.test(nz(x.title));
@@ -1059,15 +1061,20 @@ function buildItin(n){
  const EV_FB=[x=>['bar','pub'].includes(T(x))&&ok(x),x=>T(x)==='nocni klub'];
  const used=new Set(),days=[];
  const dist=(a,b)=>a?km(a,b.c):(b.d==null?1e9:b.d);
+ /* radno vrijeme: poznato i zatvoreno = isključeno; potvrđeno otvoreno = blagi prioritet */
+ const openQ=(x,wd,t)=>{let iv=null;try{iv=ivOf(x,wd)}catch(e){}if(!iv)return 0;return iv.some(i=>t>=i[0]&&t+30<=i[1])?1:-1};
  for(let d=0;d<n;d++){
-  const day=[];let prev=null;
-  IT_DAY.forEach(sl=>{
-   let pool=all.filter(x=>!used.has(x.title)&&F[sl.k](x)),label=sl.label;
-   if(!pool.length&&sl.k==='event'){for(const f of EV_FB){pool=all.filter(x=>!used.has(x.title)&&f(x));if(pool.length){label='Večernje druženje';break}}}
+  const day=[],wd=(new Date().getDay()+d)%7;let prev=null,clock=IT_START;
+  IT_SEQ.forEach(sl=>{
+   const t=Math.max(clock,sl.min||0);
+   const cand=f=>all.filter(x=>!used.has(x.title)&&f(x)&&openQ(x,wd,t)>=0);
+   let pool=cand(F[sl.k]),label=sl.label;
+   if(!pool.length&&sl.k==='event'){for(const f of EV_FB){pool=cand(f);if(pool.length){label='Večernje druženje';break}}}
    if(!pool.length)return;
    const pref=sl.pref||[];
-   pool.sort((a,b)=>{const pa=pref.includes(T(a))||pref.includes(C(a))?-0.6:0,pb=pref.includes(T(b))||pref.includes(C(b))?-0.6:0;return(dist(prev,a)+pa)-(dist(prev,b)+pb)});
-   const x=pool[0];used.add(x.title);x._it={t:sl.t,m:sl.m,label};day.push(x);prev=x.c});
+   const sc=x=>dist(prev,x)-(pref.includes(T(x))||pref.includes(C(x))?0.6:0)-(openQ(x,wd,t)===1?0.4:0);
+   pool.sort((a,b)=>sc(a)-sc(b));
+   const x=pool[0];used.add(x.title);x._it={t:itHM(t),m:sl.m,label,open:openQ(x,wd,t)===1};day.push(x);prev=x.c;clock=t+sl.m+15});
   if(day.length>=3)days.push(day);
  }
  return days}
@@ -1077,6 +1084,8 @@ function itSaveBtn(){const b=$('itSave');if(!b||!MDD.length)return;const on=itSa
 function renderItiner(){
  const c=$('itChips'),list=$('itList');if(!c||!list)return;
  c.innerHTML=[2,3,5].map(n=>'<button class="pill'+(MDn===n?' active':'')+'" data-n="'+n+'">'+n+' dana</button>').join('');
+ if(!$('itStart')){const el=document.createElement('div');el.id='itStart';el.className='chips';c.parentNode.insertBefore(el,c.nextSibling)}
+ $('itStart').innerHTML='<span class="itlbl">Početak dana</span>'+[[480,'08:00'],[540,'09:00'],[600,'10:00'],[660,'11:00']].map(a=>'<button class="pill'+(IT_START===a[0]?' active':'')+'" data-s="'+a[0]+'">'+a[1]+'</button>').join('');
  const days=buildItin(MDn);MDD=days;
  const tot=days.reduce((a,d)=>a+d.length,0);
  $('itTitle').textContent=(LV.city||'Tvoj itinerar')+' – '+MDn+' dana';
@@ -1084,9 +1093,10 @@ function renderItiner(){
  if(!tot){list.innerHTML=LV.empty();$('itSave').classList.add('hidden');return}
  $('itSave').classList.remove('hidden');
  list.innerHTML=days.map((day,i)=>'<div class="dayh"><b>Dan '+(i+1)+'</b><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/'+day.map(x=>x.c[0]+','+x.c[1]).join('/')+'/data=!4m2!4m1!3e2">Ruta u Google mapama</a></div>'+
-  day.map((x,j)=>'<div class="step" data-t="'+esc(x.title)+'"><img class="thumb" src="'+x.img+'" alt="'+esc(x.title)+'"><div><div class="mins">'+((x._it&&x._it.t)||(j+1))+' · '+((x._it&&x._it.label)||(x.mins+' min'))+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</p></div><b>'+ic('right',18)+'</b></div>').join('')).join('');
+  day.map((x,j)=>'<div class="step" data-t="'+esc(x.title)+'"><img class="thumb" src="'+x.img+'" alt="'+esc(x.title)+'"><div><div class="mins">'+((x._it&&x._it.t)||(j+1))+' · '+((x._it&&x._it.label)||(x.mins+' min'))+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+(x._it&&x._it.open?' · <span class="itopen">otvoreno</span>':'')+'</p></div><b>'+ic('right',18)+'</b></div>').join('')).join('');
  itSaveBtn()}
-{const st=document.createElement('style');st.textContent='.dayh{display:flex;justify-content:space-between;align-items:center;margin:18px 0 2px}.dayh b{font-size:17px}.dayh a{font-size:13px;font-weight:700;color:#0e6075;text-decoration:none}.prem{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;font-style:normal;margin-left:6px}.itbody{padding:16px 18px 24px;background:#f8f6f3;color:#1a2328;min-height:60vh}.itnote{font-size:12px;color:#70777b;margin-top:14px;line-height:1.4}';document.head.appendChild(st)}
+{const st=document.createElement('style');st.textContent='#itStart{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 0}.itlbl{font-size:13px;font-weight:700;color:#70777b;margin-right:2px}.itopen{color:#1a7f4b;font-weight:700}.dayh{display:flex;justify-content:space-between;align-items:center;margin:18px 0 2px}.dayh b{font-size:17px}.dayh a{font-size:13px;font-weight:700;color:#0e6075;text-decoration:none}.prem{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;font-style:normal;margin-left:6px}.itbody{padding:16px 18px 24px;background:#f8f6f3;color:#1a2328;min-height:60vh}.itnote{font-size:12px;color:#70777b;margin-top:14px;line-height:1.4}';document.head.appendChild(st)}
+document.addEventListener('click',e=>{const b=e.target.closest('#itStart .pill');if(b){IT_START=+b.dataset.s;renderItiner()}});
 $('itChips').addEventListener('click',e=>{const b=e.target.closest('.pill');if(b){MDn=+b.dataset.n;renderItiner()}});
 $('itList').addEventListener('click',e=>{const s=e.target.closest('.step');if(s&&window.openItem)openItem(s.dataset.t)});
 $('itSave').onclick=()=>{if(!MDD.length)return;const k=itKey(MDD),pl=BZ.plans(),i=pl.findIndex(p=>p.key===k);
