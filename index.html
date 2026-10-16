@@ -1109,7 +1109,7 @@ window.renderItiner=renderItiner;
 (function(){
  const box=document.getElementById('homeRecs');if(!box)return;
  const st=document.createElement('style');
- st.textContent='#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scroll-padding-left:18px;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recimg i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#ffffff55}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+ st.textContent='#homeRecs .recnote{margin:6px 0 22px;color:#9fb4be;font-size:13px}#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scroll-padding-left:18px;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recimg i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#ffffff55}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
  document.head.appendChild(st);
  const nzz=t=>(t||'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
  const BAD=/mesar|mesnic|butcher|pekar|bakery|market|prodavnic|kiosk|trafik|apotek|automat|bife|zalogaj|take\s*away/;
@@ -1134,8 +1134,9 @@ window.renderItiner=renderItiner;
  const card=(x,badge,g)=>{const u=imgOf(x),gl=glyph(x);return '<button class="reccard" data-t="'+esc(x.title)+'"><div class="recimg" style="'+(u?'background-image:url(\'' +u.replace(/'/g,'%27')+'\')':'background-image:linear-gradient(135deg,'+gl[1]+','+gl[2]+')')+'">'+(u?'':'<i><svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+gl[0]+'</svg></i>')+(badge?'<span class="recbadge'+(g?' g':'')+'">'+badge+'</span>':'')+'</div><div class="recb"><b>'+esc(x.title)+'</b><small>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</small></div></button>'};
  const sec=(t,sub,html)=>html?'<div class="recsec"><div class="rech"><h2>'+t+'</h2>'+(sub?'<span>'+sub+'</span>':'')+'</div><div class="recrow">'+html+'</div></div>':'';
  function render(){
-  if(typeof DATA==='undefined'||LV.loading){box.innerHTML='';return}
-  const all=allItems().filter(nm);if(all.length<3){box.innerHTML='';return}
+  const note=t=>{box.innerHTML='<div class="recnote">'+t+'</div>'};
+  if(typeof DATA==='undefined'||LV.loading){note('Učitavam preporuke u blizini…');return}
+  const all=allItems().filter(nm);if(all.length<3){note(Object.keys(DATA).length&&allItems().length?'Premalo mjesta u okolini za preporuke.':'Mjesta se još učitavaju…');return}
   const used=new Set(),pick=(arr,n)=>{const r=[];for(const x of arr){if(r.length>=n)break;if(used.has(x.title))continue;used.add(x.title);r.push(x)}return r};
   const T=x=>nzz(x.type),C=x=>nzz(x.cat0);
   /* 1. otvoreno sada (samo potvrđeno otvoreno) */
@@ -1154,9 +1155,10 @@ window.renderItiner=renderItiner;
    :h<22?{t:'Za večeru',f:x=>T(x)==='restoran'}
    :{t:'Za noć',f:x=>['bar','pub','nocni klub'].includes(T(x))};
   const tod=pick(all.filter(P.f).sort((a,b)=>rank(a)-rank(b)),6);
-  box.innerHTML=sec('Otvoreno sada','u blizini',open.map(x=>card(x,'otvoreno',1)).join(''))
+  const out=sec('Otvoreno sada','u blizini',open.map(x=>card(x,'otvoreno',1)).join(''))
    +sec('Događaji','',evHtml+venues.map(x=>card(x,'',0)).join(''))
    +sec(P.t,'preporuka',tod.map(x=>card(x,'',0)).join(''));
+  if(out)box.innerHTML=out;else note('Trenutno nema preporuka za ovo doba dana u blizini.');
   /* fotografije: Google (preko Worker-a) za prikazane kartice bez slike, najviše 14 */
   if(window.BLIZU_API&&typeof gxMany==='function'){
    const need=[...open,...venues,...tod].filter(x=>!imgOf(x)&&!tried.has(x.title)).slice(0,14);
@@ -1174,7 +1176,7 @@ window.renderItiner=renderItiner;
  const safe=()=>{try{render()}catch(e){console.error('homeRecs',e)}};
  window.renderHomeRecs=safe;safe();
  /* podaci stižu asinhrono: dok je početna otvorena i prazna, pokušaj ponovo */
- setInterval(()=>{const h=document.getElementById('home');if(h&&h.classList.contains('active')&&!box.children.length)safe()},1200)})();
+ setInterval(()=>{const h=document.getElementById('home');if(h&&h.classList.contains('active')&&(!box.children.length||box.querySelector('.recnote')))safe()},1200)})();
 /* ---- iznajmi: bicikli, e-trotineti, auta ---- */
 const RK={bike:{t:'Bicikli',h:'Iznajmljivanje bicikala',g:['#2f9e6a','#0d5a45'],i:'<circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/>'},
  scooter:{t:'E-trotineti',h:'Iznajmljivanje e-trotineta',g:['#2aa5c9','#0b5e82'],i:'<circle cx="6" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M8.5 18H14l3-13h3M14 5h-2"/>'},
