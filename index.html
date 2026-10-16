@@ -588,13 +588,13 @@ LV.embed=x=>'https://maps.google.com/maps?q='+encodeURIComponent(loc(x))+'&z=16&
 /* ---- Google podaci (ocjene, radno vrijeme, telefon) uz lokalni keš ---- */
 const GXL=LS.get('blizu_gx1',{}),GXP={},GXT=new Set();
 const gxKey=x=>x.title+'|'+x.c[0].toFixed(4)+'|'+x.c[1].toFixed(4);
-function gxCached(x){if(!x||!x.c)return undefined;const e=GXL[gxKey(x)];return e&&Date.now()-e.t<6048e5?e.g:undefined}
+function gxCached(x){if(!x||!x.c)return undefined;const e=GXL[gxKey(x)];return e&&!(e.g&&e.g.usage)&&Date.now()-e.t<6048e5?e.g:undefined}
 function gxLoad(x){
  if(!window.BLIZU_API||!x||!x.c)return Promise.resolve(null);
  const k=gxKey(x),c=gxCached(x);if(c!==undefined)return Promise.resolve(c);
  if(GXP[k])return GXP[k];GXT.add(k);
  return GXP[k]=fetch(window.BLIZU_API+'/api/enrich?name='+encodeURIComponent(x.title.replace(/ \(\d+\)$/,''))+'&lat='+x.c[0]+'&lng='+x.c[1])
-  .then(r=>r.json()).then(g=>{delete GXP[k];if(!g||g.error)return null;
+  .then(r=>r.json()).then(g=>{delete GXP[k];if(!g||g.error||g.usage)return null;
    GXL[k]={t:Date.now(),g};const ks=Object.keys(GXL);if(ks.length>300){ks.sort((p,q)=>GXL[p].t-GXL[q].t).slice(0,ks.length-300).forEach(z=>delete GXL[z])}
    LS.set('blizu_gx1',GXL);return g}).catch(()=>{delete GXP[k];return null})}
 async function gxMany(list,n){let i=0;await Promise.all(Array.from({length:n},async()=>{while(i<list.length){const x=list[i++];await gxLoad(x)}}))}
