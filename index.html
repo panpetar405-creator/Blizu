@@ -800,16 +800,18 @@ window.makePlan=function(){
  /* dugmad ispod svake stanice */
  const box=document.getElementById('planSteps');if(!box)return;
  const st=document.createElement('style');
- st.textContent='.stepact{display:flex;gap:8px;margin-top:8px}.stepact button{font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:#eef0f1;color:#062b3a;border:0;cursor:pointer}.stepact button.on{background:#ffc400}.stepact button:focus-visible{outline:2px solid #12647a}';
+ st.textContent='.stepact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.stepact button{font:inherit;font-size:13px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 14px;border-radius:12px;background:#fff;color:#062b3a;border:1.5px solid #dfe4e7;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}.stepact button svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.stepact button:active{transform:scale(.96)}.stepact button[data-act=swap]{color:#12647a}.stepact button[data-act=del]{color:#b3261e;padding:0 12px}.stepact button[data-act=lock].on{background:#ffc400;border-color:#ffc400;color:#111}.stepact button:focus-visible{outline:2px solid #12647a;outline-offset:2px}';
  document.head.appendChild(st);
  const paint=s=>{const x=BZ.plan()[+s.dataset.i];if(!x)return;const L=window.PLAN_LOCK&&window.PLAN_LOCK.has(x.title);
   let d=s.querySelector('.stepact');if(!d){d=document.createElement('div');d.className='stepact';s.children[1].appendChild(d)}
-  d.innerHTML=(L?'':'<button type="button" data-act="swap">↻ Zameni</button><button type="button" data-act="del">Izbaci</button>')+'<button type="button" data-act="lock" aria-pressed="'+!!L+'"'+(L?' class="on"':'')+'>'+(L?'🔒 Zaključano':'🔓 Zaključaj')+'</button>'};
+  d.innerHTML=(L?'':'<button type="button" data-act="swap"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg>Zamijeni</button><button type="button" data-act="del" aria-label="Izbaci stanicu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Izbaci</button>')+'<button type="button" data-act="lock" aria-pressed="'+!!L+'"'+(L?' class="on"':'')+'>'+(L?'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Zaključano':'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>Zaključaj')+'</button>'};
  const inject=()=>box.querySelectorAll('.step').forEach(s=>{if(!s.querySelector('.stepact'))paint(s)});
  new MutationObserver(inject).observe(box,{childList:true});inject();
  box.addEventListener('click',e=>{const b=e.target.closest('.stepact button');if(!b)return;
   e.stopImmediatePropagation();e.stopPropagation();
-  const i=+b.closest('.step').dataset.i;b.dataset.act==='swap'?swapStop(i):dropStop(i)},true)})();
+  const stEl=b.closest('.step'),i=+stEl.dataset.i;
+  if(b.dataset.act==='lock'){const x=BZ.plan()[i];if(!x)return;window.PLAN_LOCK=window.PLAN_LOCK||new Set();window.PLAN_LOCK.has(x.title)?window.PLAN_LOCK.delete(x.title):window.PLAN_LOCK.add(x.title);paint(stEl);return}
+  b.dataset.act==='swap'?swapStop(i):dropStop(i)},true)})();
 /* ---- "Zašto je ovo u planu": jedna kratka rečenica po stanici ---- */
 (function(){
  function reasonOf(x){
