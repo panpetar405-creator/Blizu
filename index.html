@@ -1147,7 +1147,7 @@ window.renderItiner=renderItiner;
   /* fotografije: Google (preko Worker-a) za prikazane kartice bez slike, najviše 14 */
   if(window.BLIZU_API&&typeof gxMany==='function'){
    const need=[...open,...venues,...tod].filter(x=>!imgOf(x)&&!tried.has(x.title)).slice(0,14);
-   if(need.length){need.forEach(x=>tried.add(x.title));gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
+   if(need.length){need.forEach(x=>{tried.add(x.title);/* stari keš bez polja photo: osvježi jednom */try{const g=gxCached(x);if(g&&g.photo===undefined&&!g.none)delete GXL[gxKey(x)]}catch(e){}});gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
  box.addEventListener('click',e=>{const c=e.target.closest('.reccard');if(!c)return;if(c.dataset.u){window.open(c.dataset.u,'_blank','noopener');return}if(window.openItem)openItem(c.dataset.t)});
  window.renderHomeRecs=render;render()})();
 /* ---- iznajmi: bicikli, e-trotineti, auta ---- */
