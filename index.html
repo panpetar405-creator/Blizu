@@ -1108,7 +1108,7 @@ window.renderItiner=renderItiner;
 (function(){
  const box=document.getElementById('homeRecs');if(!box)return;
  const st=document.createElement('style');
- st.textContent='#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scroll-padding-left:18px;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recimg i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-size:38px;font-weight:800;color:#ffffff33}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+ st.textContent='#homeRecs .recsec{margin:6px 0 22px}#homeRecs .rech{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 10px}#homeRecs .rech h2{margin:0;font-size:20px;color:#fff}#homeRecs .rech span{font-size:12.5px;color:#9fb4be}#homeRecs .recrow{display:flex;gap:10px;overflow-x:auto;margin:0 -18px;padding:0 18px 4px;scroll-snap-type:x proximity;scroll-padding-left:18px;scrollbar-width:none}#homeRecs .recrow::-webkit-scrollbar{display:none}#homeRecs .reccard{flex:0 0 150px;scroll-snap-align:start;background:#fff;color:#13212a;border-radius:18px;overflow:hidden;text-align:left;padding:0;border:0;font:inherit;cursor:pointer;box-shadow:0 6px 16px #0004}#homeRecs .recimg{height:92px;background:linear-gradient(135deg,#12647a,#062b3a) center/cover;position:relative}#homeRecs .recimg i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;color:#ffffff55}#homeRecs .recbadge{position:absolute;left:8px;top:8px;background:#ffc400;color:#111;border-radius:999px;font-size:11px;font-weight:800;padding:3px 8px}#homeRecs .recbadge.g{background:#d9f5e5;color:#12683f}#homeRecs .recb{padding:9px 11px 11px}#homeRecs .recb b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14px;line-height:1.25;min-height:35px}#homeRecs .recb small{display:block;margin-top:4px;font-size:12px;color:#70777b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
  document.head.appendChild(st);
  const nzz=t=>(t||'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
  const BAD=/mesar|mesnic|butcher|pekar|bakery|market|prodavnic|kiosk|trafik|apotek|automat|bife|zalogaj|take\s*away/;
@@ -1118,7 +1118,19 @@ window.renderItiner=renderItiner;
  const rank=x=>dd(x)-(realImg(x)?0.15:0);
  const imgOf=x=>{if(realImg(x))return x.img;try{const g=gxCached(x);if(g&&g.photo&&window.BLIZU_API)return window.BLIZU_API+'/api/photo?ref='+encodeURIComponent(g.photo)}catch(e){}return''};
  const tried=new Set();
- const card=(x,badge,g)=>{const u=imgOf(x);return '<button class="reccard" data-t="'+esc(x.title)+'"><div class="recimg"'+(u?' style="background-image:url(\''+u.replace(/'/g,'%27')+'\')"':'')+'>'+(u?'':'<i>'+esc((x.title||'?').charAt(0).toUpperCase())+'</i>')+(badge?'<span class="recbadge'+(g?' g':'')+'">'+badge+'</span>':'')+'</div><div class="recb"><b>'+esc(x.title)+'</b><small>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</small></div></button>'};
+ const GL={
+  food:['<path d="M6 3v8M9 3v8M6 7h3M7.5 11v10M17 3c-2 2-3 5-3 8h3v10"/>','#d9822b','#7a3b12'],
+  drink:['<path d="M5 3h14l-5 8v8h3M9 21h6M14 11v8M7 7h10"/>','#8a4fb3','#3d1d5c'],
+  cafe:['<path d="M4 9h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM16 10h2a2 2 0 0 1 0 4h-2M7 3v3M11 3v3"/>','#a0673c','#4e2f18'],
+  nature:['<path d="M12 21v-7M12 14c-4 0-6-3-6-6 3 0 6 1.5 6 6zM12 14c4 0 6-3 6-6-3 0-6 1.5-6 6z"/>','#3f9e6a','#16513a'],
+  sea:['<path d="M2 9c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2M2 15c2.5 0 2.5 2 5 2s2.5-2 5-2 2.5 2 5 2 2.5-2 5-2"/>','#2a9fc9','#0b5273'],
+  culture:['<path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M3 10l9-6 9 6"/>','#c59a3a','#664a10'],
+  event:['<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14 6v12"/>','#d0517a','#6b1d3a'],
+  pin:['<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>','#12647a','#062b3a']};
+ const glyph=x=>{const t=nzz(x.type),c=nzz(x.cat0);
+  const k=t==='restoran'||t==='brza hrana'?'food':['bar','pub','nocni klub'].includes(t)?'drink':t==='kafa'||t==='sladoled'?'cafe':['plaza','marina'].includes(t)||c==='more'?'sea':['park','vidikovac'].includes(t)||c==='priroda'?'nature':c==='dogadjaji'||['pozoriste','bioskop','kulturni centar'].includes(t)?'event':['atrakcije','kultura'].includes(c)?'culture':'pin';
+  return GL[k]};
+ const card=(x,badge,g)=>{const u=imgOf(x),gl=glyph(x);return '<button class="reccard" data-t="'+esc(x.title)+'"><div class="recimg" style="'+(u?'background-image:url(\'' +u.replace(/'/g,'%27')+'\')':'background-image:linear-gradient(135deg,'+gl[1]+','+gl[2]+')')+'">'+(u?'':'<i><svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+gl[0]+'</svg></i>')+(badge?'<span class="recbadge'+(g?' g':'')+'">'+badge+'</span>':'')+'</div><div class="recb"><b>'+esc(x.title)+'</b><small>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</small></div></button>'};
  const sec=(t,sub,html)=>html?'<div class="recsec"><div class="rech"><h2>'+t+'</h2>'+(sub?'<span>'+sub+'</span>':'')+'</div><div class="recrow">'+html+'</div></div>':'';
  function render(){
   if(typeof DATA==='undefined'||LV.loading){box.innerHTML='';return}
@@ -1149,6 +1161,15 @@ window.renderItiner=renderItiner;
    const need=[...open,...venues,...tod].filter(x=>!imgOf(x)&&!tried.has(x.title)).slice(0,14);
    if(need.length){need.forEach(x=>{tried.add(x.title);/* stari keš bez polja photo: osvježi jednom */try{const g=gxCached(x);if(g&&g.photo===undefined&&!g.none)delete GXL[gxKey(x)]}catch(e){}});gxMany(need,3).then(()=>{if(need.some(x=>imgOf(x))&&document.querySelector('#home.active'))render()}).catch(()=>{})}}}
  box.addEventListener('click',e=>{const c=e.target.closest('.reccard');if(!c)return;if(c.dataset.u){window.open(c.dataset.u,'_blank','noopener');return}if(window.openItem)openItem(c.dataset.t)});
+ /* dijagnostika: otvori aplikaciju sa ?debug=1 da vidiš zašto nema fotografija */
+ if(/[?&]debug=1/.test(location.search)){
+  const d=document.createElement('pre');d.style.cssText='position:fixed;left:8px;right:8px;top:96px;z-index:99;background:#000d;color:#9f9;font:11px/1.4 monospace;padding:8px;border-radius:8px;white-space:pre-wrap;max-height:40vh;overflow:auto';d.textContent='debug: čekam podatke…';document.body.appendChild(d);
+  const run=async()=>{const x=allItems().find(y=>y.c);if(!x){setTimeout(run,1500);return}
+   let o='origin: '+location.origin+'\nAPI: '+window.BLIZU_API+'\nmjesto: '+x.title+'\n';
+   try{const r=await fetch(window.BLIZU_API+'/api/enrich?name='+encodeURIComponent(x.title)+'&lat='+x.c[0]+'&lng='+x.c[1]);o+='enrich status: '+r.status+'\n'+(await r.text()).slice(0,300)+'\n';
+    try{const g=JSON.parse(o.split('\n')[4]);if(g.photo){const q=await fetch(window.BLIZU_API+'/api/photo?ref='+encodeURIComponent(g.photo));o+='photo status: '+q.status}}catch(e){}}
+   catch(e){o+='enrich greška: '+e}
+   d.textContent=o};run()}
  const safe=()=>{try{render()}catch(e){console.error('homeRecs',e)}};
  window.renderHomeRecs=safe;safe();
  /* podaci stižu asinhrono: dok je početna otvorena i prazna, pokušaj ponovo */
