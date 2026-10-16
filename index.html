@@ -1035,13 +1035,41 @@ function googleFill(x){
 /* ---- višednevni itinerar ---- */
 let MDn=3,MDD=[];
 const KIND={videti:['Atrakcije','Kultura','Događaji'],jesti:['Hrana'],odmoriti:['Kafa','More','Priroda']};
-const SLOTS=['videti','jesti','odmoriti','jesti'];
+/* Pravi dnevni plan: jutarnja kafa → šetnja → posjeta → ručak → šetnja → večera → večernji događaj */
+const nz=t=>(t||'').toLowerCase().replace(/đ/g,'d').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const IT_BAD=/mesar|mesnic|butcher|pekar|bakery|market|prodavnic|kiosk|trafik|apotek|automat|bife|zalogaj|pica\s*bar|pizza\s*to\s*go|take\s*away/;
+const IT_DAY=[
+ {k:'cafe',t:'09:00',m:30,label:'Jutarnja kafa'},
+ {k:'walk',t:'10:00',m:60,label:'Šetnja',pref:['park','plaza','priroda']},
+ {k:'visit',t:'11:30',m:90,label:'Posjeta'},
+ {k:'meal',t:'13:30',m:75,label:'Ručak'},
+ {k:'walk',t:'15:30',m:60,label:'Popodnevna šetnja',pref:['vidikovac','marina','more']},
+ {k:'meal',t:'19:30',m:90,label:'Večera'},
+ {k:'event',t:'21:30',m:90,label:'Večernji događaj'}];
 function buildItin(n){
- const used=new Set(),dist=x=>x.d==null?1e9:x.d,pools={};
- Object.keys(KIND).forEach(k=>{const seen=new Set();pools[k]=[];KIND[k].forEach(c=>(DATA[c]||[]).forEach(x=>{if(x.c&&!seen.has(x.title)){seen.add(x.title);pools[k].push(x)}}));pools[k].sort((a,b)=>dist(a)-dist(b))});
- const take=k=>{const p=pools[k];while(p.length){const x=p.shift();if(!used.has(x.title)){used.add(x.title);return x}}return null};
- const days=[];
- for(let d=0;d<n;d++){const day=[];SLOTS.forEach(k=>{const x=take(k);if(x)day.push(x)});if(day.length)days.push(day)}
+ const all=[];Object.values(DATA).forEach(l=>(l||[]).forEach(x=>{if(x&&x.c&&x.title&&!all.some(y=>y.title===x.title))all.push(x)}));
+ const T=x=>nz(x.type),C=x=>nz(x.cat0),ok=x=>!IT_BAD.test(nz(x.title));
+ const F={
+  cafe:x=>C(x)==='kafa'&&T(x)==='kafa'&&ok(x),
+  walk:x=>(['park','plaza','marina','vidikovac'].includes(T(x))||['priroda','more'].includes(C(x)))&&ok(x),
+  visit:x=>(['atrakcije','kultura'].includes(C(x))||['muzej','galerija','tvrdava','dvorac','znamenitost','atrakcija','rusevine','arheolosko nalaziste'].includes(T(x)))&&!['spomenik','memorijal'].includes(T(x))&&ok(x),
+  meal:x=>T(x)==='restoran'&&ok(x),
+  event:x=>(C(x)==='dogadjaji'||['pozoriste','bioskop','kulturni centar'].includes(T(x)))&&ok(x)};
+ /* ako nema događaja, večer završava u baru; noćni klub tek kao zadnja opcija */
+ const EV_FB=[x=>['bar','pub'].includes(T(x))&&ok(x),x=>T(x)==='nocni klub'];
+ const used=new Set(),days=[];
+ const dist=(a,b)=>a?km(a,b.c):(b.d==null?1e9:b.d);
+ for(let d=0;d<n;d++){
+  const day=[];let prev=null;
+  IT_DAY.forEach(sl=>{
+   let pool=all.filter(x=>!used.has(x.title)&&F[sl.k](x)),label=sl.label;
+   if(!pool.length&&sl.k==='event'){for(const f of EV_FB){pool=all.filter(x=>!used.has(x.title)&&f(x));if(pool.length){label='Večernje druženje';break}}}
+   if(!pool.length)return;
+   const pref=sl.pref||[];
+   pool.sort((a,b)=>{const pa=pref.includes(T(a))||pref.includes(C(a))?-0.6:0,pb=pref.includes(T(b))||pref.includes(C(b))?-0.6:0;return(dist(prev,a)+pa)-(dist(prev,b)+pb)});
+   const x=pool[0];used.add(x.title);x._it={t:sl.t,m:sl.m,label};day.push(x);prev=x.c});
+  if(day.length>=3)days.push(day);
+ }
  return days}
 const itKey=days=>'it_'+days.length+'_'+days.flat().map(x=>x.title).join('|').split('').reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
 function itSaved(k){return BZ.plans().some(p=>p.key===k)}
@@ -1056,7 +1084,7 @@ function renderItiner(){
  if(!tot){list.innerHTML=LV.empty();$('itSave').classList.add('hidden');return}
  $('itSave').classList.remove('hidden');
  list.innerHTML=days.map((day,i)=>'<div class="dayh"><b>Dan '+(i+1)+'</b><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/'+day.map(x=>x.c[0]+','+x.c[1]).join('/')+'/data=!4m2!4m1!3e2">Ruta u Google mapama</a></div>'+
-  day.map((x,j)=>'<div class="step" data-t="'+esc(x.title)+'"><img class="thumb" src="'+x.img+'" alt="'+esc(x.title)+'"><div><div class="mins">'+(j+1)+' · '+x.mins+' min</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</p></div><b>'+ic('right',18)+'</b></div>').join('')).join('');
+  day.map((x,j)=>'<div class="step" data-t="'+esc(x.title)+'"><img class="thumb" src="'+x.img+'" alt="'+esc(x.title)+'"><div><div class="mins">'+((x._it&&x._it.t)||(j+1))+' · '+((x._it&&x._it.label)||(x.mins+' min'))+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.type||'')+(x.distance?' · '+esc(x.distance):'')+'</p></div><b>'+ic('right',18)+'</b></div>').join('')).join('');
  itSaveBtn()}
 {const st=document.createElement('style');st.textContent='.dayh{display:flex;justify-content:space-between;align-items:center;margin:18px 0 2px}.dayh b{font-size:17px}.dayh a{font-size:13px;font-weight:700;color:#0e6075;text-decoration:none}.prem{display:inline-block;background:var(--yellow);color:#111;font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;font-style:normal;margin-left:6px}.itbody{padding:16px 18px 24px;background:#f8f6f3;color:#1a2328;min-height:60vh}.itnote{font-size:12px;color:#70777b;margin-top:14px;line-height:1.4}';document.head.appendChild(st)}
 $('itChips').addEventListener('click',e=>{const b=e.target.closest('.pill');if(b){MDn=+b.dataset.n;renderItiner()}});
