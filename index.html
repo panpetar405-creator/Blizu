@@ -1086,7 +1086,12 @@ async function rentEls(c,rd){
  const key='blizu_rent2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd,ch=LS.get(key,null);
  if(ch&&Date.now()-ch.t<216e5&&ch.e)return ch.e;
  const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];(nwr[amenity~"^(bicycle_rental|kick-scooter_rental|car_rental|motorcycle_rental)$"]'+A+';nwr[shop=motorcycle][rental=yes]'+A+';nwr[shop=bicycle][rental=yes]'+A+';nwr[shop=bicycle]["service:bicycle:rental"=yes]'+A+';);out center tags 200;';
- for(const u of OVP){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(tm);if(!r.ok)continue;const j=await r.json();if(j&&j.elements){LS.set(key,{t:Date.now(),e:j.elements.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});return j.elements}}catch(e){}}
+ /* svi Overpass serveri paralelno, prvi uspješan odgovor pobjeđuje; jedan ponovni krug ako svi propadnu */
+ let els=null;
+ for(let t=0;t<2&&!els;t++){if(t)await new Promise(r=>setTimeout(r,1500));els=await firstOk(OVP.map(u=>ovpPost(u,q)))}
+ if(els){const sl=els.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}));LS.set(key,{t:Date.now(),e:sl});return els}
+ /* ako uživo ne uspije, koristi stariji snimak umjesto greške */
+ if(ch&&ch.e)return ch.e;
  return null}
 async function loadRent(){
  const c=LV.me;if(!c)return;const key=c[0].toFixed(3)+','+c[1].toFixed(3);
