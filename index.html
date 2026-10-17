@@ -1181,6 +1181,14 @@ LV.cityPicker=function(msg){
 const wb=document.querySelectorAll('#welcome button');
 wb[0].onclick=()=>LV.useGps();wb[1].onclick=()=>LV.cityPicker('');
 document.querySelector('#home .location').onclick=()=>LV.cityPicker('');
+/* uvodni ekran samo prvi put: pamti izbor lokacije i sljedeći put otvara odmah početnu */
+{const SK='blizu_start',sv=o=>{try{localStorage.setItem(SK,JSON.stringify(o))}catch(e){}};
+ const _ug=LV.useGps,_pk=LV.pick;
+ LV.useGps=function(){sv({m:'gps'});_ug()};
+ LV.pick=function(i){const x=(window._lvr||[])[i];_pk(i);if(x)sv({m:'city',c:[x.latitude,x.longitude],n:lat(x.name),k:lat(x.country||'')})};
+ let st=null;try{st=JSON.parse(localStorage.getItem(SK)||'null')}catch(e){}
+ if(st&&st.m==='gps')LV.useGps();
+ else if(st&&st.m==='city'&&st.c){setLoc(st.c,st.n,st.k);go('home')}}
 /* ---- detalji mjesta: radno vrijeme, kontakt, osobine ---- */
 const DAYS={Su:0,Mo:1,Tu:2,We:3,Th:4,Fr:5,Sa:6},DN=['Su','Mo','Tu','We','Th','Fr','Sa'];
 const hm=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
