@@ -134,7 +134,8 @@ function buildPlaces(els, city, curated) {
     const key = nz(name) + '|' + k.cat; const prev = seen.get(key);
     if (prev && km(prev.c, c) < 0.15) continue;                                  // dupli unosi iz OSM-a
     const p = { name, c, d, ...k, tags: t, website: t.website || t['contact:website'] || '', note: '', tip: '', best: '', mins: 0 };
-    const cur = curated.find((x) => x.lat != null ? km([x.lat, x.lng], c) <= 0.12
+    /* ručni opisi važe samo za znamenitosti — ne za kafić ili restoran koji ima isto ime */
+    const cur = ['atrakcije', 'kultura', 'priroda', 'more'].includes(k.cat) && curated.find((x) => x.lat != null ? km([x.lat, x.lng], c) <= 0.12
       : x.near && km([x.near[0], x.near[1]], c) <= x.near[2] && x.match && new RegExp(x.match).test(nz(name)));
     if (cur) Object.assign(p, { note: cur.note || '', tip: cur.tip || '', best: cur.best || '', mins: cur.mins || 0, curated: true });
     p.score = (t.wikidata || t.wikipedia ? 3 : 0) + (p.website ? 1 : 0) + (t.opening_hours ? 0.5 : 0) + (t.tourism === 'attraction' ? 1 : 0)
@@ -249,6 +250,6 @@ for (const c of CITIES) {
   built.push(c); console.log(`  ${places.length} mjesta → stranice napravljene`);
 }
 if (built.length) { write('grad/index.html', hubPage(built)); urls.splice(1, 0, BASE + 'grad/'); }
-write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u, i) => ` <url><loc>${u}</loc><lastmod>${TODAY}</lastmod><changefreq>${i === 0 ? 'weekly' : 'monthly'}</changefreq><priority>${i === 0 ? '1.0' : u.split('/').length > 6 ? '0.6' : '0.8'}</priority></url>`).join('\n')}\n</urlset>\n`);
+write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u, i) => ` <url><loc>${u}</loc><lastmod>${TODAY}</lastmod><changefreq>${i === 0 ? 'weekly' : 'monthly'}</changefreq><priority>${i === 0 ? '1.0' : u.endsWith('/grad/') || /\/grad\/[^/]+\/$/.test(u) ? '0.8' : '0.6'}</priority></url>`).join('\n')}\n</urlset>\n`);
 if (!built.length) { console.error('GREŠKA: nijedan grad nije napravljen (nema podataka sa Overpass-a). Pogledaj poruke iznad.'); process.exit(1); }
 console.log(`Gotovo: ${urls.length} adresa u sitemap.xml (izlaz: ${OUT})`);
