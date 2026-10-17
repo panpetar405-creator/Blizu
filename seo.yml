@@ -1,0 +1,24 @@
+name: Napravi SEO stranice
+
+on:
+  workflow_dispatch:        # pokreće se ručno dugmetom "Run workflow"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generiši stranice
+        run: node tools/build-seo.mjs --refresh
+      - name: Sačuvaj promjene
+        run: |
+          git config user.name "blizu-bot"
+          git config user.email "blizu-bot@users.noreply.github.com"
+          git add grad sitemap.xml tools/cache
+          git diff --cached --quiet || (git commit -m "SEO: osvježene stranice gradova" && git push)
