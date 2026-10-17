@@ -510,7 +510,7 @@ async function netEls(c,rd){
  const ov=()=>firstOk(OVP.map(u=>ovpPost(u,q))); /* svi javni serveri uporedo, prvi odgovor pobjeđuje */
  if(!window.BLIZU_API)return ov();
  const w=workerGet(c,rd);
- const r=await Promise.race([w,new Promise(x=>setTimeout(()=>x(undefined),4000))]);
+ const r=await Promise.race([w,new Promise(x=>setTimeout(()=>x(undefined),2000))]);
  if(r)return r; /* Worker odgovorio u 4 s */
  return firstOk([w,ov()]); /* Worker spor ili pao: uključi i javne servere, ko prije */}
 async function fetchEls(c,rd,force){
@@ -528,7 +528,10 @@ async function loadPlaces(keep){
   if(it.length){LV.loading=false;LV.fail=false;setData(it);refreshView(true);photos();shown=true;oldSig=plSig(old.e)}
   else{LV.loading=true;LV.fail=false;refreshView(true)}}
  const stale=!old||Date.now()-old.t>=216e5;
- let els=await fetchEls(c,4000,shown&&stale);if(tk!==LV.tk)return;
+ /* brzi prvi prikaz: manji krug (1,5 km) paralelno sa punim; ko prvi stigne, taj se prikaže */
+ let quickDone=false;
+ if(!shown)fetchEls(c,1500).then(q=>{if(tk!==LV.tk||quickDone||!q)return;const qi=build(q);if(qi&&qi.length>=3){LV.loading=false;LV.fail=false;setData(qi);refreshView(true);photos();shown=true}}).catch(()=>{});
+ let els=await fetchEls(c,4000,shown&&stale);quickDone=true;if(tk!==LV.tk)return;
  let items=els?build(els):null;
  if(items&&items.length){
   LV.loading=false;LV.fail=false;
