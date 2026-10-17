@@ -214,6 +214,10 @@
 .rdnav{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;box-sizing:border-box}
 .rdnote{color:var(--muted);font-size:12.5px;margin:12px 2px 0}
 .mk.a{background:#1fa463}.mk.b{background:#d64545}.mk.st{background:#ffc400;color:#111}
+
+.rdi .mchips .rate{background:#fff3c4;color:#6b5200}
+.rdwhy{margin:8px 0 0;font-size:12.5px;line-height:1.35;color:#5b6b74}
+.rdnav,.rdnav:visited{text-decoration:none!important;color:#111}
 </style>
 </head>
 <body>
@@ -382,22 +386,66 @@ async function fetchAlong(r){const step=Math.max(1,Math.ceil(r.dense.length/70))
  const cl=[];cats.forEach(k=>{const g=RG[k];g[1].forEach(tag=>cl.push('nwr(around:'+Rm+','+poly+')['+tag+']'+(g[2]?'[name]':'')+';'))});
  const q='[out:json][timeout:40];('+cl.join('')+');out center tags 700;';
  return firstOk2(OVP2.map(u=>ovpPost2(u,q)))}
-function pick(r,els){const items=[];const seen=new Set();
+const DY=['Su','Mo','Tu','We','Th','Fr','Sa'];
+function openAt(oh,d){if(!oh)return null;let s=String(oh).trim();if(/24\/7/.test(s))return true;
+ if(/PH|SH|sunrise|sunset|dawn|dusk|week|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|["\[+<>]/.test(s))return null;
+ s=s.replace(/(\d)\s*,\s*(?=(?:Mo|Tu|We|Th|Fr|Sa|Su)\b)/g,'$1;');
+ const dow=d.getDay(),mn=d.getHours()*60+d.getMinutes();let res=null,any=false;
+ for(const raw of s.split(';')){const rule=raw.trim();if(!rule)continue;
+  const m=rule.match(/^((?:(?:Mo|Tu|We|Th|Fr|Sa|Su)(?:\s*-\s*(?:Mo|Tu|We|Th|Fr|Sa|Su))?\s*,?\s*)+)?(.*)$/);if(!m)return null;
+  const tp=(m[2]||'').trim();let days=[0,1,2,3,4,5,6];
+  if(m[1]){days=[];for(const tk of m[1].split(',')){const t=tk.trim();if(!t)continue;const mm=t.match(/^(Mo|Tu|We|Th|Fr|Sa|Su)(?:\s*-\s*(Mo|Tu|We|Th|Fr|Sa|Su))?$/);if(!mm)return null;const a=DY.indexOf(mm[1]),b=mm[2]?DY.indexOf(mm[2]):a;for(let i=a;;i=(i+1)%7){days.push(i);if(i===b)break}}}
+  let times=null,off=false;
+  if(/^(off|closed)$/i.test(tp))off=true;else{if(!/^\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}(\s*,\s*\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2})*$/.test(tp))return null;times=tp.split(',').map(x=>x.split('-').map(y=>{const q=y.trim().split(':');return +q[0]*60+ +q[1]}))}
+  if(!days.includes(dow)){if(times&&times.some(([a,b])=>b<=a&&mn<b&&days.includes((dow+6)%7))){any=true;res=true}continue}any=true;
+  res=off?false:times.some(([a,b])=>b<=a?(mn>=a||(mn<b&&days.includes((dow+6)%7))):(mn>=a&&mn<b))}
+ return any?res:false}
+const meal=h=>(h>=12&&h<14.75)?'ručak':(h>=18&&h<20.75)?'večeru':'';
+const fin=x=>x.sc+(x.rate?(x.rate-4)*3+Math.min(Math.log10(x.rn+1),2.5):0);
+/* KRITERIJUMI: 1) obavezni uslovi, 2) ocjena kvaliteta, 3) uklapanje u put */
+function pick(r,els){const dep=Date.now(),items=[],seen=new Set();
  for(const el of els){const t=el.tags||{},p=el.type==='node'?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
-  const g=grp(t);if(!cats.has(g))continue;const tp=tl(t);let nm=lat(t['name:sr']||t.name||'');if(!nm){if(g==='pauza')continue;nm=tp}
-  const key=nm+Math.round(p[0]*200)+Math.round(p[1]*200);if(seen.has(key))continue;seen.add(key);
-  const pr=proj(p,r),dm=pr.d*3;if(dm>det)continue;
-  items.push({title:nm,type:tp,g,c:p,s:pr.s,det:dm,sc:score(t)-dm*0.12,oh:t.opening_hours||'',web:t.website||t['contact:website']||''})}
- const n=r.len<40?2:r.len<120?3:4,a=Math.min(6,r.len*0.1),b=r.len-a,w=(b-a)/n,sel=[],used=new Set();
- for(let i=0;i<n;i++){const lo=a+i*w,hi=lo+w;const c=items.filter(x=>x.s>=lo&&x.s<hi).map(x=>({x,v:x.sc-(used.has(x.g)?1.5:0)})).sort((u,v)=>v.v-u.v)[0];if(c){sel.push(c.x);used.add(c.x.g)}}
- return{items,sel}}
+  const g=grp(t);if(!cats.has(g))continue;
+  const tp=tl(t),named=!!(t['name:sr']||t.name),free=t.tourism==='viewpoint'||t.waterway==='waterfall'||t.natural==='beach',wiki=!!(t.wikidata||t.wikipedia);
+  if(!named&&!free)continue;                                   /* ime obavezno (osim vidikovca, plaže, vodopada) */
+  if(t.natural==='peak'&&!wiki)continue;                       /* neoznačeni vrhovi ne ulaze */
+  if(g==='hrana'&&!(t.opening_hours||t.phone||t['contact:phone']||t.website||t['contact:website']||wiki))continue; /* hrana: bar jedan znak da postoji */
+  const nm=named?lat(t['name:sr']||t.name):tp,key=nm+Math.round(p[0]*200)+Math.round(p[1]*200);if(seen.has(key))continue;seen.add(key);
+  const pr=proj(p,r),dm=pr.d*3;if(dm>det)continue;             /* skretanje u granici koju je korisnik izabrao */
+  const arr=new Date(dep+r.dur*60000*(pr.s/r.len)),h=arr.getHours()+arr.getMinutes()/60;
+  const op=g==='hrana'?openAt(t.opening_hours,arr):null;if(op===false)continue; /* zatvoreno kad stigneš */
+  let sc=1+(wiki?4:0)+((t.website||t['contact:website'])?1:0)+(t.opening_hours?1:0)+((t.phone||t['contact:phone'])?.5:0)+(t.image||t.wikimedia_commons?.5:0);
+  sc+=(t.historic==='castle'||t.historic==='fort'||t.historic==='monastery')?2:t.tourism==='attraction'||t.tourism==='museum'||t.waterway==='waterfall'?1.5:t.tourism==='viewpoint'?1.5:(t.natural==='beach'||t.natural==='hot_spring'||t.natural==='cave_entrance')?1:0;
+  const ml=g==='hrana'?meal(h):'';if(ml)sc+=2.5;                 /* hrana u vrijeme obroka */
+  const sun=g==='priroda'&&t.tourism==='viewpoint'&&h>=17&&h<19.5;if(sun)sc+=1.5; /* vidikovac pred zalazak */
+  sc-=dm*0.18;                                                  /* što manje skretanja, to bolje */
+  items.push({title:nm,type:tp,g,c:p,s:pr.s,det:dm,sc,named,wiki,op,ml,sun,oh:t.opening_hours||'',web:t.website||t['contact:website']||''})}
+ const n=r.len<40?2:r.len<120?3:4,a=Math.min(6,r.len*0.1),b=r.len-a,w=(b-a)/n,buckets=[];
+ for(let i=0;i<n;i++){const lo=a+i*w,hi=lo+w;buckets.push(items.filter(x=>x.s>=lo&&x.s<hi))}
+ return{items,buckets}}
+function selectFrom(r,buckets){const sel=[],used=new Set(),gap=Math.max(5,r.len*.12);let prev=-1e9;
+ for(const bk of buckets){const c=bk.filter(x=>!x.bad&&x.s-prev>=gap).map(x=>({x,v:fin(x)-(used.has(x.g)?1.5:0)})).sort((u,v)=>v.v-u.v)[0];if(c){sel.push(c.x);used.add(c.x.g);prev=c.x.s}}
+ return sel}
+const RDL=(()=>{try{return JSON.parse(localStorage.getItem('blizu_rd1')||'{}')}catch(e){return{}}})();
+async function rateOne(x){x.rated=1;if(!window.BLIZU_API||x.g==='pauza'||!x.named)return;
+ const k=x.title+'|'+x.c[0].toFixed(4)+'|'+x.c[1].toFixed(4),c=RDL[k];let g=c&&Date.now()-c.t<6048e5?c.g:null;
+ if(!g){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),6000);const rs=await fetch(window.BLIZU_API+'/api/enrich?name='+encodeURIComponent(x.title.replace(/ \(\d+\)$/,''))+'&lat='+x.c[0]+'&lng='+x.c[1],{signal:ac.signal});clearTimeout(t);const j=await rs.json();if(j&&!j.error){g=j;RDL[k]={t:Date.now(),g};try{localStorage.setItem('blizu_rd1',JSON.stringify(RDL))}catch(e){}}}catch(e){}}
+ if(g&&g.rating){x.rate=g.rating;x.rn=g.n||0}}
+async function refine(r,pk){let sel=selectFrom(r,pk.buckets);
+ for(let k=0;k<3;k++){await Promise.all(sel.filter(x=>!x.rated).map(rateOne));let ch=false;
+  sel.forEach(x=>{if(x.rate&&x.rn>=10&&x.rate<3.8&&!x.bad){x.bad=true;ch=true}});    /* loša ocjena: zamijeni drugim kandidatom */
+  if(!ch)break;sel=selectFrom(r,pk.buckets)}
+ return sel}
+function why(x){const w=[];if(x.rate)w.push('Ocjena '+x.rate.toFixed(1).replace('.',',')+' · '+x.rn+' recenzija');
+ if(x.ml)w.push('Pravo vrijeme za '+x.ml);if(x.sun)w.push('Lijep pogled pred zalazak');if(x.op===true)w.push('Otvoreno kad stigneš');
+ if(x.wiki)w.push('Poznato mjesto');w.push(x.det<=3?'Gotovo na putu':'Skretanje samo '+Math.max(1,Math.round(x.det))+' min');return w.slice(0,3).join(' · ')}
 function gmaps(){const wp=ST.sel.map(x=>x.c[0].toFixed(5)+','+x.c[1].toFixed(5)).join('|');return 'https://www.google.com/maps/dir/?api=1&origin='+A.c[0]+','+A.c[1]+'&destination='+B.c[0]+','+B.c[1]+(wp?'&waypoints='+encodeURIComponent(wp):'')+'&travelmode=driving'}
 function paint(){const r=ST.r,sel=ST.sel.slice().sort((u,v)=>u.s-v.s);ST.sel=sel;const extra=sel.reduce((n,x)=>n+x.det,0);
  if(window._rdm){try{window._rdm.remove()}catch(e){}window._rdm=null}
  out.innerHTML='<div class="rdsum"><b>'+Math.round(r.dist)+' km · '+fmt(r.dur)+'</b><span>'+(sel.length?'Stanice dodaju oko '+fmt(extra)+' vožnje (bez zadržavanja)':'Nema stanica koje odgovaraju')+'</span>'+(r.approx?'<em>Ruta je približna (nisam uspio da dobijem put). Mapa pokazuje pravu liniju.</em>':'')+'</div><div id="rdMap" class="rdmap"></div>'
- +sel.map((x,i)=>'<div class="rdcard"><b class="rdn">'+(i+1)+'</b><div class="rdi"><h3>'+esc(x.title)+'</h3><div class="mchips"><span>'+esc(x.type)+'</span><span>+'+Math.max(1,Math.round(x.det))+' min skretanja</span><span>km '+Math.round(x.s)+'</span>'+(x.oh&&x.oh.length<40?'<span>'+esc(x.oh)+'</span>':'')+'</div></div><button type="button" class="rdx" data-i="'+i+'" aria-label="Izbaci">×</button></div>').join('')
+ +sel.map((x,i)=>'<div class="rdcard"><b class="rdn">'+(i+1)+'</b><div class="rdi"><h3>'+esc(x.title)+'</h3><div class="mchips"><span>'+esc(x.type)+'</span><span>+'+Math.max(1,Math.round(x.det))+' min skretanja</span><span>km '+Math.round(x.s)+'</span>'+(x.rate?'<span class="rate">★ '+x.rate.toFixed(1).replace('.',',')+' ('+x.rn+')</span>':'')+'</div><p class="rdwhy">'+esc(why(x))+'</p></div><button type="button" class="rdx" data-i="'+i+'" aria-label="Izbaci">×</button></div>').join('')
  +(sel.length?'<a class="primary rdnav" target="_blank" rel="noopener" href="'+gmaps()+'">'+ic('nav',17)+' Navigiraj sa stanicama</a>':'')
- +'<p class="rdnote">Predlozi dolaze iz OpenStreetMap-a. Radno vrijeme i otvorenost provjeri prije polaska.</p>';
+ +'<p class="rdnote">Biramo mjesta koja su blizu puta, poznata i, kad je poznato, otvorena kad stigneš i dobro ocijenjena. Radno vrijeme provjeri prije polaska.</p>';
  out.querySelectorAll('.rdx').forEach(b=>b.onclick=()=>{ST.sel.splice(+b.dataset.i,1);paint()});
  loadLeaflet(()=>{const el=$('rdMap');if(!el||el._leaflet_id)return;const m=L.map(el,{zoomControl:false});window._rdm=m;
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(m);L.control.zoom({position:'bottomright'}).addTo(m);
@@ -410,7 +458,7 @@ async function go2(){sug.hidden=true;out.innerHTML=loader('Računamo rutu…');
   if(r.len>600){out.innerHTML='<p class="rdnote">Ruta je predugačka za prijedloge (preko 600 km). Probaj kraću dionicu.</p>';return}
   out.innerHTML=loader('Tražimo stanice usput…');const els=await fetchAlong(r);
   if(!els){out.innerHTML='<p class="rdnote">Ne mogu da dohvatim mjesta usput. Probaj ponovo za koji trenutak.</p>';return}
-  const pk=pick(r,els);ST={r,items:pk.items,sel:pk.sel};paint()}
+  const pk=pick(r,els);out.innerHTML=loader('Provjeravamo ocjene…');const sel=await refine(r,pk);if(!sel.length){out.innerHTML='<p class="rdnote">Nema mjesta koja ispunjavaju kriterijume. Povećaj dozvoljeno skretanje ili dodaj još kategorija.</p>';return}ST={r,items:pk.items,sel};paint()}
  catch(e){out.innerHTML='<p class="rdnote">'+esc(e&&e.message?e.message:'Nešto nije u redu. Probaj ponovo.')+'</p>'}}
 $('rdGo').onclick=go2}
 /* hardverski taster / gest nazad (Android) vraća na prethodni ekran umjesto da zatvori aplikaciju */
