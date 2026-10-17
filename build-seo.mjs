@@ -179,11 +179,11 @@ function planEvening(places) { return sequence(places, [
   { f: F.meal, m: 90, label: 'Večera', min: 1110 }, { f: (p) => F.event(p) || F.bar(p), m: 90, label: 'Piće ili program', min: 1230 }], 1050); }
 
 /* ===== HTML ===== */
-const CSS = `:root{--navy:#002f3a;--teal:#12647a;--yellow:#ff6f70;--cream:#faf7f0;--ink:#13212a;--muted:#5a6e85}*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream)}
-header{background:var(--navy);color:#fff;padding:14px 18px}header a{color:#fff;text-decoration:none;font-weight:800;font-size:20px}header span{color:var(--yellow)}
+const CSS = `:root{--navy:#082b36;--teal:#12647a;--yellow:#f26b3a;--sun:#ffc83d;--cream:#f6f1e7;--ink:#14262e;--muted:#4a5d6b}*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream)}
+header{background:var(--navy);color:#fff;padding:14px 18px}header a{color:#fff;text-decoration:none;font-weight:800;font-size:20px}header span{color:var(--sun)}
 main{max-width:760px;margin:0 auto;padding:18px}nav.bc{font-size:13px;color:var(--muted);margin-bottom:10px}nav.bc a{color:var(--teal)}h1{font-size:30px;line-height:1.15;margin:6px 0 10px;color:var(--navy)}h2{font-size:22px;margin:28px 0 10px;color:var(--navy)}
-.lead{font-size:18px;color:#2b3a43}.cta{display:inline-block;background:var(--yellow);color:#002f3a;font-weight:800;padding:13px 22px;border-radius:999px;text-decoration:none;margin:14px 0}
-ol.plan{list-style:none;padding:0;margin:0}ol.plan li{background:#fff;border-radius:16px;padding:14px 16px;margin:0 0 10px;box-shadow:0 1px 4px #0001}ol.plan .t{font-weight:800;color:#b3403f}ol.plan .w{font-size:13px;color:var(--muted)}
+.lead{font-size:18px;color:#2b3a43}.cta{display:inline-block;background:var(--yellow);color:#082b36;font-weight:800;padding:13px 22px;border-radius:999px;text-decoration:none;margin:14px 0}
+ol.plan{list-style:none;padding:0;margin:0}ol.plan li{background:#fff;border-radius:16px;padding:14px 16px;margin:0 0 10px;box-shadow:0 1px 4px #0001}ol.plan .t{font-weight:800;color:#b93f18}ol.plan .w{font-size:13px;color:var(--muted)}
 ul.places{padding:0;list-style:none;margin:0}ul.places li{background:#fff;border-radius:14px;padding:11px 14px;margin:0 0 8px}ul.places small,.note{color:var(--muted)}.note{display:block;font-size:14px;margin-top:2px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chips a{background:#fff;border:1.5px solid #dfe4e7;border-radius:999px;padding:7px 14px;text-decoration:none;color:var(--teal);font-weight:700;font-size:14px}
 footer{max-width:760px;margin:30px auto;padding:0 18px 30px;font-size:13px;color:var(--muted)}a{color:var(--teal)}`;
@@ -194,7 +194,7 @@ function shell({ title, desc, url, body, ld }) {
 <title>${esc(title)} | Blizu</title><meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Blizu"><meta property="og:locale" content="sr_ME"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${BASE}img/og-image.jpg">
-<meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#002f3a"><link rel="icon" href="${BASE}icons/icon-round-192.png">
+<meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#082b36"><link rel="icon" href="${BASE}icons/icon-round-192.png">
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script><style>${CSS}</style></head>
 <body><header><a href="${BASE}">Bli<span>zu</span></a></header><main>${body}</main>
 <footer>Podaci o mjestima: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap doprinosioci</a>. Radno vrijeme i dostupnost mogu se razlikovati — provjeri prije polaska.</footer></body></html>`;
