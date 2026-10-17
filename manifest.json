@@ -1,1 +1,44 @@
-{"name":"BLIZU","short_name":"BLIZU","start_url":"./index.html","display":"standalone","background_color":"#082a42","theme_color":"#082a42","lang":"sr","icons":[{"src":"icons/icon-round-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"icons/icon-round-512.png","sizes":"512x512","type":"image/png","purpose":"any"},{"src":"icons/icon-maskable-192.png","sizes":"192x192","type":"image/png","purpose":"maskable"},{"src":"icons/icon-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
+{
+ "name": "BLIZU",
+ "short_name": "BLIZU",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#082a42",
+ "theme_color": "#082a42",
+ "lang": "sr",
+ "icons": [
+  {
+   "src": "icons/icon-round-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-round-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icons/icon-maskable-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "maskable"
+  },
+  {
+   "src": "icons/icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "id": "./",
+ "scope": "./",
+ "description": "Blizu je lokalni vodič za Crnu Goru: reci koliko vremena imaš i dobij gotov plan sa mjestima za hranu, kafu, atrakcije, kulturu, prirodu i događaje u blizini. Otvoreno sada, iznajmljivanje bicikala, skutera i auta, višednevni itinerar.",
+ "categories": [
+  "travel",
+  "lifestyle",
+  "navigation"
+ ],
+ "orientation": "portrait"
+}
