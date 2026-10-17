@@ -66,21 +66,29 @@ const mapsUrl = (p) => `https://www.openstreetmap.org/?mlat=${p.c[0].toFixed(5)}
 const write = (rel, html) => { const f = path.join(OUT, rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, html); };
 
 /* ===== PODACI ===== */
-const OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+const OVP = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 const QS = 'nwr@[amenity~"^(restaurant|cafe|bar|pub|ice_cream|theatre|cinema|arts_centre|nightclub)$"][name];nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];';
 
 async function fetchOverpass(c) {
   const A = `(around:${c.r},${c.lat},${c.lng})`;
   const q = `[out:json][timeout:60];(${QS.replace(/@/g, A)});out center tags 800;`;
-  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: AbortSignal.timeout(70000) })
-    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(u + ' ' + r.status)))).then((j) => (j.elements?.length ? j.elements : Promise.reject(new Error('prazno'))));
-  return Promise.any(OVP.map(tryOne));
+  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'BlizuSEO/1.0 (+https://github.com/panpetar405-creator/Blizu)' }, signal: AbortSignal.timeout(75000) })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${new URL(u).host}: HTTP ${r.status}`)))).then((j) => (j.elements?.length ? j.elements : Promise.reject(new Error(`${new URL(u).host}: prazan odgovor`))))
+    .catch((e) => Promise.reject(e.name === 'TimeoutError' ? new Error(`${new URL(u).host}: istekao rok`) : e));
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try { return await Promise.any(OVP.map(tryOne)); }
+    catch (e) {
+      console.warn(`  pokušaj ${attempt}/3 neuspješan:`, (e.errors || [e]).map((x) => x.message).join(' | '));
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 10000 * attempt));
+    }
+  }
+  return null;
 }
 async function getElements(c) {
   const f = path.join(CACHE, c.slug + '.json');
   if (!REFRESH && fs.existsSync(f)) return JSON.parse(fs.readFileSync(f, 'utf8'));
   console.log('  povlačim OSM podatke za', c.name, '…');
-  const els = await fetchOverpass(c).catch((e) => { console.warn('  ! neuspjelo:', e.message); return null; });
+  const els = await fetchOverpass(c);
   if (els) { fs.mkdirSync(CACHE, { recursive: true }); fs.writeFileSync(f, JSON.stringify(els)); }
   return els;
 }
@@ -242,4 +250,5 @@ for (const c of CITIES) {
 }
 if (built.length) { write('grad/index.html', hubPage(built)); urls.splice(1, 0, BASE + 'grad/'); }
 write('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u, i) => ` <url><loc>${u}</loc><lastmod>${TODAY}</lastmod><changefreq>${i === 0 ? 'weekly' : 'monthly'}</changefreq><priority>${i === 0 ? '1.0' : u.split('/').length > 6 ? '0.6' : '0.8'}</priority></url>`).join('\n')}\n</urlset>\n`);
+if (!built.length) { console.error('GREŠKA: nijedan grad nije napravljen (nema podataka sa Overpass-a). Pogledaj poruke iznad.'); process.exit(1); }
 console.log(`Gotovo: ${urls.length} adresa u sitemap.xml (izlaz: ${OUT})`);
