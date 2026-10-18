@@ -127,11 +127,14 @@ async function plan(){
   btn.textContent="Tražim adrese…";A=await resolve($("#fa"));B=await resolve($("#fb"));
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
-  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),n=Math.min(8,Math.max(1,Math.ceil(D/20))),r=Math.min(12000,Math.max(500,(reach+D/n/2)*1000));
-  const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],jobs=[];
-  for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;for(const c of cats)jobs.push(fetch(`${API}/api/places?lat=${line[j][0]}&lng=${line[j][1]}&r=${Math.round(r)}&cat=${c}`).then(x=>x.ok?x.json():{elements:[]}).catch(()=>({elements:[]})))}
+  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.round(rk*1000);
+  const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],urls=[];
+  for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;for(const c of cats)urls.push(`${API}/api/places?lat=${line[j][0]}&lng=${line[j][1]}&r=${r}&cat=${c}`)}
   btn.textContent="Tražim mjesta duž puta…";
-  const els=(await Promise.all(jobs)).flatMap(x=>x.elements||[]);
+  const res=[];for(let i=0;i<urls.length;i+=6)res.push(...await Promise.all(urls.slice(i,i+6).map(u=>fetch(u).then(x=>x.ok?x.json():{err:1,elements:[]}).catch(()=>({err:1,elements:[]})))));
+  const fails=res.filter(x=>x.err).length;
+  if(fails==res.length)throw Error("Server za mjesta (Worker) ne odgovara. Provjeri da je Worker postavljen i da radi /api/places.");
+  const els=res.flatMap(x=>x.elements||[]);
   cm=new Map();const names=new Set();
   for(const el of els){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||!want.has(c))continue;const id=el.type[0]+el.id;if(cm.has(id)||names.has(t.name+c))continue;
    const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
@@ -139,7 +142,7 @@ async function plan(){
    const est=Math.max(2,Math.round(2*d*1.35/spd*60)),nt=(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
    names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,v:CATS[c].v,sc:nt-est/extra*1.2})}
   const all=[...cm.values()].sort((a,b)=>b.sc-a.sc);
-  if(!all.length)throw Error("Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
+  if(!all.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
   const pick=[],cc={};for(const c of all){if(pick.length>=4)break;if((cc[c.c]||0)>=2||pick.some(p=>Math.abs(p.f-c.f)<.08))continue;pick.push(c);cc[c.c]=(cc[c.c]||0)+1}
   sel=new Set(pick.map(c=>c.id));opts=[...new Set([...pick,...all.slice(0,14)])].sort((a,b)=>b.sc-a.sc);
   go("res");if(!map){map=L.map("map",{zoomControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);layer=L.layerGroup().addTo(map)}
