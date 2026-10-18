@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="sr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8"><link rel="preconnect" href="https://overpass-api.de" crossorigin><link rel="preconnect" href="https://commons.wikimedia.org" crossorigin><link rel="preconnect" href="https://upload.wikimedia.org" crossorigin><link rel="dns-prefetch" href="https://www.wikidata.org"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#082a42"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" href="icons/icon-round-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><title>Blizu — tvoj vodič</title>
 <style>
 :root{--navy:#062b3a;--navy2:#0b4052;--teal:#12647a;--yellow:#ffc400;--cream:#f7f5f2;--ink:#13212a;--muted:#71808a;--white:#fff;--line:#dfe2e4;--radius:24px}
@@ -737,6 +737,9 @@ function refreshDist(){
  window.rebuildAll&&window.rebuildAll();
 }
 /* ---- dohvat mjesta ---- */
+/* mrežni profil: wi-fi/4G = brzo, sporo/3G/štednja podataka = lakši upiti */
+const NET=(()=>{const g=()=>navigator.connection||navigator.mozConnection||{};return{slow:()=>{const c=g();return !!(c.saveData||/^(slow-2g|2g|3g)$/.test(c.effectiveType||'')||(c.downlink&&c.downlink<1.2)||(c.rtt&&c.rtt>800))},save:()=>!!g().saveData}})();
+const RD0=()=>NET.slow()?2500:4000;
 const OVP=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 const QS='nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream|theatre|cinema|arts_centre|nightclub)$"][name];nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];';
 const plKey=(c,rd)=>'blizu_pl2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd;
@@ -744,18 +747,18 @@ const plGet=(c,rd)=>{const ch=LS.get(plKey(c,rd),null);return ch&&ch.e&&ch.e.len
 const plSig=els=>(els||[]).map(e=>e.type[0]+e.id).join(',');
 /* vrati prvi uspješan (istinit) rezultat; null tek kad svi propadnu */
 function firstOk(ps){return new Promise(res=>{let n=ps.length;if(!n)return res(null);ps.forEach(p=>p.then(v=>{if(v)res(v);else if(--n===0)res(null)},()=>{if(--n===0)res(null)}))})}
-function ovpPost(u,q){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);
+function ovpPost(u,q){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),NET.slow()?25000:12000);
  fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal})
   .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
-function workerGet(c,rd){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
+function workerGet(c,rd){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),NET.slow()?20000:10000);
  fetch(window.BLIZU_API+'/api/places?lat='+c[0].toFixed(4)+'&lng='+c[1].toFixed(4)+'&r='+rd+'&cat=sve',{signal:ac.signal})
   .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
 async function netEls(c,rd){
- const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];('+QS.replace(/@/g,A)+');out center tags 400;';
- const ov=()=>firstOk(OVP.map(u=>ovpPost(u,q))); /* svi javni serveri uporedo, prvi odgovor pobjeđuje */
+ const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];('+QS.replace(/@/g,A)+');out center tags '+(NET.slow()?200:400)+';';
+ const ov=()=>firstOk(OVP.slice(0,NET.slow()?2:4).map(u=>ovpPost(u,q))); /* svi javni serveri uporedo, prvi odgovor pobjeđuje */
  if(!window.BLIZU_API)return ov();
  const w=workerGet(c,rd);
- const r=await Promise.race([w,new Promise(x=>setTimeout(()=>x(undefined),4000))]);
+ const r=await Promise.race([w,new Promise(x=>setTimeout(()=>x(undefined),NET.slow()?6000:2000))]);
  if(r)return r; /* Worker odgovorio u 4 s */
  return firstOk([w,ov()]); /* Worker spor ili pao: uključi i javne servere, ko prije */}
 async function fetchEls(c,rd,force){
@@ -766,14 +769,14 @@ async function fetchEls(c,rd,force){
  return els||(ch?ch.e:null)} /* ako mreža ne uspije, bolji je stari keš nego greška */
 async function loadPlaces(keep){
  const tk=++LV.tk,c=LV.me;if(!c)return;loadWx(c);
- const old=plGet(c,4000);let shown=false,oldSig='';
+ const old=plGet(c,RD0());let shown=false,oldSig='';
  if(!keep){
   /* stale-while-revalidate: odmah prikaži snimljenu listu, a osvježi u pozadini */
   const it=old?build(old.e):[];
   if(it.length){LV.loading=false;LV.fail=false;setData(it);refreshView(true);photos();shown=true;oldSig=plSig(old.e)}
   else{LV.loading=true;LV.fail=false;refreshView(true)}}
  const stale=!old||Date.now()-old.t>=216e5;
- let els=await fetchEls(c,4000,shown&&stale);if(tk!==LV.tk)return;
+ let els=await fetchEls(c,RD0(),shown&&stale);if(tk!==LV.tk)return;
  let items=els?build(els):null;
  if(items&&items.length){
   LV.loading=false;LV.fail=false;
@@ -813,17 +816,17 @@ const PHC=LS.get('blizu_ph4',{});let bt=0;
 function bump(){clearTimeout(bt);bt=setTimeout(()=>{const a=document.querySelector('.screen.active');if(a&&a.id==='discover'&&window.renderDiscover)renderDiscover();else if(a&&a.id==='plan'&&window.renderPlan)renderPlan();else if(a&&a.id==='itiner'&&window.renderItiner)renderItiner()},900)}
 function setPh(x,u){const im=new Image();im.onload=()=>{x.img=u;bump();headPhotos()};im.src=u}
 function photos(){
- const list=uniq().filter(x=>!x._hasImg).slice(0,30);let i=0;
+ if(NET.save())return;const list=uniq().filter(x=>!x._hasImg).slice(0,NET.slow()?14:30);let i=0;
  const fn=async x=>{
   if(PHC[x.id]!==undefined){if(PHC[x.id])setPh(x,PHC[x.id]);return}
   let u='';
   try{
-   if(x._wd){const j=await (await fetch('https://www.wikidata.org/w/api.php?action=wbgetclaims&entity='+x._wd+'&property=P18&format=json&origin=*')).json();const v=j.claims&&j.claims.P18&&j.claims.P18[0]&&j.claims.P18[0].mainsnak.datavalue.value;if(v)u='https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(v)+'?width=640'}
-   if(!u&&x.cat0!=='Hrana'&&x.cat0!=='Kafa'){for(const lg of['sr','en']){const j=await (await fetch('https://'+lg+'.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord='+x.c[0]+'%7C'+x.c[1]+'&ggsradius=100&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*')).json(),q=j.query&&j.query.pages;if(q){u=(q[Object.keys(q)[0]].thumbnail||{}).source||'';if(u)break}}}
+   if(x._wd){const j=await (await fetch('https://www.wikidata.org/w/api.php?action=wbgetclaims&entity='+x._wd+'&property=P18&format=json&origin=*')).json();const v=j.claims&&j.claims.P18&&j.claims.P18[0]&&j.claims.P18[0].mainsnak.datavalue.value;if(v)u='https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(v)+'?width='+(NET.slow()?360:640)}
+   if(!u&&!NET.slow()&&x.cat0!=='Hrana'&&x.cat0!=='Kafa'){for(const lg of['sr','en']){const j=await (await fetch('https://'+lg+'.wikipedia.org/w/api.php?action=query&generator=geosearch&ggscoord='+x.c[0]+'%7C'+x.c[1]+'&ggsradius=100&ggslimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*')).json(),q=j.query&&j.query.pages;if(q){u=(q[Object.keys(q)[0]].thumbnail||{}).source||'';if(u)break}}}
   }catch(e){}
   PHC[x.id]=u;LS.set('blizu_ph4',PHC);if(u)setPh(x,u)};
  const worker=async()=>{while(i<list.length){const x=list[i++];await fn(x)}};
- worker();worker();worker()}
+ worker();worker();if(!NET.slow())worker()}
 /* ---- prikaz ---- */
 function refreshView(force){
  const a=document.querySelector('.screen.active');if(!a)return;const id=a.id,y=window.scrollY;
@@ -1188,9 +1191,10 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden||!LV.gps||!
 LV.useGps=function(){
  if(!navigator.geolocation){LV.cityPicker('Uređaj ne podržava lokaciju – izaberi grad.');return}
  LV.city='Tražim lokaciju…';LV.country='';updateLabel();go('home');
- navigator.geolocation.getCurrentPosition(p=>{LV.gps=true;setLoc([p.coords.latitude,p.coords.longitude],'Tvoja okolina','');watch();rev(LV.me)},
-  e=>{LV.gps=false;LV.city='';updateLabel();LV.cityPicker(e&&e.code===1?'Pristup lokaciji je odbijen – izaberi grad ručno.':'Lokacija nije dostupna – izaberi grad ručno.')},
-  {enableHighAccuracy:true,maximumAge:0,timeout:15000})};
+ const okp=p=>{LV.gps=true;setLoc([p.coords.latitude,p.coords.longitude],'Tvoja okolina','');watch();rev(LV.me)},
+  bad=e=>{LV.gps=false;LV.city='';updateLabel();LV.cityPicker(e&&e.code===1?'Pristup lokaciji je odbijen – izaberi grad ručno.':'Lokacija nije dostupna – izaberi grad ručno.')};
+ /* prvo brza lokacija (do 2 min stara, bez GPS čipa), a precizna samo ako brza ne uspije */
+ navigator.geolocation.getCurrentPosition(okp,e=>{if(e&&e.code===1)return bad(e);navigator.geolocation.getCurrentPosition(okp,bad,{enableHighAccuracy:true,maximumAge:0,timeout:15000})},{enableHighAccuracy:false,maximumAge:120000,timeout:6000})};
 LV.pick=function(i){const x=(window._lvr||[])[i];if(!x)return;stopWatch();LV.gps=false;closeSheet();setLoc([x.latitude,x.longitude],lat(x.name),lat(x.country||''));go('home')};
 function closeSheet(){const s=$('sheet');if(s)s.classList.remove('on')}
 LV.cityPicker=function(msg){
@@ -1209,7 +1213,9 @@ document.querySelector('#home .location').onclick=()=>LV.cityPicker('');
  LV.useGps=function(){sv({m:'gps'});_ug()};
  LV.pick=function(i){const x=(window._lvr||[])[i];_pk(i);if(x)sv({m:'city',c:[x.latitude,x.longitude],n:lat(x.name),k:lat(x.country||'')})};
  let st=null;try{st=JSON.parse(localStorage.getItem(SK)||'null')}catch(e){}
- if(st&&st.m==='gps')LV.useGps();
+ const _sl=setLoc;setLoc=function(c,n,k){_sl(c,n,k);if(LV.gps)sv({m:'gps',c:c})};
+ try{if(window.BLIZU_API){const l=document.createElement('link');l.rel='preconnect';l.href=new URL(window.BLIZU_API).origin;l.crossOrigin='';document.head.appendChild(l)}}catch(e){}
+ if(st&&st.m==='gps'){if(st.c){_sl(st.c,'Tvoja okolina','');go('home')}LV.useGps()}
  else if(st&&st.m==='city'&&st.c){setLoc(st.c,st.n,st.k);go('home')}}
 /* ---- detalji mjesta: radno vrijeme, kontakt, osobine ---- */
 const DAYS={Su:0,Mo:1,Tu:2,We:3,Th:4,Fr:5,Sa:6},DN=['Su','Mo','Tu','We','Th','Fr','Sa'];
