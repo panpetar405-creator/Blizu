@@ -5,4 +5,3 @@ Disallow: /Blizu/index-kotor-maketa.html
 Disallow: /Blizu/index-zeleni-stari.html
 Disallow: /Blizu/index.html.bak
 
-Sitemap: https://panpetar405-creator.github.io/Blizu/sitemap.xml

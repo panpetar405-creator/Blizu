@@ -1,6 +1,6 @@
 {
- "name": "BLIZU",
- "short_name": "BLIZU",
+ "name": "Putni Doživljaji",
+ "short_name": "Putni",
  "start_url": "./",
  "display": "standalone",
  "background_color": "#082b36",
@@ -34,7 +34,7 @@
  ],
  "id": "./",
  "scope": "./",
- "description": "Blizu je lokalni vodič za Crnu Goru: reci koliko vremena imaš i dobij gotov plan sa mjestima za hranu, kafu, atrakcije, kulturu, prirodu i događaje u blizini. Otvoreno sada, iznajmljivanje bicikala, skutera i auta, višednevni itinerar.",
+ "description": "Putuješ od A do B? Pronađi šta vrijedi doživjeti usput: hrana, vidikovci, priroda, kultura i istorija.",
  "categories": [
   "travel",
   "lifestyle",
