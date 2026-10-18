@@ -1235,7 +1235,7 @@ document.querySelector('#home .location').onclick=()=>LV.cityPicker('');
  LV.useGps=function(){sv({m:'gps'});_ug()};
  LV.pick=function(i){const x=(window._lvr||[])[i];_pk(i);if(x)sv({m:'city',c:[x.latitude,x.longitude],n:lat(x.name),k:lat(x.country||'')})};
  let st=null;try{st=JSON.parse(localStorage.getItem(SK)||'null')}catch(e){}
- const _sl=setLoc;setLoc=function(c,n,k){_sl(c,n,k);if(LV.gps)sv({m:'gps',c:c})};
+ const _sl=setLoc;setLoc=function(c,n,k){_sl(c,n,k);if(LV.gps)sv({m:'gps',c:c});try{if(!(navigator.connection||{}).saveData)setTimeout(()=>{try{loadRent()}catch(e){}},3500)}catch(e){}};
  try{if(window.BLIZU_API){const l=document.createElement('link');l.rel='preconnect';l.href=new URL(window.BLIZU_API).origin;l.crossOrigin='';document.head.appendChild(l)}}catch(e){}
  if(st&&st.m==='gps'){if(st.c){_sl(st.c,'Tvoja okolina','');go('home')}LV.useGps()}
  else if(st&&st.m==='city'&&st.c){setLoc(st.c,st.n,st.k);go('home')}}
@@ -1373,19 +1373,25 @@ function buildRent(els,me){
    _oh:t.opening_hours||'',_phone:t.phone||t['contact:phone']||'',_web:t.website||t['contact:website']||t.url||'',
    _addr:[((t['addr:street']||'')+' '+(t['addr:housenumber']||'')).trim(),t['addr:city']||''].filter(Boolean).join(', '),_cuisine:'',_feats:[]})}
  return out.sort((a,b)=>(a.d==null?1e9:a.d)-(b.d==null?1e9:b.d))}
+function rentPost(u,q){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements&&!(j.remark&&/error|timed out|out of memory|runtime|rate.?limit|too many/i.test(j.remark))?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
+/* prvi server odmah; sljedeći se uključuje tek ako sporo odgovara ili padne (a ne svi odjednom, ni jedan za drugim) */
+function rentHedged(q){return new Promise(res=>{let done=false,left=OVP.length;const f=[],fin=v=>{if(!done){done=true;res(v)}};
+ const fire=i=>{if(done||f[i]||i>=OVP.length)return;f[i]=1;rentPost(OVP[i],q).then(v=>{if(v)fin(v);else if(--left===0)fin(null);else fire(f.length)})};
+ fire(0);OVP.forEach((_,i)=>{if(i)setTimeout(()=>fire(i),i*2500)})})}
 async function rentEls(c,rd){
- const key='blizu_rent2_'+c[0].toFixed(3)+'_'+c[1].toFixed(3)+'_'+rd,ch=LS.get(key,null);
- if(ch&&Date.now()-ch.t<216e5&&ch.e)return ch.e;
- const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];(nwr[amenity~"^(bicycle_rental|kick-scooter_rental|car_rental|motorcycle_rental)$"]'+A+';nwr[shop=motorcycle][rental=yes]'+A+';nwr[shop=bicycle][rental=yes]'+A+';nwr[shop=bicycle]["service:bicycle:rental"=yes]'+A+';);out center tags 200;';
- for(const u of OVP){try{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),15000);const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal});clearTimeout(tm);if(!r.ok)continue;const j=await r.json();if(j&&j.elements){LS.set(key,{t:Date.now(),e:j.elements.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});return j.elements}}catch(e){}}
- return null}
+ const key='blizu_rent3_'+c[0].toFixed(2)+'_'+c[1].toFixed(2)+'_'+rd,ch=LS.get(key,null);
+ if(ch&&ch.e&&Date.now()-ch.t<216e5)return ch.e;
+ const A='(around:'+rd+','+c[0]+','+c[1]+')',q='[out:json][timeout:25];(nwr[amenity~"^(bicycle_rental|kick-scooter_rental|car_rental|motorcycle_rental)$"]'+A+';nwr[shop=motorcycle][rental=yes]'+A+';nwr[shop=bicycle][rental=yes]'+A+';nwr[shop=bicycle]["service:bicycle:rental"=yes]'+A+';);out center tags 400;';
+ const fresh=()=>rentHedged(q).then(v=>{if(v&&v.length)LS.set(key,{t:Date.now(),e:v.map(e=>({type:e.type,id:e.id,lat:e.lat,lon:e.lon,center:e.center,tags:e.tags}))});return v});
+ if(ch&&ch.e){fresh().catch(()=>{});return ch.e}   /* stari zapis se prikaže odmah, a osvježi se u pozadini */
+ return await fresh()}
 async function loadRent(){
  const c=LV.me;if(!c)return;const key=c[0].toFixed(3)+','+c[1].toFixed(3);
  if(RENT.key===key&&(RENT.items.length||RENT.loading))return;
  const tk=++RENT.tk;RENT.key=key;RENT.loading=true;RENT.fail=false;renderRent();
- let els=await rentEls(c,8000);if(tk!==RENT.tk)return;
- let items=els?buildRent(els,c):null;
- if(els&&items.length<3){const e2=await rentEls(c,25000);if(tk!==RENT.tk)return;if(e2){const i2=buildRent(e2,c);if(i2.length>items.length)items=i2}}
+ let els=await rentEls(c,25000);if(tk!==RENT.tk)return;
+ if(!els){await new Promise(r=>setTimeout(r,1200));if(tk!==RENT.tk)return;els=await rentEls(c,25000);if(tk!==RENT.tk)return}
+ const items=els?buildRent(els,c):null;
  RENT.loading=false;if(!items){RENT.fail=true;RENT.key='';RENT.items=[]}else RENT.items=items;
  renderRent()}
 function renderRent(){
