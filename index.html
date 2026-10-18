@@ -131,9 +131,9 @@ async function plan(){
   const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],urls=[];
   for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;for(const c of cats)urls.push(`${API}/api/places?lat=${line[j][0]}&lng=${line[j][1]}&r=${r}&cat=${c}`)}
   btn.textContent="Tražim mjesta duž puta…";
-  const res=[];for(let i=0;i<urls.length;i+=6)res.push(...await Promise.all(urls.slice(i,i+6).map(u=>fetch(u).then(x=>x.ok?x.json():{err:1,elements:[]}).catch(()=>({err:1,elements:[]})))));
+  let why="";const res=[];for(let i=0;i<urls.length;i+=6)res.push(...await Promise.all(urls.slice(i,i+6).map(u=>fetch(u).then(x=>x.ok?x.json():(why=why||"HTTP "+x.status,{err:1,elements:[]})).catch(e=>(why=why||"mreža/CORS: "+e.message,{err:1,elements:[]})))));
   const fails=res.filter(x=>x.err).length;
-  if(fails==res.length)throw Error("Server za mjesta (Worker) ne odgovara. Provjeri da je Worker postavljen i da radi /api/places.");
+  if(fails==res.length)throw Error("Server za mjesta (Worker) ne odgovara. Provjeri da je Worker postavljen i da radi /api/places. ["+why+"] "+API);
   const els=res.flatMap(x=>x.elements||[]);
   cm=new Map();const names=new Set();
   for(const el of els){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||!want.has(c))continue;const id=el.type[0]+el.id;if(cm.has(id)||names.has(t.name+c))continue;
