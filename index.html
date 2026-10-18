@@ -455,7 +455,10 @@ const ensure=async w=>{const pt=w==='A'?A:B,inp=w==='A'?rA:rB;if(pt)return pt;co
 const loader=t=>'<div class="rdload"><div class="loader-radar"><span class="loader-core"><svg viewBox="0 0 24 24"><path fill="#ffc233" stroke="none" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle fill="#082a42" stroke="none" cx="12" cy="10" r="3"/></svg></span><i class="loader-orbit"></i></div><h3 class="loader-title">'+t+'</h3></div>';
 const fmt=m=>{m=Math.round(m);return m>=60?Math.floor(m/60)+' h '+(m%60?m%60+' min':''):m+' min'};
 async function getRoute(a,b){let pts=null,dist=0,dur=0,approx=false;
- try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);const r=await fetch('https://router.project-osrm.org/route/v1/driving/'+a[1]+','+a[0]+';'+b[1]+','+b[0]+'?overview=full&geometries=geojson',{signal:ac.signal});clearTimeout(t);const j=await r.json();const rt=j.routes&&j.routes[0];if(rt){pts=rt.geometry.coordinates.map(c=>[c[1],c[0]]);dist=rt.distance/1000;dur=rt.duration/60}}catch(e){}
+ try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),9000),q=a[1]+','+a[0]+';'+b[1]+','+b[0]+'?overview=simplified&geometries=geojson';
+  const one=base=>fetch(base+q,{signal:ac.signal}).then(r=>r.json()).then(j=>{const rt=j.routes&&j.routes[0];if(!rt)throw 0;return rt});
+  const rt=await Promise.any([one('https://router.project-osrm.org/route/v1/driving/'),one('https://routing.openstreetmap.de/routed-car/route/v1/driving/')]);
+  clearTimeout(t);ac.abort();pts=rt.geometry.coordinates.map(c=>[c[1],c[0]]);dist=rt.distance/1000;dur=rt.duration/60}catch(e){}
  if(!pts){pts=[a,b];dist=km(a,b)*1.3;dur=dist/60*60;approx=true}
  const stp=Math.max(1,Math.ceil(pts.length/500)),dense=pts.filter((_,i)=>i%stp===0||i===pts.length-1);
  const cum=[0];for(let i=1;i<dense.length;i++)cum.push(cum[i-1]+km(dense[i-1],dense[i]));
@@ -463,10 +466,24 @@ async function getRoute(a,b){let pts=null,dist=0,dur=0,approx=false;
 function proj(p,r){let best=1e9,bs=0;const k=Math.cos(p[0]*Math.PI/180),px=p[1]*k*111.32,py=p[0]*110.57,d=r.dense,c=r.cum;
  for(let i=0;i<d.length-1;i++){const ax=d[i][1]*k*111.32,ay=d[i][0]*110.57,bx=d[i+1][1]*k*111.32,by=d[i+1][0]*110.57,dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=Math.max(0,Math.min(1,t));const dd=Math.hypot(px-(ax+t*dx),py-(ay+t*dy));if(dd<best){best=dd;bs=c[i]+t*(c[i+1]-c[i])}}
  return{d:best,s:bs}}
-async function fetchAlong(r){const step=Math.max(1,Math.ceil(r.dense.length/70)),sp=r.dense.filter((_,i)=>i%step===0);if(sp[sp.length-1]!==r.dense[r.dense.length-1])sp.push(r.dense[r.dense.length-1]);
- const poly=sp.map(c=>c[0].toFixed(4)+','+c[1].toFixed(4)).join(','),Rm=Math.round(Math.min(det/3,r.len>250?5:10)*1000);
- const q='[out:json][timeout:50];'+[...cats].map(k=>{const g=RG[k];return '('+g[1].map(tag=>'nwr(around:'+Rm+','+poly+')['+tag+']'+(g[2]?'[name]':'')+';').join('')+');out center tags 450;'}).join('');
- return firstOk2(OVP2.map(u=>ovpPost2(u,q)))}
+const RC={get(k){try{const e=JSON.parse(localStorage.getItem('blizu_rc')||'{}')[k];return e&&Date.now()-e.t<432e5?e.v:null}catch(e){return null}},
+ set(k,v){try{const j=JSON.stringify(v);if(j.length>350000)return;const o=JSON.parse(localStorage.getItem('blizu_rc')||'{}');o[k]={t:Date.now(),v};Object.keys(o).sort((a,b)=>o[b].t-o[a].t).slice(6).forEach(x=>delete o[x]);localStorage.setItem('blizu_rc',JSON.stringify(o))}catch(e){}}};
+/* upit ide prvo na jedan server; ako sporo odgovara ili padne, uključuje se sljedeći (a ne svi odjednom) */
+function hedged(q,order){return new Promise(res=>{let done=false,left=order.length;const f=[],fin=v=>{if(!done){done=true;res(v)}};
+ const fire=i=>{if(done||f[i]||i>=order.length)return;f[i]=1;ovpPost2(order[i],q).then(v=>{if(v)fin(v);else if(--left===0)fin(null);else fire(f.length)})};
+ fire(0);order.forEach((_,i)=>{if(i)setTimeout(()=>fire(i),i*3000)})})}
+async function fetchAlong(r){const slow=(()=>{const c=navigator.connection||{};return !!(c.saveData||/^(slow-2g|2g|3g)$/.test(c.effectiveType||''))})();
+ const step=Math.max(1,Math.ceil(r.dense.length/(slow?30:45))),sp=r.dense.filter((_,i)=>i%step===0);if(sp[sp.length-1]!==r.dense[r.dense.length-1])sp.push(r.dense[r.dense.length-1]);
+ const poly=sp.map(c=>c[0].toFixed(3)+','+c[1].toFixed(3)).join(','),Rm=Math.round(Math.min(det/3,r.len>250?5:10)*1000);
+ let h=0;for(let i=0;i<poly.length;i++)h=(h*31+poly.charCodeAt(i))|0;
+ const lim=slow?150:250,ks=[...cats];
+ const one=(k,i)=>{const g=RG[k],key=k+'|'+Rm+'|'+lim+'|'+h,c=RC.get(key);if(c)return Promise.resolve(c);
+  const q='[out:json][timeout:25];('+g[1].map(tag=>'nwr(around:'+Rm+','+poly+')['+tag+']'+(g[2]?'[name]':'')+';').join('')+');out center tags '+lim+';';
+  const order=OVP2.slice(i%OVP2.length).concat(OVP2.slice(0,i%OVP2.length));
+  return hedged(q,order).then(v=>{if(v)RC.set(key,v);return v})};
+ const res=await Promise.all(ks.map(one));
+ if(res.every(v=>!v))return null;
+ return res.filter(Boolean).flat()}
 const DY=['Su','Mo','Tu','We','Th','Fr','Sa'];
 function openAt(oh,d){if(!oh)return null;let s=String(oh).trim();if(/24\/7/.test(s))return true;
  if(/PH|SH|sunrise|sunset|dawn|dusk|week|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|["\[+<>]/.test(s))return null;
@@ -560,7 +577,9 @@ async function go2(){sug.hidden=true;out.innerHTML=loader('Računamo rutu…');
   if(r.len>600){out.innerHTML='<p class="rdnote">Ruta je predugačka za prijedloge (preko 600 km). Probaj kraću dionicu.</p>';return}
   out.innerHTML=loader('Tražimo stanice usput…');const els=await fetchAlong(r);
   if(!els){out.innerHTML='<p class="rdnote">Ne mogu da dohvatim mjesta usput. Probaj ponovo za koji trenutak.</p>';return}
-  const pk=pick(r,els);out.innerHTML=loader('Provjeravamo ocjene…');const sel=await refine(r,pk);if(!sel.length){out.innerHTML='<p class="rdnote">Nema mjesta koja ispunjavaju kriterijume. Povećaj dozvoljeno skretanje ili dodaj još kategorija.</p>';return}ST={r,items:pk.items,sel};paint()}
+  const pk=pick(r,els),sel0=selectFrom(r,pk);if(!sel0.length){out.innerHTML='<p class="rdnote">Nema mjesta koja ispunjavaju kriterijume. Povećaj dozvoljeno skretanje ili dodaj još kategorija.</p>';return}ST={r,items:pk.items,sel:sel0};paint();
+  /* ocjene se dopunjuju u pozadini; ako je neko mjesto loše ocijenjeno, zamijeni se i kartice se osvježe */
+  refine(r,pk).then(s2=>{if(!ST||ST.r!==r)return;const same=s2.length===ST.sel.length&&s2.every(x=>ST.sel.includes(x));if(ST.sel.length===sel0.length)ST.sel=s2;const rated=ST.sel.some(x=>x.rate&&!x._shown);if(!same||rated){ST.sel.forEach(x=>{if(x.rate)x._shown=1});paint()}}).catch(()=>{})}
  catch(e){out.innerHTML='<p class="rdnote">'+esc(e&&e.message?e.message:'Nešto nije u redu. Probaj ponovo.')+'</p>'}}
 $('rdGo').onclick=go2}
 /* hardverski taster / gest nazad (Android) vraća na prethodni ekran umjesto da zatvori aplikaciju */
