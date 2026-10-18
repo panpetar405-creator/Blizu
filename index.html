@@ -296,14 +296,9 @@ body .blizu-chips button.on,.rdchips button.on{background:var(--yellow);border-c
 </style><style id="ui5">
 /* ===== Fotografije ===== */
 #home{position:relative;isolation:isolate}
-#home .homebg{position:absolute;left:0;right:0;top:0;height:250px;z-index:-1;background-size:cover;background-position:center;background-image:linear-gradient(180deg,#052b3a99 0%,#052b3a33 40%,#061d28 96%),url('img/hero.jpg')}
+#home .homebg{position:absolute;left:0;right:0;top:0;height:250px;z-index:-1;background-size:cover;background-position:center;background-image:linear-gradient(180deg,#052b3acc 0%,#052b3a66 40%,#061d28 96%),url('img/hero.jpg')}
 #home .location{margin-top:52px;text-shadow:0 2px 14px #000b}
-#home #catsBox .cat{position:relative;overflow:hidden;min-height:104px}
-#home #catsBox .cat.hasph{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:left;padding:10px;background-color:#0b3a4c;background-image:linear-gradient(180deg,#041a2600 25%,#041a26dd 100%),var(--ph);background-size:cover;background-position:center;text-shadow:0 1px 6px #000c}
-#home #catsBox .cat.hasph .ico{position:absolute;top:8px;left:8px;width:30px;height:30px;margin:0;background:#041a26b3;color:#fff;border-radius:10px}
-#home #catsBox .cat.hasph .ico svg{width:17px;height:17px}
-#home #catsBox .cat.hasph.sel{border-color:var(--yellow);box-shadow:inset 0 0 0 2px var(--yellow)}
-#home #catsBox .cat.hasph.sel .ico{background:var(--yellow);color:#172028}
+#home #catsBox .cat{min-height:86px}
 .rdimg{flex:0 0 64px;width:64px;height:64px;border-radius:14px;object-fit:cover;background:#e8f2f4}
 </style>
 </head>
@@ -805,9 +800,8 @@ function headPhotos(){
 function homePhotos(){try{
  const bg=document.getElementById('homeBg');
  if(bg){const f=['Atrakcije','Priroda','More','Kultura','Hrana'].flatMap(c=>DATA[c]||[]).find(realImg);
-  if(f&&bg.dataset.u!==f.img){bg.dataset.u=f.img;bg.style.backgroundImage='linear-gradient(180deg,#052b3a99 0%,#052b3a33 40%,#061d28 96%),url(\''+f.img+'\')'}}
- document.querySelectorAll('#home .cat').forEach(b=>{const f=(DATA[b.dataset.cat]||[]).find(realImg);
-  if(f){if(b.dataset.u!==f.img){b.dataset.u=f.img;b.style.setProperty('--ph','url(\''+f.img+'\')')}b.classList.add('hasph')}else{b.classList.remove('hasph');b.style.removeProperty('--ph');delete b.dataset.u}})
+  if(f&&bg.dataset.u!==f.img){bg.dataset.u=f.img;bg.style.backgroundImage='linear-gradient(180deg,#052b3acc 0%,#052b3a66 40%,#061d28 96%),url(\''+f.img+'\')'}}
+ document.querySelectorAll('#home .cat.hasph').forEach(b=>{b.classList.remove('hasph');b.style.removeProperty('--ph')})
 }catch(e){}}
 setInterval(()=>{const h=document.getElementById('home');if(h&&h.classList.contains('active'))homePhotos()},2500);
 document.addEventListener('click',()=>setTimeout(homePhotos,80));
