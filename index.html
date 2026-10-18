@@ -431,7 +431,7 @@ const km=(a,b)=>{const r=Math.PI/180,dl=(b[0]-a[0])*r,dg=(b[1]-a[1])*r,x=Math.si
 const CYR='АБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФХЦЧЏШ',LAT=['A','B','V','G','D','Đ','E','Ž','Z','I','J','K','L','Lj','M','N','Nj','O','P','R','S','T','Ć','U','F','H','C','Č','Dž','Š'];
 const lat=str=>String(str||'').replace(/[\u0400-\u04FF]/g,c=>{const u=c.toUpperCase(),i=CYR.indexOf(u);if(i<0)return c;return c===u?LAT[i]:LAT[i].toLowerCase()});
 const OVP2=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
-const ovpPost2=(u,qq)=>new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),30000);fetch(u,{method:'POST',body:'data='+encodeURIComponent(qq),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})});
+const ovpPost2=(u,qq)=>new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),30000);fetch(u,{method:'POST',body:'data='+encodeURIComponent(qq),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements&&!(j.remark&&/error|timed out|out of memory|runtime|rate.?limit|too many/i.test(j.remark))?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})});
 const firstOk2=ps=>new Promise(res=>{let n=ps.length;if(!n)return res(null);ps.forEach(p=>p.then(v=>{if(v)res(v);else if(--n===0)res(null)},()=>{if(--n===0)res(null)}))});
 const RG={hrana:['Hrana i kafa',['amenity~"^(restaurant|cafe|fast_food|ice_cream)$"'],1],priroda:['Vidikovci i priroda',['tourism=viewpoint','waterway=waterfall','natural~"^(beach|hot_spring|cave_entrance)$"','leisure=park'],0],kultura:['Kultura i istorija',['tourism~"^(attraction|museum|gallery)$"','historic~"^(castle|fort|monastery|ruins|monument|archaeological_site)$"'],1],pauza:['Pauza i punjenje',['amenity=charging_station','highway~"^(rest_area|services)$"'],0]};
 const tl=t=>t.tourism==='viewpoint'?'Vidikovac':t.waterway==='waterfall'?'Vodopad':t.natural==='beach'?'Plaža':t.natural==='hot_spring'?'Termalni izvor':t.natural==='cave_entrance'?'Pećina':t.natural==='peak'?'Vrh':t.leisure==='park'?'Park':t.tourism==='museum'?'Muzej':t.tourism==='gallery'?'Galerija':t.tourism==='attraction'?'Znamenitost':t.historic==='castle'?'Dvorac':t.historic==='fort'?'Tvrđava':t.historic==='monastery'?'Manastir':t.historic==='ruins'?'Ruševine':t.historic==='monument'?'Spomenik':t.historic?'Istorijsko mjesto':t.amenity==='cafe'?'Kafić':t.amenity==='ice_cream'?'Sladoledara':t.amenity==='fast_food'?'Brza hrana':t.amenity==='restaurant'?'Restoran':t.amenity==='charging_station'?'Punjač':t.highway?'Odmorište':'Mjesto';
@@ -477,11 +477,13 @@ async function fetchAlong(r){const slow=(()=>{const c=navigator.connection||{};r
  const poly=sp.map(c=>c[0].toFixed(3)+','+c[1].toFixed(3)).join(','),Rm=Math.round(Math.min(det/3,r.len>250?5:10)*1000);
  let h=0;for(let i=0;i<poly.length;i++)h=(h*31+poly.charCodeAt(i))|0;
  const lim=slow?150:250,ks=[...cats];
- const one=(k,i)=>{const g=RG[k],key=k+'|'+Rm+'|'+lim+'|'+h,c=RC.get(key);if(c)return Promise.resolve(c);
+ const one=(k,i)=>{const g=RG[k],key='v2|'+k+'|'+Rm+'|'+lim+'|'+h,c=RC.get(key);if(c)return Promise.resolve(c);
   const q='[out:json][timeout:25];('+g[1].map(tag=>'nwr(around:'+Rm+','+poly+')['+tag+']'+(g[2]?'[name]':'')+';').join('')+');out center tags '+lim+';';
   const order=OVP2.slice(i%OVP2.length).concat(OVP2.slice(0,i%OVP2.length));
-  return hedged(q,order).then(v=>{if(v)RC.set(key,v);return v})};
+  return hedged(q,order).then(v=>{if(v&&v.length)RC.set(key,v);return v})};
  const res=await Promise.all(ks.map(one));
+ for(let j=0;j<ks.length;j++)if(!res[j])res[j]=await one(ks[j],j+2);
+ fetchAlong.failed=ks.filter((k,j)=>!res[j]).map(k=>RG[k][0]);
  if(res.every(v=>!v))return null;
  return res.filter(Boolean).flat()}
 const DY=['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -530,7 +532,7 @@ function pick(r,els){const dep=Date.now(),items=[],seen=new Set();let closed=0;
  const a=Math.min(6,L*0.1),w=(L-2*a)/n;
  return{items,closed,plan:{n,kinds,a,w}}}
 function roleOf(x,main){
- if(x.g==='hrana')return x.am==='cafe'?'Kafa i odmor':x.am==='ice_cream'?'Slatka pauza':x.am==='fast_food'?'Brza užina':x.h<11?'Gdje doručkovati':x.h<15.5?'Gdje ručati':x.h<18?'Gdje jesti':'Gdje večerati';
+ if(x.g==='hrana')return x.am==='cafe'?'Kafa i odmor':x.am==='ice_cream'?'Slatka pauza':x.am==='fast_food'?'Brza užina':(x.h<5||x.h>=23)?'Gdje jesti':x.h<11?'Gdje doručkovati':x.h<15.5?'Gdje ručati':x.h<18?'Gdje jesti':'Gdje večerati';
  if(x.g==='pauza')return 'Odmor na putu';
  if(x.g==='priroda')return x.tour==='viewpoint'?'Pogled na putu':(x.wf||x.nat==='cave_entrance')?'Šta vidjeti':'Gdje svratiti';
  return 'Šta vidjeti'}
@@ -583,6 +585,7 @@ async function go2(){sug.hidden=true;out.innerHTML=loader('Računamo rutu…');
   if(!els){out.innerHTML='<p class="rdnote">Ne mogu da dohvatim mjesta usput. Probaj ponovo za koji trenutak.</p>';return}
   let pk=pick(r,els),sel0=selectFrom(r,pk),note='';
   if(sel0.length<Math.min(3,pk.plan.n)&&(det<30||cats.size<3)){const d0=det,c0=new Set(cats);try{det=30;['hrana','priroda','kultura'].forEach(k=>cats.add(k));out.innerHTML=loader('Proširujemo pretragu…');const e2=await fetchAlong(r);if(e2){const pk2=pick(r,e2),s2=selectFrom(r,pk2);if(s2.length>sel0.length){pk=pk2;sel0=s2;note='Na ovoj ruti ima malo mjesta, pa sam proširio pretragu (skretanje do 30 min i sve kategorije).'}}}catch(e){}finally{det=d0;cats=c0}}
+  if(fetchAlong.failed&&fetchAlong.failed.length)note=(note?note+' ':'')+'Nijesu se učitale sve kategorije ('+fetchAlong.failed.join(', ')+') – server sa mapama sporo odgovara. Pokušaj ponovo za par trenutaka.';
   if(!sel0.length){out.innerHTML='<p class="rdnote">Nema mjesta koja ispunjavaju kriterijume. Povećaj dozvoljeno skretanje ili dodaj još kategorija.</p>';return}ST={r,items:pk.items,sel:sel0,note,closed:pk.closed};paint();
   /* ocjene se dopunjuju u pozadini; ako je neko mjesto loše ocijenjeno, zamijeni se i kartice se osvježe */
   refine(r,pk).then(s2=>{if(!ST||ST.r!==r)return;const same=s2.length===ST.sel.length&&s2.every(x=>ST.sel.includes(x));if(ST.sel.length===sel0.length)ST.sel=s2;const rated=ST.sel.some(x=>x.rate&&!x._shown);if(!same||rated){ST.sel.forEach(x=>{if(x.rate)x._shown=1});paint()}}).catch(()=>{})}
@@ -769,7 +772,7 @@ const plSig=els=>(els||[]).map(e=>e.type[0]+e.id).join(',');
 function firstOk(ps){return new Promise(res=>{let n=ps.length;if(!n)return res(null);ps.forEach(p=>p.then(v=>{if(v)res(v);else if(--n===0)res(null)},()=>{if(--n===0)res(null)}))})}
 function ovpPost(u,q){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),NET.slow()?25000:12000);
  fetch(u,{method:'POST',body:'data='+encodeURIComponent(q),headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ac.signal})
-  .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
+  .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements&&!(j.remark&&/error|timed out|out of memory|runtime|rate.?limit|too many/i.test(j.remark))?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
 function workerGet(c,rd){return new Promise(res=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),NET.slow()?20000:10000);
  fetch(window.BLIZU_API+'/api/places?lat='+c[0].toFixed(4)+'&lng='+c[1].toFixed(4)+'&r='+rd+'&cat=sve',{signal:ac.signal})
   .then(r=>r.ok?r.json():null).then(j=>{clearTimeout(t);res(j&&j.elements?j.elements:null)}).catch(()=>{clearTimeout(t);res(null)})})}
