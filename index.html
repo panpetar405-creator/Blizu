@@ -118,6 +118,26 @@ const cls=t=>t.tourism=="viewpoint"?"vid":t.historic?"ist":/^(museum|gallery)$/.
 const fmt=m=>{m=Math.round(m);return m>=60?Math.floor(m/60)+"h "+String(m%60).padStart(2,"0")+"min":m+" min"};
 const hhmm=m=>{m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")};
 
+const OVP=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
+const QF={
+  jesti: 'nwr@[amenity~"^(restaurant|cafe|bar|pub|fast_food|ice_cream)$"][name];',
+  videti: 'nwr@[tourism~"^(attraction|viewpoint|museum|gallery)$"][name];nwr@[historic~"^(castle|fort|monument|ruins|archaeological_site|memorial)$"][name];',
+  odmoriti: 'nwr@[natural=beach];nwr@[leisure~"^(beach_resort|park|marina)$"][name];',
+  dogadjaji: 'nwr@[amenity~"^(theatre|cinema|arts_centre|nightclub)$"][name];',
+};
+let why="";
+const first=ps=>new Promise(res=>{let n=ps.length;ps.forEach(p=>p.then(v=>{v?res(v):--n||res(null)},()=>--n||res(null)))});
+function ovp(u,q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>j&&j.elements&&!(j.remark&&/error|timed out|out of memory|rate|too many/i.test(j.remark))?j.elements:null).finally(()=>clearTimeout(t))}
+// Worker prvi (brz, iz KV-a); ako ne odgovori, javni Overpass serveri direktno (kao u staroj aplikaciji); rezultat se kešira 6 h
+async function point(lat,lng,r,cats){
+ const ck="pd_"+lat.toFixed(2)+"_"+lng.toFixed(2)+"_"+r+"_"+cats.join();
+ try{const c=JSON.parse(localStorage.getItem(ck)||"null");if(c&&Date.now()-c.t<216e5)return c.e}catch(e){}
+ const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(6000)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
+ let els=null;const ok=w.filter(Boolean);
+ if(ok.length)els=ok.flatMap(x=>x.elements||[]);
+ else{const A=`(around:${r},${lat},${lng})`,q=`[out:json][timeout:25];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 300;`;els=await first(OVP.map(u=>ovp(u,q)))}
+ if(els)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e:els}))}catch(e){}
+ return els}
 async function plan(){
  const err=$("#err"),btn=$("#go");err.textContent="";
  if(!want.size)return err.textContent="Izaberi bar jednu vrstu doživljaja.";
@@ -128,13 +148,13 @@ async function plan(){
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
   const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.round(rk*1000);
-  const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],urls=[];
-  for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;for(const c of cats)urls.push(`${API}/api/places?lat=${line[j][0]}&lng=${line[j][1]}&r=${r}&cat=${c}`)}
+  const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],pts=[];
+  for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;pts.push(line[j])}
   btn.textContent="Tražim mjesta duž puta…";
-  let why="";const res=[];for(let i=0;i<urls.length;i+=6)res.push(...await Promise.all(urls.slice(i,i+6).map(u=>fetch(u).then(x=>x.ok?x.json():(why=why||"HTTP "+x.status,{err:1,elements:[]})).catch(e=>(why=why||"mreža/CORS: "+e.message,{err:1,elements:[]})))));
-  const fails=res.filter(x=>x.err).length;
-  if(fails==res.length)throw Error("Server za mjesta (Worker) ne odgovara. Provjeri da je Worker postavljen i da radi /api/places. ["+why+"] "+API);
-  const els=res.flatMap(x=>x.elements||[]);
+  const res=[];for(let i=0;i<pts.length;i+=3)res.push(...await Promise.all(pts.slice(i,i+3).map(p=>point(+p[0].toFixed(4),+p[1].toFixed(4),r,cats).catch(()=>null))));
+  const fails=res.filter(x=>!x).length;
+  if(fails==res.length)throw Error("Ne mogu da preuzmem mjesta (ni Worker ni Overpass ne odgovaraju). Pokušaj ponovo za koji minut."+(why?" ["+why+"]":""));
+  const els=res.flatMap(x=>x||[]);
   cm=new Map();const names=new Set();
   for(const el of els){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||!want.has(c))continue;const id=el.type[0]+el.id;if(cm.has(id)||names.has(t.name+c))continue;
    const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
