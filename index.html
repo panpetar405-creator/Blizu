@@ -230,17 +230,32 @@ const QF={
 };
 let why="";
 const first=ps=>new Promise(res=>{let n=ps.length;ps.forEach(p=>p.then(v=>{v?res(v):--n||res(null)},()=>--n||res(null)))});
-function ovp(u,q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),10000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>j&&j.elements&&!(j.remark&&/error|timed out|out of memory|rate|too many/i.test(j.remark))?j.elements:null).finally(()=>clearTimeout(t))}
+function ovp(u,q,ms){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms||15000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>j&&j.elements&&!(j.remark&&/error|timed out|out of memory|rate|too many/i.test(j.remark))?j.elements:null).finally(()=>clearTimeout(t))}
 // Worker prvi (brz, iz KV-a); ako ne odgovori, javni Overpass serveri direktno (kao u staroj aplikaciji); rezultat se kešira 6 h
+// ---------- vlastita baza mjesta (data/places/, vidi tools/build-grid.py) ----------
+const GD="data/places/",GC=new Map();let GI;
+const gidx=()=>GI||(GI=fetch(GD+"index.json").then(r=>r.ok?r.json():null).catch(()=>null));
+const gcell=k=>{if(!GC.has(k))GC.set(k,fetch(GD+k+".json").then(r=>r.ok?r.json():null).catch(()=>null));return GC.get(k)};
+async function grid(lat,lng,r){const X=await gidx();if(!X||!X.boxes.some(b=>lat>=b[0]&&lat<=b[2]&&lng>=b[1]&&lng<=b[3]))return null;
+ const dl=r/111320,dg=r/(111320*Math.cos(lat*R)),ks=[];
+ for(let i=Math.floor((lat-dl)*10);i<=Math.floor((lat+dl)*10);i++)for(let j=Math.floor((lng-dg)*10);j<=Math.floor((lng+dg)*10);j++)if(X.cells[i+"_"+j])ks.push(i+"_"+j);
+ const parts=await Promise.all(ks.map(gcell));if(parts.some(x=>!x))return null;
+ return parts.flat().filter(el=>{const p=el.type=="node"?[el.lat,el.lon]:[el.center.lat,el.center.lon];return dk(p,[lat,lng])<=r/1000+.05})}
 async function point(lat,lng,r,cats){
+ const gr=await grid(lat,lng,r);if(gr)return gr;
  const ck="pd_"+lat.toFixed(2)+"_"+lng.toFixed(2)+"_"+r+"_"+cats.join();
  try{const c=JSON.parse(localStorage.getItem(ck)||"null");if(c&&Date.now()-c.t<216e5)return c.e}catch(e){}
- const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(4500)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
+ const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(15000)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
  let els=null;const ok=w.filter(Boolean);
  if(ok.length)els=ok.flatMap(x=>x.elements||[]);
  else{const A=`(around:${r},${lat},${lng})`,q=`[out:json][timeout:25];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 300;`;els=await first(OVP.map(u=>ovp(u,q)))}
  if(els)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e:els}))}catch(e){}
  return els}
+// jedan upit za cijeli koridor rute (kad javni serveri ne podnose mnogo malih upita)
+function corridor(line,rk,cats){const step=Math.max(rk*1.2,1);let cum=0,pts=[line[0]],last=line[0];for(const q of line){cum+=dk(last,q);last=q;if(cum>=step){pts.push(q);cum=0}}pts.push(line.at(-1));
+ const sp=pts.length>60?Math.ceil(pts.length/60):1;pts=pts.filter((_,i)=>i%sp==0||i==pts.length-1);
+ const A=`(around:${Math.round(rk*1000)},${pts.map(q=>q[0].toFixed(4)+","+q[1].toFixed(4)).join(",")})`,q=`[out:json][timeout:40];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 1500;`;
+ return first(OVP.map(u=>ovp(u,q,30000)))}
 async function plan(){
  const err=$("#err"),btn=$("#go");err.textContent="";
  if(!want.size)return err.textContent="Izaberi bar jednu vrstu doživljaja.";
@@ -254,8 +269,9 @@ async function plan(){
   const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],pts=[];
   for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;pts.push(line[j])}
   btn.textContent="Tražim mjesta duž puta…";
-  const res=new Array(pts.length).fill(null);let done=0,nx=0;
-  await Promise.race([Promise.all(Array.from({length:Math.min(6,pts.length)},async()=>{while(nx<pts.length){const i=nx++;try{res[i]=await point(+pts[i][0].toFixed(4),+pts[i][1].toFixed(4),r,cats)}catch(e){}btn.textContent=`Tražim mjesta duž puta… ${++done}/${pts.length}`}})),new Promise(ok=>setTimeout(ok,25000))]);
+  const res=new Array(pts.length).fill(null);let done=0,nx=0,okc=0,live=true;
+  await Promise.race([Promise.all(Array.from({length:Math.min(3,pts.length)},async()=>{while(live&&nx<pts.length&&!(done>=3&&!okc)){const i=nx++;let v=null;try{v=await point(+pts[i][0].toFixed(4),+pts[i][1].toFixed(4),r,cats)}catch(e){}if(live){res[i]=v;if(v)okc++}btn.textContent=`Tražim mjesta duž puta… ${++done}/${pts.length}`}})),new Promise(ok=>setTimeout(ok,40000))]);live=false;
+  if(res.filter(x=>!x).length>res.length/2){btn.textContent="Pokušavam drugi način…";const cor=await corridor(line,rk,cats).catch(()=>null);if(cor)res.splice(0,res.length,cor)}
   const fails=res.filter(x=>!x).length;
   if(fails==res.length)throw Error("Ne mogu da preuzmem mjesta (ni Worker ni Overpass ne odgovaraju). Pokušaj ponovo za koji minut."+(why?" ["+why+"]":""));
   const els=res.flatMap(x=>x||[]);
