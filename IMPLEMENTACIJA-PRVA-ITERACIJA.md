@@ -66,3 +66,27 @@ Dodato u `index.html`:
 - Dijeljenje i otvaranje linka na iOS Safari i Android Chrome, te na starom linku iz drugog uređaja.
 - Ispis/PDF na mobilnom (print dijalog se razlikuje po pregledaču).
 - Dužina linka kod 12 stanica (poruke/WhatsApp ponekad skraćuju vrlo duge linkove).
+
+## Četvrta iteracija — radno vrijeme u planu i prognoza
+
+- U satnici plana svaka stanica se provjerava prema OSM `opening_hours` za vrijeme dolaska: „Zatvoreno u to vrijeme” / „Otvara tek u HH:MM” / „Zatvara u HH:MM”. Parser podržava uobičajene oblike (`Mo-Fr 08:00-16:00; Sa 09:00-13:00`, `24/7`, `off`, više intervala, prelazak preko ponoći). Sve ostalo (praznici `PH`, mjeseci, sunce) se ne tumači i ne daje upozorenje.
+- Prognoza: Open-Meteo (bez ključa) za polaznu tačku, temperatura i vjerovatnoća kiše u vremenskom prozoru plana. Stanice na otvorenom (vidikovci, priroda) dobijaju upozorenje pri kiši od 50% i više.
+- `sw.js`: keš `blizu-v11`.
+
+### Ograničenja
+- Plan nema datum, pa se radno vrijeme i prognoza računaju za današnji dan. Pravi datum putovanja ide uz višednevne planove.
+- Prognoza je samo za polaznu tačku, ne za svaku stanicu.
+- Radno vrijeme iz OSM-a često nedostaje ili je zastarjelo, pa ostaje napomena „provjeri prije dolaska”.
+
+## Peta iteracija — partnerski linkovi i promovisana mjesta
+
+- **Ekran „Za lokalne partnere”** (Profil → dugme na dnu): kratki opis, forma (vrsta, naziv, grad, kontakt, poruka) i slanje preko `mailto:` na `BLIZU_PARTNER_MAIL` iz `config.js`. Ništa se ne šalje automatski. Dok e-mail nije podešen, dugme je onemogućeno.
+- **Partnerski linkovi** (`BLIZU_PARTNERS` u `config.js`): blok „Još za <grad>” na ekranu plana (smještaj, ulaznice i ture, restorani). Za linkove označene sa `paid:true` dodaje se `rel="sponsored"` i napomena o proviziji, a uz mjesta tipa hrana/kultura/istorija pojavljuje se i link uz pojedino mjesto.
+- **Promovisana mjesta** (`BLIZU_PROMO`): zaseban dio „Promovisano · lokalni partneri” na ekranu izbora, samo ako je mjesto blizu rute. Jasno označeno („Promovisano”) na kartici, u satnici i u detaljima. Ne mijenja redoslijed organskih preporuka. Mjesta imaju ID `p<broj>` i mogu se dodati u plan i podijeliti linkom.
+- Spoljni URL-ovi iz konfiguracije prolaze provjeru (samo http/https). Link za dijeljenje prihvata ID-eve `p1`–`p999`.
+- `sw.js`: keš `blizu-v12`.
+
+### Prije objave
+- Upiši `BLIZU_PARTNER_MAIL`, partnerske ID-eve i postavi `paid:true` samo za linkove koji to stvarno jesu.
+- Provjeri uslove partnerskih programa (npr. obavezne oznake i dozvoljena mjesta za linkove).
+- Ugovorom s lokalnim partnerima odredi cijenu, trajanje (`until`) i pravila označavanja.

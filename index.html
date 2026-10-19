@@ -150,6 +150,7 @@ a.inf{color:var(--mu);text-decoration:none}
 .gsrc{font-size:11.5px;color:var(--mu);margin-top:10px}
 .hero .ph .by{position:absolute;left:12px;bottom:34px;font-size:11px;color:#fff;text-shadow:0 1px 3px #0009;z-index:1}
 #off{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:99999;background:#222;color:#fff;font:600 13px system-ui;padding:7px 14px;border-radius:16px;display:none;box-shadow:0 2px 8px #0004}.wxb{background:var(--bg);border-radius:14px;padding:11px 14px;margin:12px 0;font-size:13.5px}.wxb b{display:block;margin-bottom:2px}.tl .it small.wr{color:#b45309;font-weight:600}.tl .it small.wr.r{color:#c0283a}.wr .i{width:13px;height:13px;vertical-align:-2px}
+.aff{display:grid;gap:8px}.aff .btn{margin:0}.fld{display:block;width:100%;padding:13px;border:1px solid var(--bd);border-radius:12px;background:#fff;margin:6px 0}textarea.fld{min-height:90px;resize:vertical}.pbd{display:inline-flex;gap:4px;align-items:center;background:#fff3cd;color:#7a5b00;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600}
 #prt{display:none}
 @media print{body>*:not(#prt){display:none!important}body{max-width:none;margin:0;background:#fff}#prt{display:block!important;font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;color:#000}#prt h1{font-size:22px;margin:0 0 4px}#prt .pm{color:#444;margin-bottom:14px}#prt table{border-collapse:collapse;width:100%}#prt tr{break-inside:avoid}#prt td{padding:8px 6px;border-bottom:1px solid #ccc;vertical-align:top}#prt td:first-child{width:64px;font-weight:700;white-space:nowrap}#prt small{display:block;color:#555}#prt .ft{margin-top:16px;font-size:12px;color:#444}#prt a{color:#000}}
 </style></head><body>
@@ -192,6 +193,7 @@ a.inf{color:var(--mu);text-decoration:none}
 </section>
 <section class="s" id="fin"><div style="color:#ff6b6b"><svg class="i" style="width:44px;height:44px" aria-hidden="true"><use href="#i-map-pin"/></svg></div><h1>Tvoj put.<br>Više doživljaja.</h1><p style="opacity:.9">Od A do B — i sve što vrijedi vidjeti usput.</p>
  <button class="btn" onclick="savePlan();this.innerHTML=I('check')+' Sačuvano'"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg> Sačuvaj plan</button><button class="btn l" onclick="H.length=0;show('form')">Novi plan</button></section>
+<section class="s" id="partner"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Za lokalne partnere</div><div class="pad" id="ptc"></div></section>
 <section class="s" id="saved"><div class="top">Planovi</div><div class="pad" id="svc"></div></section>
 <section class="s" id="fav"><div class="top">Favoriti</div><div class="pad" id="fvc"></div></section>
 <section class="s" id="prof"><div class="top">Profil</div><div class="pad" id="prc"></div></section>
@@ -208,7 +210,7 @@ let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}
 
 const H=[],TABS=["home","saved","fav","prof","fin"];let cur="home";
 function fitTb(){const t=$("#tabs");if(t.offsetHeight)document.documentElement.style.setProperty("--tbh",t.offsetHeight+"px")}addEventListener("resize",fitTb);addEventListener("pageshow",fitTb);
-function show(id){if(TABS.includes(id))try{localStorage.removeItem("last")}catch(e){}cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";fitTb();document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf()}
+function show(id){if(TABS.includes(id))try{localStorage.removeItem("last")}catch(e){}cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";fitTb();document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf();if(id=="partner")drawPartner()}
 function go(id){if(id!=cur)H.push(cur);show(id)}
 function tab(id){H.length=0;show(id)}
 function back(){show(H.pop()||"home")}
@@ -349,28 +351,28 @@ async function refresh(fit){
  if(fit)fitRoute();
  drawSel();drawPl();loadCardImgs();
 }
-function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${opts.map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
+function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${opts.map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}${promoHtml()}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
  try{store("last",{k:Date.now(),A,B,mode,extra,t0:$("#t0").value,km:Math.round(S.km),stops:st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))})}catch(e){}
  $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b><div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
- <div id="wx"></div><div class="tl" id="tl"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a><button class="btn l" style="margin-top:8px" onclick="sharePlan(this)">${I("share")} Podijeli link plana</button><button class="btn l" style="margin-top:8px" onclick="printPlan()">${I("printer")} Ispiši / sačuvaj PDF</button>`;
- $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl();loadWx()}
+ <div id="wx"></div><div class="tl" id="tl"></div><div id="aff"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a><button class="btn l" style="margin-top:8px" onclick="sharePlan(this)">${I("share")} Podijeli link plana</button><button class="btn l" style="margin-top:8px" onclick="printPlan()">${I("printer")} Ispiši / sačuvaj PDF</button>`;
+ $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl();loadWx();aff()}
 function tl(){
  const st=S.st,t0=$("#t0").value.split(":"),s0=+t0[0]*60+ +t0[1];let t=s0,h=`<div class="it"><i>A</i><div class="r"><div class="b"><b>${esc(A.name)}</b><br><small>Početak putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;
- st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}</small>${warn(s,a)}</div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
+ st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}${isPromo(s.id)?" · promovisano":""}</small>${warn(s,a)}</div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><div class="r"><div class="b"><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;$("#tl").innerHTML=h;wx(s0,t)}
 function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);if(!u&&IMGC[c.id])u=IMGC[c.id].u;const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" referrerpolicy="origin" onerror="this.remove()">`:""}</div>`}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
 function card(o,n){const m=o.dst?`<span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od centra</span>`:`<span>${I("clock")}${o.est} min dodatno</span><span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od rute</span>`;
- return`<div class="card sc"><div class="pic">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<div class="m">${m}</div></button>${I("chevron-right","chev")}<button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="${sel.has(o.id)?"Ukloni iz plana":"Dodaj u plan"}">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
+ return`<div class="card sc"><div class="pic">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}${isPromo(o.id)?'<span class="pbd">Promovisano</span>':""}<div class="m">${m}</div></button>${I("chevron-right","chev")}<button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="${sel.has(o.id)?"Ukloni iz plana":"Dodaj u plan"}">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
 async function tog(id){const y=document.scrollingElement.scrollTop;sel.has(id)?sel.delete(id):sel.add(id);await refresh();if(cur=="det")opn(id,1);scrollTo(0,y)}
 function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["contact:phone"],x=[t.cuisine&&["utensils","Kuhinja: "+t.cuisine.replace(/;/g,", ")],t.opening_hours&&["clock","Radno vrijeme: "+t.opening_hours],ph0&&["phone",ph0]].filter(Boolean);
  $("#detc").innerHTML=`<div class="hero">${ph(o,1)}<button class="rb l" onclick="back()" aria-label="Nazad">${I("arrow-left")}</button><button class="rb r${FAV[id]?" fav":""}" id="hrt" onclick="fv('${id}')" aria-label="Favorit">${I("heart",FAV[id]?"fill":"")}</button></div>
- <div class="pad dp" id="dpd" data-id="${id}"><h2>${esc(t.name)}</h2><div class="cr">${chip(o.c)}<span class="rat" id="rat"></span></div>
+ <div class="pad dp" id="dpd" data-id="${id}"><h2>${esc(t.name)}</h2><div class="cr">${chip(o.c)}${isPromo(id)?'<span class="pbd">Promovisano</span>':""}<span class="rat" id="rat"></span></div>
  <div class="ds">${inr&&!o.dst?`<div>${I("clock")}<span><b>${o.est} min</b><small>dodatno vrijeme</small></span></div>`:""}<div>${I("clock")}<span><b>${fmt(o.v)}</b><small>trajanje posjete</small></span></div>${inr?`<div>${I("map-pin")}<span><b>${o.d.toFixed(1)} km</b><small>${o.dst?"od centra":"od rute"}</small></span></div>`:""}</div>
  ${t.description?`<p class="desc">${esc(t.description)}</p>`:""}${x.map(l=>`<div class="inf">${I(l[0])}<span>${esc(l[1])}</span></div>`).join("")}
  <div id="gx"></div>
- <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a></div>
+ <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a>${isPromo(id)&&t.website?`<a class="btn l" style="margin-top:8px" target="_blank" rel="sponsored noopener" href="${esc(t.website)}">Web stranica</a>`:""}${stopAff(o)}</div>
  ${inr?`<div class="fix"><button class="btn" onclick="tog('${id}')">${sel.has(id)?I("check")+" Ukloni iz plana":I("plus")+" Dodaj u plan"}</button></div>`:""}`;
  enrich(id,o);wdImg(id,o);if(!stay)go("det")}
 // ---------- Google podaci (ocjena, radno vrijeme, fotografija) samo za mjesto koje korisnik otvori ----------
@@ -426,7 +428,7 @@ function delPlan(k){PL=PL.filter(p=>p.k!=k);store("plans",PL);drawSaved()}
 async function loadPlan(k){const p=PL.find(x=>x.k==k);if(!p)return;A=p.A;B=p.B;mode=p.mode;extra=p.extra;$("#t0").value=p.t0;cm=new Map();p.stops.forEach(s=>cm.set(s.id,s));sel=new Set(p.stops.map(s=>s.id));opts=[...p.stops];dest=[];
  try{base=await route([[A.lat,A.lon],[B.lat,B.lon]])}catch(e){return alert(navigator.onLine?"Ruta se trenutno ne može učitati. Pokušaj ponovo.":"Nema internetske veze. Ruta se može učitati samo uz internet.")}
  go("res");initMap();await refresh(1);go("pl")}
-function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><button class="btn l" style="margin-top:12px" onclick="if(confirm('Obrisati sve sačuvane planove i favorite?')){PL=[];FAV={};localStorage.removeItem('plans');localStorage.removeItem('fav');drawProf()}">Obriši sačuvane podatke</button>`;
+function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><button class="btn l" style="margin-top:12px" onclick="if(confirm('Obrisati sve sačuvane planove i favorite?')){PL=[];FAV={};localStorage.removeItem('plans');localStorage.removeItem('fav');drawProf()}">Obriši sačuvane podatke</button><button class="btn l" style="margin-top:12px" onclick="go('partner')">Za lokalne partnere</button>`;
  chips($("#pm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>{mode=k;try{localStorage.setItem("mode",k)}catch(e){}chips($("#cm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>mode=k)})}
 // ---------- navigacija ----------
 let N=null,nmap,nlay,nme;
@@ -480,7 +482,7 @@ function readShared(){const m=/^#p=([\w-]+)$/.exec(location.hash);if(!m)return n
  try{const j=JSON.parse(b64d(m[1])),num=(x,a,b)=>typeof x=="number"&&Number.isFinite(x)&&x>=a&&x<=b,str=(x,n)=>typeof x=="string"?x.slice(0,n):"",
  pt=x=>{if(!Array.isArray(x)||!num(x[1],-90,90)||!num(x[2],-180,180))throw 0;return{name:str(x[0],80)||"Lokacija",lat:x[1],lon:x[2]}};
  if(j.v!==1||!MODES[j.m]||!Array.isArray(j.s)||j.s.length>12||!/^\d{1,2}:\d{2}$/.test(j.t))return null;
- const stops=j.s.map(x=>{if(!Array.isArray(x)||!/^[nwr]\d{1,15}$/.test(x[0])||!CATS[x[2]]||!num(x[3],-90,90)||!num(x[4],-180,180)||!num(x[5],0,720)||!num(x[6],0,720)||!num(x[7],0,1)||!num(x[8],0,500))throw 0;
+ const stops=j.s.map(x=>{if(!Array.isArray(x)||!/^(?:[nwr]\d{1,15}|p\d{1,3})$/.test(x[0])||!CATS[x[2]]||!num(x[3],-90,90)||!num(x[4],-180,180)||!num(x[5],0,720)||!num(x[6],0,720)||!num(x[7],0,1)||!num(x[8],0,500))throw 0;
   const t={name:str(x[1],100)};if(x[9])t.cuisine=str(x[9],80);if(x[10])t.opening_hours=str(x[10],200);return{id:x[0],t,c:x[2],p:[x[3],x[4]],v:x[5],est:x[6],f:x[7],d:x[8]}});
  return{A:pt(j.a),B:pt(j.b),mode:j.m,extra:num(j.e,0,1440)?j.e:extra,t0:j.t,stops}}catch(e){return null}}
 async function loadShared(p){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
@@ -525,6 +527,32 @@ function wx(s0,t){const e=$("#wx");if(!e)return;e.innerHTML="";if(!WX||!WX.h)ret
  const tn=Math.round(Math.min(...hs.map(x=>x.t))),tx=Math.round(Math.max(...hs.map(x=>x.t))),pm=hs.reduce((u,x)=>x.p>u.p?x:u,hs[0]),c=pm.p>=40?pm.c:hs[Math.floor(hs.length/2)].c,
  rain=pm.p>=50&&S.st.some(s=>OUT(s.c));
  e.innerHTML=`<div class="wxb"><b>Prognoza za danas: ${wtxt(c)}, ${tn==tx?tn:tn+"–"+tx}°C</b>${pm.p>=30?`Kiša do ${pm.p}% oko ${String(pm.h).padStart(2,"0")}:00. `:"Bez veće šanse za kišu. "}${rain?"Za kišu su bolje stanice u zatvorenom.":""}</div>`}
+
+const PARTNERS=window.BLIZU_PARTNERS||{},PROMO=Array.isArray(window.BLIZU_PROMO)?window.BLIZU_PROMO:[],isPromo=id=>/^p\d{1,3}$/.test(String(id));
+const safeUrl=u=>{try{const x=new URL(u);return x.protocol=="https:"||x.protocol=="http:"?x.href:""}catch(e){return""}};
+function pLink(k,q){const c=PARTNERS[k];if(!c||!c.base)return null;const b=safeUrl(c.base);if(!b)return null;const x=new URL(b);x.searchParams.set(c.q||"q",q);
+ for(const[a,v]of Object.entries(c.params||{}))if(v!==""&&v!=null)x.searchParams.set(a,v);return{href:x.href,paid:!!c.paid,n:c.n||k}}
+function aff(){const e=$("#aff");if(!e)return;const ls=["smjestaj","ulaznice","restorani"].map(k=>pLink(k,B.name)).filter(Boolean);if(!ls.length){e.innerHTML="";return}
+ e.innerHTML=`<h3>Još za ${esc(B.name)}</h3><div class="aff">${ls.map(l=>`<a class="btn l" target="_blank" rel="${l.paid?"sponsored ":""}noopener" href="${esc(l.href)}">${esc(l.n)}</a>`).join("")}</div>${ls.some(l=>l.paid)?`<p class="gsrc">Neki su linkovi partnerski: Blizu može dobiti proviziju, a tvoja cijena ostaje ista.</p>`:""}`}
+function stopAff(o){const k=o.c=="hrana"?"restorani":o.c=="kul"||o.c=="ist"?"ulaznice":null;if(!k||!PARTNERS[k]||!PARTNERS[k].paid)return"";const l=pLink(k,o.t.name+" "+(B&&B.name||""));if(!l)return"";
+ return`<a class="btn l" style="margin-top:8px" target="_blank" rel="sponsored noopener" href="${esc(l.href)}">${k=="restorani"?"Rezervacija i recenzije":"Ulaznice za ovo mjesto"}</a><p class="gsrc">Partnerski link: Blizu može dobiti proviziju.</p>`}
+function promoItems(){if(!base||!base.line||!PROMO.length)return[];const today=new Date().toISOString().slice(0,10),line=base.line,spd=MODES[mode].spd,cum=[0];
+ for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);const D=cum.at(-1)||1,out=[];
+ PROMO.slice(0,40).forEach((x,i)=>{if(!x||typeof x.name!="string"||!CATS[x.cat])return;const la=+x.lat,lo=+x.lng;if(!Number.isFinite(la)||!Number.isFinite(lo)||Math.abs(la)>90||Math.abs(lo)>180)return;if(x.until&&String(x.until)<today)return;
+  const pt=[la,lo];let d=1e9,bi=0;for(let k=0;k<line.length;k++){const q=dk(pt,line[k]);if(q<d){d=q;bi=k}}if(d>Math.max(1,Math.min(+x.reach||3,15)))return;
+  const id="p"+(i+1),it=cm.get(id)||{id,t:{name:x.name.slice(0,80),description:String(x.note||"").slice(0,240),phone:String(x.phone||"").slice(0,30),website:safeUrl(x.url||"")},c:x.cat,p:pt,d,est:Math.max(2,Math.round(2*d*1.35/spd*60)),f:cum[bi]/D,v:Math.min(Math.max(+x.mins||45,5),240)};
+  cm.set(id,it);out.push(it)});return out}
+function promoHtml(){const pr=promoItems();return pr.length?`<h3>Promovisano · lokalni partneri</h3><p class="gsrc" style="margin:0 0 8px">Plaćena mjesta uz tvoju rutu. Ne mijenjaju redoslijed preporuka iznad.</p>${pr.map(o=>card(o)).join("")}`:""}
+function drawPartner(){const m=(window.BLIZU_PARTNER_MAIL||"").trim(),ok=/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(m);
+ $("#ptc").innerHTML=`<h2 style="margin:4px 0 8px">Imaš restoran, smještaj ili iskustvo uz rutu?</h2><p>Promovisana mjesta vide putnici čija ruta prolazi blizu tebe. Uvijek su jasno označena kao „Promovisano” i ne mijenjaju redoslijed organskih preporuka.</p>
+ <select class="fld" id="pv"><option>Restoran ili kafić</option><option>Smještaj</option><option>Ulaznice i ture</option><option>Drugo</option></select>
+ <input class="fld" id="pn" placeholder="Naziv objekta" maxlength="80"><input class="fld" id="pc" placeholder="Grad" maxlength="60"><input class="fld" id="pk" placeholder="Telefon ili e-mail za kontakt" maxlength="80">
+ <textarea class="fld" id="pm" placeholder="Kratko: šta nudiš i gdje se nalaziš" maxlength="400"></textarea>
+ <button class="btn" onclick="partnerSend()" ${ok?"":"disabled"}>Pošalji upit</button>
+ <p class="gsrc">${ok?"Upit se otvara u tvojoj e-mail aplikaciji. Ništa se ne šalje automatski.":"E-mail za upite još nije podešen."}</p>`}
+function partnerSend(){const m=(window.BLIZU_PARTNER_MAIL||"").trim(),g=i=>($("#"+i).value||"").trim().slice(0,400);if(!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(m))return;
+ if(!g("pn")||!g("pk"))return alert("Upiši naziv objekta i kontakt.");
+ location.href="mailto:"+m+"?subject="+encodeURIComponent("Blizu partner: "+g("pn"))+"&body="+encodeURIComponent("Vrsta: "+g("pv")+"\nNaziv: "+g("pn")+"\nGrad: "+g("pc")+"\nKontakt: "+g("pk")+"\n\n"+g("pm"))}
 const SH=readShared();
 const LAST=ld("last",null);show("home");
 if(SH)loadShared(SH);else if(LAST&&LAST.stops&&Date.now()-LAST.k<432e5){(async()=>{try{A=LAST.A;B=LAST.B;mode=LAST.mode;extra=LAST.extra;$("#t0").value=LAST.t0;cm=new Map();LAST.stops.forEach(x=>cm.set(x.id,x));sel=new Set(LAST.stops.map(x=>x.id));opts=[...LAST.stops];dest=[];base=await route([[A.lat,A.lon],[B.lat,B.lon]]);go("res");initMap();await refresh(1);go("pl")}catch(e){show("home");store("last",LAST)}})()}
