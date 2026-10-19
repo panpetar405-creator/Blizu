@@ -17,7 +17,8 @@ import json, math, os, re, sys, time
 
 KEEP = ["name", "name:sr", "name:sr-Latn", "name:bs", "name:hr", "name:en", "amenity", "tourism", "historic",
         "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "description", "image",
-        "wikimedia_commons", "wikidata", "website", "check_date", "survey:date"]
+        "wikimedia_commons", "wikidata", "website", "check_date", "survey:date",
+        "diet:vegetarian", "diet:vegan", "wheelchair", "dog", "pets_allowed", "fee", "kids_area", "highchair", "changing_table"]
 AMEN = {"restaurant", "cafe", "bar", "pub", "fast_food", "ice_cream", "theatre", "cinema", "arts_centre", "nightclub"}
 TOUR = {"attraction", "viewpoint", "museum", "gallery"}
 HIST = {"castle", "fort", "monument", "ruins", "archaeological_site", "memorial"}
