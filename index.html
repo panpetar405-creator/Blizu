@@ -52,7 +52,7 @@ h3{font-size:15px;margin:20px 0 8px}
 .tl{position:relative;margin-left:10px;border-left:2px solid var(--bd);padding-left:22px}
 .tl .it{position:relative;padding:0 0 18px}
 .tl .it i{position:absolute;left:-33px;top:0;width:20px;height:20px;border-radius:50%;background:var(--g);color:#fff;font:600 11px/20px system-ui;text-align:center}
-.tl .it small{color:var(--mu)}.tl .t{float:right;color:var(--mu);font-size:13px}
+.tl .it .r[role=button]:active{opacity:.6}.tl .it small{color:var(--mu)}.tl .t{float:right;color:var(--mu);font-size:13px}
 #sh{position:fixed;inset:0;background:#0006;z-index:1000;display:none;align-items:flex-end;justify-content:center}
 #sh.on{display:flex}
 #shc{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;max-height:88dvh;overflow:auto;padding:16px 18px calc(env(safe-area-inset-bottom) + 18px)}
@@ -349,7 +349,7 @@ function drawPl(){const st=S.st;
  $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl()}
 function tl(){
  const st=S.st,t0=$("#t0").value.split(":"),s0=+t0[0]*60+ +t0[1];let t=s0,h=`<div class="it"><i>A</i><div class="r"><div class="b"><b>${esc(A.name)}</b><br><small>Početak putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;
- st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}</small></div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
+ st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}</small></div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><div class="r"><div class="b"><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;$("#tl").innerHTML=h}
 function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" onerror="this.remove()">`:""}</div>`}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
