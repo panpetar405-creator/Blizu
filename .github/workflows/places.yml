@@ -1,9 +1,9 @@
 name: Osvježi bazu mjesta
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:          # ručno: Actions -> Osvježi bazu mjesta -> Run workflow
   schedule:
-    - cron: "0 3 1 * *"
+    - cron: "0 3 1 * *"       # jednom mjesečno
 
 permissions:
   contents: write
@@ -17,18 +17,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install osmium
-      - name: Preuzmi OSM izvode (Geofabrik)
+      - name: Alati
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y osmium-tool
+          pip install osmium
+      - name: Preuzmi i filtriraj OSM izvode (Geofabrik)
         run: |
           mkdir -p /tmp/osm && cd /tmp/osm
-          for r in bosnia-herzegovina montenegro croatia serbia; do
-            curl -fsSL -O "https://download.geofabrik.de/europe/${r}-latest.osm.pbf"
+          ARGS=""
+          for r in austria slovenia croatia hungary serbia bosnia-herzegovina montenegro albania kosovo macedonia; do
+            curl -fsSL -o $r.osm.pbf "https://download.geofabrik.de/europe/${r}-latest.osm.pbf"
+            osmium tags-filter $r.osm.pbf \
+              nwr/amenity=restaurant,cafe,bar,pub,fast_food,ice_cream,theatre,cinema,arts_centre,nightclub \
+              nwr/tourism=attraction,viewpoint,museum,gallery \
+              nwr/historic=castle,fort,monument,ruins,archaeological_site,memorial \
+              nwr/natural=beach \
+              nwr/leisure=beach_resort,park,marina \
+              -o $r.f.pbf --overwrite
+            ARGS="$ARGS /tmp/osm/$r.f.pbf:/tmp/osm/$r.osm.pbf"
           done
+          echo "ARGS=$ARGS" >> $GITHUB_ENV
       - name: Napravi ćelije
-        run: python3 tools/build-grid.py data/places /tmp/osm/*.osm.pbf
+        run: python3 tools/build-grid.py data/places $ARGS
       - name: Sačuvaj promjene
         run: |
           git config user.name "blizu-bot"
           git config user.email "blizu-bot@users.noreply.github.com"
           git add -A data/places
-          git diff --cached --quiet || (git commit -m "Baza mjesta: mjesečno osvježavanje" && git push)
+          git diff --cached --quiet || (git commit -m "Baza mjesta: osvježavanje" && git push)
