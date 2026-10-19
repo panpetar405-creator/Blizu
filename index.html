@@ -7,18 +7,20 @@
 <link rel="manifest" href="manifest.json"><link rel="icon" href="img/icon.svg">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
-:root{--g:#0b7a55;--tx:#16221d;--mu:#6b7a73;--bd:#e3e9e5;--bg:#f4f8f6}
+:root{--tb:64px;--g:#0b7a55;--tx:#16221d;--mu:#6b7a73;--bd:#e3e9e5;--bg:#f4f8f6}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 body{font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;color:var(--tx);max-width:480px;margin:auto;background:#fff}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input{font:inherit;color:inherit}
+.i{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.2em;pointer-events:none}.i.fill{fill:currentColor}
+.top button,.rb,.add,.f button,#nb button{display:inline-flex;align-items:center;justify-content:center}
 .s{display:none;min-height:100dvh}.s.on{display:block}
 #home{background:linear-gradient(#0005,#000b),url(img/hero.jpg) center/cover;color:#fff;padding:calc(env(safe-area-inset-top) + 24px) 20px 28px;flex-direction:column;justify-content:space-between}
 #home.on{display:flex}
-.logo{font-weight:700;font-size:20px}
+.logo{font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px}.logo .i{width:24px;height:24px;color:#ff6b6b}
 #home h1{font-size:30px;line-height:1.2;margin-top:28px}
 .cta{display:flex;align-items:center;gap:12px;width:100%;background:#fff;color:var(--tx);border-radius:18px;padding:16px;text-align:left}
-.cta b{display:block;font-size:17px}.cta small{color:var(--mu)}.cta span:first-child{font-size:26px}.cta span:last-child{margin-left:auto;font-size:22px}
+.cta b{display:block;font-size:17px}.cta small{color:var(--mu)}.cta span:first-child{display:flex;color:var(--g)}.cta span:first-child .i{width:32px;height:32px;stroke-width:1.75}.cta span:last-child{margin-left:auto;display:flex;color:var(--mu)}.cta span:last-child .i{width:22px;height:22px}
 .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 12px) 14px 10px;font-weight:700;font-size:17px}
 .top button{font-size:22px;width:36px;height:36px}
 .pad{padding:0 18px 100px}
@@ -27,10 +29,10 @@ h3{font-size:15px;margin:20px 0 8px}
 .f label{font-size:11px;color:var(--mu);display:block}.f input{border:0;outline:0;width:100%;background:none;padding:2px 0}
 .f div{flex:1}.f button{font-size:20px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.ch{border:1px solid var(--bd);border-radius:12px;padding:10px 14px;background:#fff}
+.ch{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--bd);border-radius:12px;padding:10px 14px;background:#fff}
 .ch.on{background:var(--g);color:#fff;border-color:var(--g)}
 .chips.cat .ch.on{color:var(--tx);border-color:var(--c);background:var(--bgc);font-weight:600}
-.btn{display:block;width:100%;background:var(--g);color:#fff;border-radius:14px;padding:15px;font-weight:600;text-align:center;text-decoration:none}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--g);color:#fff;border-radius:14px;padding:15px;font-weight:600;text-align:center;text-decoration:none}
 .btn.l{background:var(--bg);color:var(--tx)}
 .fix{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 18px calc(env(safe-area-inset-bottom) + 12px);background:#fff;box-shadow:0 -4px 16px #0001;z-index:500}
 .err{color:#b3261e;margin-top:12px;font-size:14px}
@@ -41,6 +43,7 @@ h3{font-size:15px;margin:20px 0 8px}
 .card .b{flex:1;min-width:0;text-align:left}.card .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card small{color:var(--mu);font-size:12.5px;display:block}
 .ph{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:26px;flex:none}
+.ph .i{width:.9em;height:.9em;stroke-width:1.75}.tag .i{width:1em;height:1em;vertical-align:-.15em;margin-right:2px}.add .i{width:20px;height:20px}.rb .i{width:22px;height:22px}.rb.fav{color:#d6455a}.f>span .i{width:20px;height:20px}.f button .i{width:22px;height:22px}.top button .i{width:24px;height:24px}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .tag{display:inline-block;font-size:11.5px;border-radius:8px;padding:2px 8px;margin-bottom:2px}
 .add{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--g);color:var(--g);font-size:20px;flex:none}
@@ -70,31 +73,33 @@ h3{font-size:15px;margin:20px 0 8px}
 .hero .rb{position:absolute;top:calc(env(safe-area-inset-top) + 12px)}.hero .rb.l{left:14px}.hero .rb.r{right:14px}
 #detc .pad{margin-top:-18px;position:relative;background:#fff;border-radius:20px 20px 0 0;padding-top:16px}
 #tabs{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--bd);z-index:900;padding:6px 0 calc(env(safe-area-inset-bottom) + 6px)}
-#tabs button{flex:1;display:flex;flex-direction:column;align-items:center;font-size:20px;color:var(--mu)}#tabs small{font-size:11px}#tabs .on{color:var(--g);font-weight:700}
-body.tb .pad{padding-bottom:90px}body.tb #home{padding-bottom:90px}
-#fin{background:linear-gradient(#0003,#000b),url(img/hero.jpg) center/cover;color:#fff;padding:24px 20px 100px;flex-direction:column;justify-content:flex-end;gap:10px}#fin.on{display:flex}#fin h1{font-size:30px;line-height:1.2}
+#tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mu)}#tabs .i{width:24px;height:24px;stroke-width:1.9}#tabs .on .i{stroke-width:2.3}#tabs small{font-size:11px}#tabs .on{color:var(--g);font-weight:700}
+body.tb .pad{padding-bottom:90px}
+body.tb #home,body.tb #fin{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;min-height:0;overflow-y:auto;padding-bottom:calc(var(--tb) + env(safe-area-inset-bottom) + 16px)}
+#fin{background:linear-gradient(#0003,#000b),url(img/hero.jpg) center/cover;color:#fff;padding:24px 20px;flex-direction:column;justify-content:flex-end;gap:10px}#fin.on{display:flex}#fin h1{font-size:30px;line-height:1.2}
 #nav{position:relative;height:100dvh;overflow:hidden}#nmap{position:absolute;inset:0;z-index:0}
 #nb{position:absolute;z-index:10;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 12px);background:#0a3a30;color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center}
-#nb span{font-size:34px;width:44px;text-align:center}#nb div{flex:1}#nb b{font-size:19px}#nb small{opacity:.8}#nb button{color:#fff;font-size:20px}
+#nb span{width:44px;display:flex;justify-content:center}#nb span .i{width:34px;height:34px}#nb div{flex:1}#nb b{font-size:19px}#nb small{opacity:.8}#nb button{color:#fff;font-size:20px}
 #nsp{position:absolute;z-index:10;left:12px;bottom:150px;width:60px;height:60px;border-radius:50%;background:#fff;border:4px solid #d6455a;text-align:center;padding-top:8px;line-height:1.1}#nsp small{display:block;font-size:10px;color:var(--mu)}
 #nbot{position:absolute;z-index:10;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;padding:12px 18px calc(env(safe-area-inset-bottom) + 14px)}
 #nst{display:flex;gap:10px;align-items:center;margin-bottom:8px}#nst .ph{width:44px;height:44px}
 .nr{display:flex;gap:10px}.nr div{flex:1}.nr b{font-size:20px;display:block}.nr small{color:var(--mu)}
 .bar{position:relative;height:6px;background:var(--bd);border-radius:3px;margin-top:12px}.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--g);border-radius:3px}.bar u{position:absolute;top:-3px;width:12px;height:12px;border-radius:50%;background:#fff;border:3px solid var(--g);margin-left:-6px}
 </style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/></symbol><symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol><symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol><symbol id="i-locate" viewBox="0 0 24 24"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-circle-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol><symbol id="i-navigation" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol><symbol id="i-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></symbol><symbol id="i-house" viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-car" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></symbol><symbol id="i-bike" viewBox="0 0 24 24"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></symbol><symbol id="i-walk" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><path d="m9 20 3-6 3 6"/><path d="m6 8 6 2 6-2"/><path d="M12 10v4"/></symbol><symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol><symbol id="i-mountain" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></symbol><symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol><symbol id="i-landmark" viewBox="0 0 24 24"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></symbol><symbol id="i-castle" viewBox="0 0 24 24"><path d="M22 20v-9H2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2Z"/><path d="M18 11V4H6v7"/><path d="M15 22v-4a3 3 0 0 0-3-3a3 3 0 0 0-3 3v4"/><path d="M22 11V9"/><path d="M2 11V9"/><path d="M6 4V2"/><path d="M18 4V2"/><path d="M10 4V2"/><path d="M14 4V2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></symbol><symbol id="i-turn-left" viewBox="0 0 24 24"><polyline points="14 9 9 4 4 9"/><path d="M20 20h-7a4 4 0 0 1-4-4V4"/></symbol><symbol id="i-turn-right" viewBox="0 0 24 24"><polyline points="10 9 15 4 20 9"/><path d="M4 20h7a4 4 0 0 0 4-4V4"/></symbol><symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol><symbol id="i-arrow-up-left" viewBox="0 0 24 24"><path d="M7 17V7h10"/><path d="M17 17 7 7"/></symbol><symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol><symbol id="i-uturn" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol><symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></symbol><symbol id="i-roundabout" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol><symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol></svg>
 
 <section class="s on" id="home">
- <div><div class="logo">📍 Putni Doživljaji</div>
+ <div><div class="logo"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg> Putni Doživljaji</div>
  <h1>Putujem od A do B.<br>Pronađi mi šta vrijedi doživjeti usput.</h1></div>
- <button class="cta" onclick="go('form')"><span>🧭</span><span><b>Planiraj put</b><small>Otkrij najbolje stanice na svojoj ruti</small></span><span>›</span></button>
+ <button class="cta" onclick="go('form')"><span><svg class="i" aria-hidden="true"><use href="#i-compass"/></svg></span><span><b>Planiraj put</b><small>Otkrij najbolje stanice na svojoj ruti</small></span><span><svg class="i" aria-hidden="true"><use href="#i-chevron-right"/></svg></span></button>
 </section>
 
 <section class="s" id="form">
- <div class="top"><button onclick="back()" aria-label="Nazad">←</button>Planiraj put</div>
+ <div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Planiraj put</div>
  <div class="pad">
   <h3 style="margin-top:4px">Ruta</h3>
-  <div class="f"><span>🟢</span><div><label for="fa">Polazište</label><input id="fa" list="la" placeholder="npr. Sarajevo" autocomplete="off"></div><button onclick="gps()" aria-label="Moja lokacija">⌖</button></div>
-  <div class="f"><span>📍</span><div><label for="fb">Odredište</label><input id="fb" list="lb" placeholder="npr. Mostar" autocomplete="off"></div></div>
+  <div class="f"><span style="color:var(--g)"><svg class="i" aria-hidden="true"><use href="#i-circle-dot"/></svg></span><div><label for="fa">Polazište</label><input id="fa" list="la" placeholder="npr. Sarajevo" autocomplete="off"></div><button onclick="gps()" aria-label="Moja lokacija"><svg class="i" aria-hidden="true"><use href="#i-locate"/></svg></button></div>
+  <div class="f"><span style="color:#d6455a"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg></span><div><label for="fb">Odredište</label><input id="fb" list="lb" placeholder="npr. Mostar" autocomplete="off"></div></div>
   <datalist id="la"></datalist><datalist id="lb"></datalist>
   <h3>Prevoz</h3><div class="chips" id="cm"></div>
   <h3>Polazak</h3><div class="f" style="width:140px"><input type="time" id="t0" value="08:00"></div>
@@ -102,36 +107,36 @@ body.tb .pad{padding-bottom:90px}body.tb #home{padding-bottom:90px}
   <h3>Šta želiš da doživiš?</h3><div class="chips cat" id="ci"></div>
   <div class="err" id="err"></div>
  </div>
- <div class="fix"><button class="btn" id="go" onclick="plan()">Pronađi najbolje opcije →</button></div>
+ <div class="fix"><button class="btn" id="go" onclick="plan()">Pronađi najbolje opcije <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
 </section>
 
 <section class="s" id="res">
- <div class="top" style="position:absolute;z-index:600;padding-bottom:0"><button class="rb" onclick="back()" aria-label="Nazad">←</button></div>
+ <div class="top" style="position:absolute;z-index:600;padding-bottom:0"><button class="rb" onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button></div>
  <div id="map"></div>
  <div class="panel" id="pn"></div>
 </section>
-<section class="s" id="sel"><div class="top"><button onclick="back()" aria-label="Nazad">←</button>Gotov izbor stanica</div><div class="pad" id="selc"></div><div class="fix"><button class="btn" onclick="go('pl')">Pogledaj plan →</button></div></section>
+<section class="s" id="sel"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Gotov izbor stanica</div><div class="pad" id="selc"></div><div class="fix"><button class="btn" onclick="go('pl')">Pogledaj plan <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></section>
 <section class="s" id="det"><div id="detc"></div></section>
-<section class="s" id="pl"><div class="top"><button onclick="back()" aria-label="Nazad">←</button>Tvoj plan putovanja<button style="margin-left:auto" onclick="go('sel')" aria-label="Uredi">✎</button></div><div class="pad" id="plc"></div><div class="fix"><button class="btn" onclick="startNav()">➤ Pokreni navigaciju</button></div></section>
+<section class="s" id="pl"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Tvoj plan putovanja<button style="margin-left:auto" onclick="go('sel')" aria-label="Uredi"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button></div><div class="pad" id="plc"></div><div class="fix"><button class="btn" onclick="startNav()"><svg class="i" aria-hidden="true"><use href="#i-navigation"/></svg> Pokreni navigaciju</button></div></section>
 <section class="s" id="nav"><div id="nmap"></div>
- <div id="nb"><span id="nbi">➤</span><div><b id="nbt"></b><br><small id="nbd"></small></div><button onclick="stopNav()" aria-label="Zatvori">✕</button></div>
+ <div id="nb"><span id="nbi"><svg class="i" aria-hidden="true"><use href="#i-navigation"/></svg></span><div><b id="nbt"></b><br><small id="nbd"></small></div><button onclick="stopNav()" aria-label="Zatvori"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
  <div id="nsp"><b id="nsv">0</b><small>km/h</small></div>
  <div id="nbot"><div id="nst"></div><div class="nr"><div><b id="nrt">–</b><small>do cilja</small></div><div><b id="nrk">–</b><small id="nrl">do sljedeće stanice</small></div></div><div class="bar" id="nbar"></div></div>
 </section>
-<section class="s" id="fin"><div style="font-size:40px">📍</div><h1>Tvoj put.<br>Više doživljaja.</h1><p style="opacity:.9">Od A do B — i sve što vrijedi vidjeti usput.</p>
- <button class="btn" onclick="savePlan();this.textContent='✓ Sačuvano'">🔖 Sačuvaj plan</button><button class="btn l" onclick="H.length=0;show('form')">Novi plan</button></section>
+<section class="s" id="fin"><div style="color:#ff6b6b"><svg class="i" style="width:44px;height:44px" aria-hidden="true"><use href="#i-map-pin"/></svg></div><h1>Tvoj put.<br>Više doživljaja.</h1><p style="opacity:.9">Od A do B — i sve što vrijedi vidjeti usput.</p>
+ <button class="btn" onclick="savePlan();this.innerHTML=I('check')+' Sačuvano'"><svg class="i" aria-hidden="true"><use href="#i-bookmark"/></svg> Sačuvaj plan</button><button class="btn l" onclick="H.length=0;show('form')">Novi plan</button></section>
 <section class="s" id="saved"><div class="top">Planovi</div><div class="pad" id="svc"></div></section>
 <section class="s" id="fav"><div class="top">Favoriti</div><div class="pad" id="fvc"></div></section>
 <section class="s" id="prof"><div class="top">Profil</div><div class="pad" id="prc"></div></section>
-<nav id="tabs"><button data-t="home" onclick="tab('home')">🏠<small>Početna</small></button><button data-t="saved" onclick="tab('saved')">🗺️<small>Planovi</small></button><button data-t="fav" onclick="tab('fav')">♡<small>Favoriti</small></button><button data-t="prof" onclick="tab('prof')">👤<small>Profil</small></button></nav>
+<nav id="tabs"><button data-t="home" onclick="tab('home')"><svg class="i" aria-hidden="true"><use href="#i-house"/></svg><small>Početna</small></button><button data-t="saved" onclick="tab('saved')"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg><small>Planovi</small></button><button data-t="fav" onclick="tab('fav')"><svg class="i" aria-hidden="true"><use href="#i-heart"/></svg><small>Favoriti</small></button><button data-t="prof" onclick="tab('prof')"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg><small>Profil</small></button></nav>
 
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-const $=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
+const I=(n,c)=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`,$=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const MODES={car:{n:"🚗 Auto",spd:40,gm:"driving"},bike:{n:"🚲 Bicikl",spd:15,gm:"bicycling"},foot:{n:"🚶 Pješice",spd:4.5,gm:"walking"}};
-const CATS={hrana:{n:"Lokalna hrana",ic:"🍴",c:"#e8890c",bg:"#fff1dc",q:["jesti"],v:60},vid:{n:"Vidikovci",ic:"⛰️",c:"#1d78c9",bg:"#e1f0fc",q:["videti"],v:20},pri:{n:"Priroda",ic:"🌿",c:"#2a9d57",bg:"#e0f5e8",q:["odmoriti"],v:45},kul:{n:"Kultura",ic:"🏛️",c:"#7b4bc4",bg:"#efe6fb",q:["videti","dogadjaji"],v:45},ist:{n:"Istorija",ic:"🏰",c:"#d6455a",bg:"#fde4e8",q:["videti"],v:40}};
+const MODES={car:{n:I("car")+" Auto",spd:40,gm:"driving"},bike:{n:I("bike")+" Bicikl",spd:15,gm:"bicycling"},foot:{n:I("walk")+" Pješice",spd:4.5,gm:"walking"}};
+const CATS={hrana:{n:"Lokalna hrana",ic:I("utensils"),c:"#e8890c",bg:"#fff1dc",q:["jesti"],v:60},vid:{n:"Vidikovci",ic:I("mountain"),c:"#1d78c9",bg:"#e1f0fc",q:["videti"],v:20},pri:{n:"Priroda",ic:I("leaf"),c:"#2a9d57",bg:"#e0f5e8",q:["odmoriti"],v:45},kul:{n:"Kultura",ic:I("landmark"),c:"#7b4bc4",bg:"#efe6fb",q:["videti","dogadjaji"],v:45},ist:{n:"Istorija",ic:I("castle"),c:"#d6455a",bg:"#fde4e8",q:["videti"],v:40}};
 let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}catch(e){return"car"}})(),extra=20,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
 
 const H=[],TABS=["home","saved","fav","prof","fin"];let cur="home";
@@ -142,7 +147,7 @@ function back(){show(H.pop()||"home")}
 function chips(el,items,isOn,fn,cls){el.innerHTML=items.map(([k,l])=>`<button class="ch ${isOn(k)?"on":""}" data-k="${k}" ${cls?`style="--c:${CATS[k].c};--bgc:${CATS[k].bg}"`:""}>${l}</button>`).join("");el.onclick=e=>{const b=e.target.closest("button");if(b){fn(b.dataset.k);chips(el,items,isOn,fn,cls)}}}
 chips($("#cm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>mode=k);
 chips($("#ce"),[10,20,30,45,60].map(m=>[m,m+" min"]),k=>k==extra,k=>extra=+k);
-chips($("#ci"),Object.entries(CATS).map(([k,v])=>[k,v.ic+" "+v.n]),k=>want.has(k),k=>want.has(k)?want.delete(k):want.add(k),1);
+chips($("#ci"),Object.entries(CATS).map(([k,v])=>[k,v.ic+v.n]),k=>want.has(k),k=>want.has(k)?want.delete(k):want.add(k),1);
 
 // ---------- adrese ----------
 async function geo(q){const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=sr-Latn&q="+encodeURIComponent(q));if(!r.ok)throw Error("Traženje adrese trenutno ne radi");return(await r.json()).map(x=>({name:x.display_name.split(",")[0],full:x.display_name.split(",").slice(0,3).join(","),lat:+x.lat,lon:+x.lon}))}
@@ -215,7 +220,7 @@ async function plan(){
   go("res");initMap();
   await refresh(1);
  }catch(e){err.textContent=e.message||"Nešto nije u redu. Pokušaj ponovo."}
- btn.disabled=false;btn.textContent="Pronađi najbolje opcije →";
+ btn.disabled=false;btn.innerHTML="Pronađi najbolje opcije "+I("arrow-right");
 }
 
 function initMap(){if(map)return;map=L.map("map",{zoomControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);layer=L.layerGroup().addTo(map)}
@@ -236,34 +241,34 @@ async function refresh(fit){
  <div style="color:var(--mu);font-size:13px">${st.length} stanica · ${fmt(Math.max(0,tot-base.dur/60))} dodatno · ${km.toFixed(0)} km</div>
  <div class="th">${st.map(s=>ph(s)).join("")}<button onclick="go('sel')" style="color:var(--g);margin-left:auto;font-weight:600">Vidi sve</button></div>
  <div class="stats"><div><b>${fmt(base.dur/60)}</b><small>vožnja (osnovna ruta)</small></div><div><b>${fmt(tot)}</b><small>ukupno sa stanicama</small></div></div>
- <button class="btn" onclick="go('pl')">Pogledaj plan →</button>`;
+ <button class="btn" onclick="go('pl')">Pogledaj plan <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>`;
  drawSel();drawPl();
 }
 function drawSel(){$("#selc").innerHTML=`<p style="color:var(--mu);margin:0 0 12px">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${opts.map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
- $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} → ${esc(B.name)}</b><div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
- <div class="tl" id="tl"></div><button class="btn l" id="svb" onclick="savePlan()">🔖 Sačuvaj plan</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a>`;
+ $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b><div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
+ <div class="tl" id="tl"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a>`;
  $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl()}
 function tl(){
  const st=S.st,t0=$("#t0").value.split(":"),s0=+t0[0]*60+ +t0[1];let t=s0,h=`<div class="it"><i>A</i><div class="r"><div class="b"><b>${esc(A.name)}</b><br><small>Početak putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;
  st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}</small></div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><div class="r"><div class="b"><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;$("#tl").innerHTML=h}
-function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);const k=CATS[c.c];return`<div class="ph" style="background:${k.bg}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" onerror="this.remove()">`:""}</div>`}
+function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" onerror="this.remove()">`:""}</div>`}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
-function card(o,n){return`<div class="card"><div style="position:relative">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<small>${o.dst?`${fmt(o.v)} · ${o.d.toFixed(1)} km od centra odredišta`:`+${o.est} min · ${fmt(o.v)} posjeta · ${o.d.toFixed(1)} km od rute`}</small></button><button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="Dodaj u plan">${sel.has(o.id)?"✓":"+"}</button></div>`}
+function card(o,n){return`<div class="card"><div style="position:relative">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<small>${o.dst?`${fmt(o.v)} · ${o.d.toFixed(1)} km od centra odredišta`:`+${o.est} min · ${fmt(o.v)} posjeta · ${o.d.toFixed(1)} km od rute`}</small></button><button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="Dodaj u plan">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
 async function tog(id){const y=document.scrollingElement.scrollTop;sel.has(id)?sel.delete(id):sel.add(id);await refresh();if(cur=="det")opn(id,1);scrollTo(0,y)}
 function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),x=[t.cuisine&&"Kuhinja: "+t.cuisine.replace(/;/g,", "),t.opening_hours&&"Radno vrijeme: "+t.opening_hours,t.phone||t["contact:phone"]].filter(Boolean);
- $("#detc").innerHTML=`<div class="hero">${ph(o,1)}<button class="rb l" onclick="back()" aria-label="Nazad">←</button><button class="rb r" id="hrt" onclick="fv('${id}')" aria-label="Favorit">${FAV[id]?"♥":"♡"}</button></div>
+ $("#detc").innerHTML=`<div class="hero">${ph(o,1)}<button class="rb l" onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button><button class="rb r${FAV[id]?" fav":""}" id="hrt" onclick="fv('${id}')" aria-label="Favorit">${I("heart",FAV[id]?"fill":"")}</button></div>
  <div class="pad"><h2 style="font-size:21px">${esc(t.name)}</h2>${chip(o.c)}
  <div class="stats">${inr?`<div><b>~+${o.est} min</b><small>dodatno vrijeme</small></div>`:""}<div><b>${fmt(o.v)}</b><small>trajanje posjete</small></div>${inr?`<div><b>${o.d.toFixed(1)} km</b><small>${o.dst?"od odredišta":"od rute"}</small></div>`:""}</div>
  ${t.description?`<p>${esc(t.description)}</p>`:""}${x.map(l=>`<p style="color:var(--mu);margin-top:6px">${esc(l)}</p>`).join("")}
  ${inr?`<button class="btn" style="margin-top:14px" onclick="tog('${id}')">${sel.has(id)?"Ukloni iz plana":"Dodaj u plan"}</button>`:""}
- <a class="btn l" style="margin-top:10px" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">➤ Navigacija do stanice</a></div>`;
+ <a class="btn l" style="margin-top:10px" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a></div>`;
  if(!stay)go("det")}
-function fv(id){const o=getP(id);if(FAV[id])delete FAV[id];else FAV[id]={id,t:mt(o.t),c:o.c,p:o.p,v:o.v,fv:1,est:0,d:0};store("fav",FAV);const h=$("#hrt");if(h)h.textContent=FAV[id]?"♥":"♡";if(cur=="fav")drawFav()}
-function drawFav(){const l=Object.values(FAV);$("#fvc").innerHTML=l.length?l.map(o=>`<div class="card">${ph(o)}<button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}</button><button class="add on" onclick="fv('${o.id}')" aria-label="Ukloni">♥</button></div>`).join(""):`<p style="color:var(--mu)">Još nema favorita. Dodaj mjesta srcem na stranici mjesta.</p>`}
-function savePlan(){if(!S.st)return;const p={k:Date.now(),A,B,mode,extra,t0:$("#t0").value,km:Math.round(S.km),stops:S.st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))};PL=[p,...PL].slice(0,20);store("plans",PL);const b=$("#svb");if(b)b.textContent="✓ Sačuvano"}
-function drawSaved(){$("#svc").innerHTML=PL.length?PL.map(p=>`<div class="card" style="padding:12px"><button class="b" onclick="loadPlan(${p.k})"><div class="n">${esc(p.A.name)} → ${esc(p.B.name)}</div><small>${p.stops.length} stanica · ${p.km} km · ${new Date(p.k).toLocaleDateString("sr-Latn")}</small></button><button class="add" onclick="delPlan(${p.k})" aria-label="Obriši">🗑</button></div>`).join(""):`<p style="color:var(--mu)">Još nema sačuvanih planova. Napravi plan i pritisni „Sačuvaj plan“.</p>`}
+function fv(id){const o=getP(id);if(FAV[id])delete FAV[id];else FAV[id]={id,t:mt(o.t),c:o.c,p:o.p,v:o.v,fv:1,est:0,d:0};store("fav",FAV);const h=$("#hrt");if(h){h.innerHTML=I("heart",FAV[id]?"fill":"");h.classList.toggle("fav",!!FAV[id])};if(cur=="fav")drawFav()}
+function drawFav(){const l=Object.values(FAV);$("#fvc").innerHTML=l.length?l.map(o=>`<div class="card">${ph(o)}<button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}</button><button class="add on" onclick="fv('${o.id}')" aria-label="Ukloni">${I("heart","fill")}</button></div>`).join(""):`<p style="color:var(--mu)">Još nema favorita. Dodaj mjesta srcem na stranici mjesta.</p>`}
+function savePlan(){if(!S.st)return;const p={k:Date.now(),A,B,mode,extra,t0:$("#t0").value,km:Math.round(S.km),stops:S.st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))};PL=[p,...PL].slice(0,20);store("plans",PL);const b=$("#svb");if(b)b.innerHTML=I("check")+" Sačuvano"}
+function drawSaved(){$("#svc").innerHTML=PL.length?PL.map(p=>`<div class="card" style="padding:12px"><button class="b" onclick="loadPlan(${p.k})"><div class="n">${esc(p.A.name)} ${I("arrow-right")} ${esc(p.B.name)}</div><small>${p.stops.length} stanica · ${p.km} km · ${new Date(p.k).toLocaleDateString("sr-Latn")}</small></button><button class="add" onclick="delPlan(${p.k})" aria-label="Obriši">${I("trash")}</button></div>`).join(""):`<p style="color:var(--mu)">Još nema sačuvanih planova. Napravi plan i pritisni „Sačuvaj plan“.</p>`}
 function delPlan(k){PL=PL.filter(p=>p.k!=k);store("plans",PL);drawSaved()}
 async function loadPlan(k){const p=PL.find(x=>x.k==k);if(!p)return;A=p.A;B=p.B;mode=p.mode;extra=p.extra;$("#t0").value=p.t0;cm=new Map();p.stops.forEach(s=>cm.set(s.id,s));sel=new Set(p.stops.map(s=>s.id));opts=[...p.stops];dest=[];
  try{base=await route([[A.lat,A.lon],[B.lat,B.lon]])}catch(e){return alert("Ruta se ne može učitati. Provjeri vezu.")}
@@ -275,13 +280,13 @@ let N=null,nmap,nlay,nme;
 const fkm=k=>k<.05?"sada":k<1?Math.round(k*100)*10+" m":k.toFixed(1)+" km";
 function mtxt(s,last){const m=s.maneuver||{},t=m.type,d=m.modifier||"",nm=s.name?" – "+s.name:"";
  const dr={left:"lijevo",right:"desno","slight left":"blago lijevo","slight right":"blago desno","sharp left":"oštro lijevo","sharp right":"oštro desno",straight:"pravo"}[d]||"";
- const ar={left:"↰",right:"↱","slight left":"↖","slight right":"↗","sharp left":"↰","sharp right":"↱",straight:"↑",uturn:"↶"}[d]||"↑";
- if(t=="arrive")return["⚑",last?"Stižete na odredište":"Stižete na stanicu"];
- if(/roundabout|rotary/.test(t))return["⟳","U kružnom toku izađite na "+(m.exit?m.exit+". izlazu":"sljedećem izlazu")+nm];
- if(d=="uturn")return["↶","Okrenite se"];
+ const ar={left:"turn-left",right:"turn-right","slight left":"arrow-up-left","slight right":"arrow-up-right","sharp left":"turn-left","sharp right":"turn-right",straight:"arrow-up",uturn:"uturn"}[d]||"arrow-up";
+ if(t=="arrive")return["flag",last?"Stižete na odredište":"Stižete na stanicu"];
+ if(/roundabout|rotary/.test(t))return["roundabout","U kružnom toku izađite na "+(m.exit?m.exit+". izlazu":"sljedećem izlazu")+nm];
+ if(d=="uturn")return["uturn","Okrenite se"];
  if(t=="fork")return[ar,"Na račvanju držite se "+(dr||"pravo")+nm];
  if(t=="merge")return[ar,"Uključite se"+(dr?" "+dr:"")+nm];
- if(d=="straight"||t=="continue"||!dr)return["↑","Nastavite pravo"+nm];
+ if(d=="straight"||t=="continue"||!dr)return["arrow-up","Nastavite pravo"+nm];
  return[ar,"Skrenite "+dr+nm]}
 function nidx(line,c){let b=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(c,line[i]);if(x<b){b=x;bi=i}}return[bi,b]}
 function setSteps(r){N.r=r;N.cum=[0];for(let i=1;i<r.line.length;i++)N.cum[i]=N.cum[i-1]+dk(r.line[i-1],r.line[i]);N.D=N.cum.at(-1)||.001;N.i=0;
@@ -293,7 +298,7 @@ async function startNav(){
  go("nav");if(!nmap){nmap=L.map("nmap",{zoomControl:false,attributionControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(nmap);nlay=L.layerGroup().addTo(nmap)}
  setTimeout(()=>nmap.invalidateSize(),60);if(nme){nme.remove();nme=null}
  N={st:[...S.st]};setSteps(rt);nmap.fitBounds(L.polyline(rt.line).getBounds());
- $("#nbi").textContent="➤";$("#nbt").textContent="Čekam GPS signal…";$("#nbd").textContent="Izađi na otvoreno ako signal kasni";$("#nst").innerHTML="";
+ $("#nbi").innerHTML=I("navigation");$("#nbt").textContent="Čekam GPS signal…";$("#nbd").textContent="Izađi na otvoreno ako signal kasni";$("#nst").innerHTML="";
  try{N.wl=await navigator.wakeLock.request("screen")}catch(e){}
  N.w=navigator.geolocation.watchPosition(onPos,()=>{if(N)$("#nbt").textContent="Nema signala lokacije"},{enableHighAccuracy:true,maximumAge:1000,timeout:30000})}
 function stopNav(done){if(N){navigator.geolocation.clearWatch(N.w);try{N.wl&&N.wl.release()}catch(e){}}N=null;if(!done)back()}
@@ -303,11 +308,11 @@ function onPos(p){if(!N)return;const c=[p.coords.latitude,p.coords.longitude];$(
  if(N.first)nmap.panTo(c);else{N.first=1;nmap.setView(c,17)}
  if(dk(c,[B.lat,B.lon])<.06){stopNav(1);return go("fin")}
  const[ni,dn]=nidx(N.r.line,c);
- if(dn>.08){$("#nbi").textContent="⚠";$("#nbt").textContent="Van rute";$("#nbd").textContent="Preračunavam…";if(Date.now()-(N.rr||0)>20000)reroute(c);return}
+ if(dn>.08){$("#nbi").innerHTML=I("alert");$("#nbt").textContent="Van rute";$("#nbd").textContent="Preračunavam…";if(Date.now()-(N.rr||0)>20000)reroute(c);return}
  while(N.i+1<N.si.length-1&&ni>=N.si[N.i+1])N.i++;
  if(N.st[0]&&dk(c,N.st[0].p)<.15){N.st.shift();N.ti.shift()}
  const nx=N.r.steps[N.i+1],ns=N.st[0],rem=Math.max(0,N.D-N.cum[ni]);
- if(nx){const[ic,tx]=mtxt(nx,N.i+1>=N.r.steps.length-1),dd=Math.max(0,N.cum[N.si[N.i+1]]-N.cum[ni]);$("#nbi").textContent=ic;$("#nbt").textContent=tx;$("#nbd").textContent="za "+fkm(dd)+(ns?" · stanica: "+ns.t.name:"")}
+ if(nx){const[ic,tx]=mtxt(nx,N.i+1>=N.r.steps.length-1),dd=Math.max(0,N.cum[N.si[N.i+1]]-N.cum[ni]);$("#nbi").innerHTML=I(ic);$("#nbt").textContent=tx;$("#nbd").textContent="za "+fkm(dd)+(ns?" · stanica: "+ns.t.name:"")}
  $("#nrt").textContent=fmt(rem/N.D*N.r.dur/60);
  const ds=ns?Math.max(0,N.cum[N.ti[0]]-N.cum[ni]):rem;$("#nrk").textContent=fkm(ds);$("#nrl").textContent=ns?"do sljedeće stanice":"do cilja";
  $("#nst").innerHTML=ns?`${ph(ns)}<div><b>${esc(ns.t.name)}</b><br><small>${CATS[ns.c].n}</small></div>`:"";
