@@ -141,7 +141,7 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .ds .i{width:26px;height:26px;stroke-width:1.9}.ds b{display:block;font-size:19px;line-height:1.15;white-space:nowrap}.ds small{color:var(--mu);font-size:12.5px;line-height:1.2;display:block}
 .dp .desc{font-size:16.5px;line-height:1.55}
 .dp .inf{display:flex;gap:10px;align-items:flex-start;margin-top:12px;color:var(--mu);font-size:14.5px;line-height:1.4}.dp .inf .i{margin-top:1px}
-.dp .nav{margin-top:14px;border:1px solid var(--bd);background:#fff}
+.dp .nav{margin-top:14px;border:1px solid var(--bd);background:#fff;color:var(--g)}
 #det .fix .btn{padding:17px;font-size:18px;border-radius:18px}
 .cr{display:flex;align-items:center;flex-wrap:wrap;column-gap:14px}
 .rat{margin-top:12px;font-size:16px;font-weight:600;color:var(--tx)}.rat b{color:#f59e0b}.rat small{color:var(--mu);font-weight:400;font-size:15px}.rat:empty{display:none}
@@ -316,7 +316,7 @@ async function plan(){
 function initMap(){if(map)return;map=L.map("map",{zoomControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);layer=L.layerGroup().addTo(map)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
-const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,description:t.description,opening_hours:t.opening_hours,phone:t.phone});
+const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone});
 function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,90],paddingBottomRight:[40,h]})}
 function locate(){if(!navigator.geolocation)return fitRoute();navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],13),()=>fitRoute(),{timeout:6000})}
 async function refresh(fit){
@@ -365,9 +365,16 @@ function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["cont
  <div id="gx"></div>
  <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a></div>
  ${inr?`<div class="fix"><button class="btn" onclick="tog('${id}')">${sel.has(id)?I("check")+" Ukloni iz plana":I("plus")+" Dodaj u plan"}</button></div>`:""}`;
- enrich(id,o);if(!stay)go("det")}
+ enrich(id,o);wdImg(id,o);if(!stay)go("det")}
 // ---------- Google podaci (ocjena, radno vrijeme, fotografija) samo za mjesto koje korisnik otvori ----------
 const EN={};
+async function wdImg(id,o){const q=o.t.wikidata;if(!q||!/^Q\d+$/.test(q))return;
+ try{const r=await fetch(`https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=${q}&property=P18&format=json&origin=*`,{signal:AbortSignal.timeout(7000)});const j=await r.json();
+  const c=((j.claims||{}).P18||[])[0],f=c&&c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;if(!f)return;
+  const ph=document.querySelector(".hero .ph"),d=$("#dpd");if(!ph||!d||d.dataset.id!=id||ph.querySelector("img"))return;
+  const im=new Image();im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";
+  im.onload=()=>{if(!ph.querySelector("img")){ph.appendChild(im);ph.insertAdjacentHTML("beforeend",'<span class="by">Foto: Wikimedia Commons</span>')}};
+  im.src="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f)+"?width=800"}catch(e){}}
 async function enrich(id,o){if(!API)return;
  let e=EN[id];if(e===undefined){EN[id]=e=null;try{const r=await fetch(`${API}/api/enrich?name=${encodeURIComponent(o.t.name)}&lat=${o.p[0]}&lng=${o.p[1]}`,{signal:AbortSignal.timeout(8000)});if(r.ok){const j=await r.json();EN[id]=e=j.none?false:j}}catch(x){delete EN[id];return}}
  else if(e===null){await new Promise(r=>setTimeout(r,1500));e=EN[id]}
