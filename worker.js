@@ -113,24 +113,46 @@ async function refreshCity(env, id) {
   return res;
 }
 
+const norm = (x) => (x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "dj");
+const toks = (x) => norm(x).split(/[^a-z0-9]+/).filter((t) => t.length > 2);
 async function enrich(env, name, lat, lng) {
-  const key = `g3:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
+  const key = `g4:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
   const hit = await env.PLACES.get(key, "json");
   if (hit) return hit;
+  // locationRestriction (pravougaonik ~450 x 650 m) garantuje da dobijemo mjesto sa te lokacije, a ne istoimeno mjesto negdje drugo
   const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": env.GOOGLE_KEY,
-      "X-Goog-FieldMask": "places.id,places.location,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours.weekdayDescriptions,places.nationalPhoneNumber,places.internationalPhoneNumber,places.photos.name,places.photos.authorAttributions.displayName",
+      "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.rating,places.userRatingCount,places.priceLevel,places.regularOpeningHours.weekdayDescriptions,places.nationalPhoneNumber,places.internationalPhoneNumber,places.photos.name,places.photos.authorAttributions.displayName",
     },
-    body: JSON.stringify({ textQuery: name, maxResultCount: 1, languageCode: "sr-Latn", locationBias: { circle: { center: { latitude: lat, longitude: lng }, radius: 150 } } }),
+    body: JSON.stringify({
+      textQuery: name,
+      maxResultCount: 5,
+      languageCode: "sr-Latn",
+      locationRestriction: { rectangle: { low: { latitude: lat - 0.002, longitude: lng - 0.003 }, high: { latitude: lat + 0.002, longitude: lng + 0.003 } } },
+    }),
   });
-  if (!r.ok) throw new Error("google");
-  const p = ((await r.json()).places || [])[0];
-  const ok = p && p.location && km([lat, lng], [p.location.latitude, p.location.longitude]) < 0.2;
-  const out = ok ? { rating: p.rating || null, n: p.userRatingCount || 0, price: p.priceLevel || null, hours: (p.regularOpeningHours || {}).weekdayDescriptions || null, phone: p.internationalPhoneNumber || p.nationalPhoneNumber || null, gid: p.id, photo: ((p.photos || [])[0] || {}).name || null, by: ((((p.photos || [])[0] || {}).authorAttributions || [])[0] || {}).displayName || "" } : { none: true };
-  await env.PLACES.put(key, JSON.stringify(out), { expirationTtl: 2592000 }); // 30 dana (Google uslovi)
+  if (!r.ok) {
+    let m = "";
+    try { m = ((await r.json()).error || {}).message || ""; } catch (e) {}
+    throw { g: r.status, m: m.slice(0, 160) };
+  }
+  const want = toks(name);
+  let best = null, bs = -1;
+  for (const p of (await r.json()).places || []) {
+    if (!p.location) continue;
+    const d = km([lat, lng], [p.location.latitude, p.location.longitude]);
+    const have = toks((p.displayName || {}).text);
+    const ov = want.filter((t) => have.some((h) => h.includes(t) || t.includes(h))).length;
+    if (!(ov > 0 || d < 0.15)) continue;
+    const sc = ov * 10 - d * 10;
+    if (sc > bs) { bs = sc; best = p; }
+  }
+  const p = best;
+  const out = p ? { rating: p.rating || null, n: p.userRatingCount || 0, price: p.priceLevel || null, hours: (p.regularOpeningHours || {}).weekdayDescriptions || null, phone: p.internationalPhoneNumber || p.nationalPhoneNumber || null, gid: p.id, photo: ((p.photos || [])[0] || {}).name || null, by: ((((p.photos || [])[0] || {}).authorAttributions || [])[0] || {}).displayName || "" } : { none: true };
+  await env.PLACES.put(key, JSON.stringify(out), { expirationTtl: p ? 2592000 : 86400 }); // 30 dana za pogodak (Google uslovi), 1 dan za "nema"
   return out;
 }
 
@@ -181,11 +203,12 @@ export default {
       return json({ city, result: await refreshCity(env, city) }, req);
     }
     if (url.pathname === "/api/enrich") {
-      if (!ORIGINS.includes(req.headers.get("Origin")) || !env.GOOGLE_KEY) return json({ error: "forbidden" }, req, 403);
+      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden", m: "origin" }, req, 403);
+      if (!env.GOOGLE_KEY) return json({ error: "forbidden", m: "GOOGLE_KEY nije postavljen u Workeru" }, req, 403);
       const name = (url.searchParams.get("name") || "").slice(0, 80);
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
-      try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream" }, req, 502); }
+      try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream", g: e && e.g, m: (e && e.m) || "" }, req, 502); }
     }
     if (url.pathname === "/api/walk") {
       if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
