@@ -273,7 +273,7 @@ async function plan(){
  if(!API)return err.textContent="Nedostaje BLIZU_API u config.js.";
  btn.disabled=true;
  try{
-  btn.textContent="Tražim adrese…";[A,B]=await Promise.all([resolve($("#fa")),resolve($("#fb"))]);const cats0=[...new Set([...want].flatMap(k=>CATS[k].q))],destP=point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats0,"jesti"])]).catch(()=>null);
+  btn.textContent="Tražim adrese…";[A,B]=await Promise.all([resolve($("#fa")),resolve($("#fb"))]);A.name=tr(A.name);B.name=tr(B.name);const cats0=[...new Set([...want].flatMap(k=>CATS[k].q))],destP=point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats0,"jesti"])]).catch(()=>null);
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
   const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.round(rk*1000);
@@ -288,13 +288,13 @@ async function plan(){
   if(!useP||res.filter(x=>!x).length>res.length/2){btn.textContent="Tražim mjesta duž puta…";const cr=await chunkFlow(pts,r,cats,btn);res=useP?[...res.filter(Boolean),...cr]:cr}
   const fails=res.filter(x=>!x).length;
   if(fails==res.length)throw Error("Javni serveri s podacima o mjestima trenutno ne odgovaraju. Pokušaj ponovo za koji minut."+(why?(console.warn("BLIZU:",why),""):""));
-  const els=res.flatMap(x=>x||[]);
+  const els=res.flatMap(x=>x||[]);els.forEach(e=>{if(e.tags&&e.tags.name)e.tags.name=tr(e.tags.name)});
   cm=new Map();const names=new Set();const buf=Math.max(1.5,.12*D),s0=+$("#t0").value.slice(0,2)*60+ +$("#t0").value.slice(3,5);
   const meal=(c,t,m)=>{if(c!="hrana")return 0;m%=1440;const ok=(m>=660&&m<=900)||(m>=1080&&m<=1290)||(t.amenity=="cafe"&&m>=540&&m<=660);return ok?0:4};
   const NT=t=>(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
   btn.textContent="Tražim mjesta na odredištu…";
   const dsel=await destP,dn=new Set(),dl=[];
-  for(const el of dsel||[]){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||(c!="hrana"&&!want.has(c))||dn.has(t.name+c))continue;const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;const d=dk(p,[B.lat,B.lon]);if(d>2.5)continue;dn.add(t.name+c);
+  for(const el of dsel||[]){const t=el.tags||{};if(!t.name)continue;t.name=tr(t.name);const c=cls(t);if(!c||(c!="hrana"&&!want.has(c))||dn.has(t.name+c))continue;const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;const d=dk(p,[B.lat,B.lon]);if(d>2.5)continue;dn.add(t.name+c);
    dl.push({id:el.type[0]+el.id,t,c,p,d,est:Math.max(1,Math.round(d*1.35/spd*60)),f:1+d/100,v:t.amenity=="cafe"?30:CATS[c].v,dst:1,sc:NT(t)-meal(c,t,s0+base.dur/60)-d*.3})}
   dl.sort((a,b)=>b.sc-a.sc);dest=[...dl.filter(x=>x.c=="hrana").slice(0,4),...dl.filter(x=>x.c!="hrana").slice(0,2)].sort((a,b)=>b.sc-a.sc);
   
@@ -313,6 +313,8 @@ async function plan(){
  btn.disabled=false;btn.innerHTML="Pronađi najbolje opcije "+I("arrow-right");
 }
 
+const CYR={А:"A",Б:"B",В:"V",Г:"G",Д:"D",Ђ:"Đ",Е:"E",Ж:"Ž",З:"Z",И:"I",Ј:"J",К:"K",Л:"L",Љ:"Lj",М:"M",Н:"N",Њ:"Nj",О:"O",П:"P",Р:"R",С:"S",Т:"T",Ћ:"Ć",У:"U",Ф:"F",Х:"H",Ц:"C",Ч:"Č",Џ:"Dž",Ш:"Š",Ѓ:"Gj",Ќ:"Kj",Ѕ:"Dz"};
+const tr=x=>typeof x=="string"&&/[\u0400-\u04FF]/.test(x)?x.replace(/[\u0400-\u04FF]/g,c=>{const u=c.toUpperCase(),m=CYR[u];return m?(c==u?m:m.toLowerCase()):c}):x;
 const MTK=window.BLIZU_MAPTILER_KEY||"";
 function tiles(at){return MTK?L.tileLayer("https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key="+encodeURIComponent(MTK),{maxZoom:19,tileSize:512,zoomOffset:-1,attribution:at?"© MapTiler © OpenStreetMap":""}):L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:at?"© OpenStreetMap":""})}
 function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).addTo(map);layer=L.layerGroup().addTo(map)}
