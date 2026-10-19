@@ -226,8 +226,11 @@ chips($("#ce"),[10,20,30,45,60].map(m=>[m,m+" min"]),k=>k==extra,k=>extra=+k);
 chips($("#ci"),Object.entries(CATS).map(([k,v])=>[k,v.ic+v.n]),k=>want.has(k),k=>want.has(k)?want.delete(k):want.add(k),1);
 
 // ---------- adrese ----------
-async function geo(q){const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=sr-Latn&q="+encodeURIComponent(q));if(!r.ok)throw Error("Traženje adrese trenutno ne radi");return(await r.json()).map(x=>({name:x.display_name.split(",")[0],full:x.display_name.split(",").slice(0,3).join(","),lat:+x.lat,lon:+x.lon}))}
-[["fa","la"],["fb","lb"]].forEach(([i,l])=>{const inp=$("#"+i);let tm;inp.addEventListener("input",()=>{inp._o=null;clearTimeout(tm);const v=inp.value.trim();if(v.length<3)return;tm=setTimeout(async()=>{try{const r=await geo(v);inp._s={};r.forEach(x=>inp._s[x.full]=x);$("#"+l).innerHTML=r.map(x=>`<option value="${esc(x.full)}">`).join("")}catch(e){}},600)})});
+async function geo(q,auto){
+ if(API){try{const w=await fetch(API+"/api/geocode?q="+encodeURIComponent(q),{signal:AbortSignal.timeout(6000)});if(w.ok){const j=await w.json();if((j.results||[]).length||auto)return j.results||[]}}catch(e){}}
+ if(auto)return[]; // pretraga po slovu nikad ne ide direktno na javni Nominatim (zabranjeno njihovim pravilima)
+ const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=sr-Latn&q="+encodeURIComponent(q));if(!r.ok)throw Error("Traženje adrese trenutno ne radi");return(await r.json()).map(x=>({name:x.display_name.split(",")[0],full:x.display_name.split(",").slice(0,3).join(","),lat:+x.lat,lon:+x.lon}))}
+[["fa","la"],["fb","lb"]].forEach(([i,l])=>{const inp=$("#"+i);let tm;inp.addEventListener("input",()=>{inp._o=null;clearTimeout(tm);const v=inp.value.trim();if(v.length<3)return;tm=setTimeout(async()=>{try{const r=await geo(v,1);inp._s={};r.forEach(x=>inp._s[x.full]=x);$("#"+l).innerHTML=r.map(x=>`<option value="${esc(x.full)}">`).join("")}catch(e){}},600)})});
 function gps(){navigator.geolocation?.getCurrentPosition(p=>{const i=$("#fa");i.value="Moja lokacija";i._o={name:"Moja lokacija",lat:p.coords.latitude,lon:p.coords.longitude}},()=>$("#err").textContent="Lokacija nije dozvoljena.")}
 async function resolve(i){const v=i.value.trim();if(!v)throw Error("Unesi polazište i odredište.");if(i._o&&i._o.name=="Moja lokacija"&&v=="Moja lokacija")return i._o;if(i._s&&i._s[v])return i._s[v];const r=await geo(v);if(!r[0])throw Error("Ne mogu pronaći: "+v);return r[0]}
 
@@ -251,7 +254,10 @@ function ovp(u,q,ms){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),
 // Worker prvi (brz, iz KV-a); ako ne odgovori, javni Overpass serveri direktno (kao u staroj aplikaciji); rezultat se kešira 6 h
 // ---------- vlastita baza mjesta (data/places/, vidi tools/build-grid.py) ----------
 const GD="data/places/",GC=new Map();let GI;
-const gidx=()=>GI||(GI=fetch(GD+"index.json").then(r=>r.ok?r.json():null).catch(()=>null));
+let GRID_UPD=0;const gidx=()=>GI||(GI=fetch(GD+"index.json").then(r=>r.ok?r.json():null).then(j=>{if(j&&j.updated)GRID_UPD=j.updated;return j}).catch(()=>null));gidx();
+const fdt=ts=>new Date(ts*1e3).toLocaleDateString("sr-Latn",{day:"numeric",month:"numeric",year:"numeric"});
+// koliko je star podatak o radnom vremenu (OSM check_date / survey:date); vraća tekst za prikaz
+function ohAge(t){if(!t.opening_hours)return"";const d=t.check_date||t["survey:date"]||"",m=/^(\d{4})-(\d{2})/.exec(d);if(!m)return"Radno vrijeme nije nedavno provjereno u OpenStreetMap-u. Provjeri prije dolaska.";const mo=(Date.now()-new Date(+m[1],+m[2]-1,1))/2629800000;return mo>24?"Radno vrijeme zadnji put provjereno "+m[2]+"/"+m[1]+" — može biti zastarjelo.":"Radno vrijeme provjereno "+m[2]+"/"+m[1]+"."}
 const gcell=k=>{if(!GC.has(k))GC.set(k,fetch(GD+k+".json").then(r=>r.ok?r.json():null).catch(()=>null));return GC.get(k)};
 async function grid(lat,lng,r){const X=await gidx();if(!X||!X.boxes.some(b=>lat>=b[0]&&lat<=b[2]&&lng>=b[1]&&lng<=b[3]))return null;
  const dl=r/111320,dg=r/(111320*Math.cos(lat*R)),ks=[];
@@ -265,7 +271,7 @@ async function point(lat,lng,r,cats){
  const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(15000)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
  let els=null;const ok=w.filter(Boolean);
  if(ok.length)els=ok.flatMap(x=>x.elements||[]);
- else{const A=`(around:${r},${lat},${lng})`,q=`[out:json][timeout:25];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 300;`;els=await first(OVP.map(u=>ovp(u,q)))}
+ else if(window.BLIZU_PUBLIC_OVERPASS!==false){const A=`(around:${r},${lat},${lng})`,q=`[out:json][timeout:25];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 300;`;els=await first(OVP.map(u=>ovp(u,q)))}
  if(els)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e:els}))}catch(e){}
  return els}
 // Overpass: serveri se pokreću jedan po jedan s razmakom od 3 s (prvi odgovor pobjeđuje), da ne preopteretimo javne servere
@@ -276,7 +282,7 @@ async function chunkFlow(pts,r,cats,btn){const ch=[];for(let i=0;i<pts.length-1|
  const one=async c=>{const co=c.map(q=>q[0].toFixed(3)+","+q[1].toFixed(3)).join(","),ck="ch_"+r+"_"+cats.join()+"_"+co;
   try{const h=JSON.parse(localStorage.getItem(ck)||"null");if(h&&Date.now()-h.t<216e5)return h.e}catch(e){}
   const A=`(around:${r},${co})`,q=`[out:json][timeout:30];(${cats.map(k=>QF[k].replace(/@/g,A)).join("")});out center tags 600;`;
-  const e=await hedge(q,25000);if(e)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e}))}catch(x){}return e};
+  const e=window.BLIZU_PUBLIC_OVERPASS===false?null:await hedge(q,25000);if(e)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e}))}catch(x){}return e};
  await Promise.race([Promise.all(Array.from({length:Math.min(2,ch.length)},async()=>{while(live&&nx<ch.length){const i=nx++;let v=null;try{v=await one(ch[i])}catch(e){}if(live)out[i]=v;btn.textContent=`Tražim mjesta duž puta… ${++done}/${ch.length}`}})),new Promise(ok=>setTimeout(ok,60000))]);live=false;return out}
 async function plan(){
  const err=$("#err"),btn=$("#go");err.textContent="";
@@ -357,7 +363,7 @@ async function refresh(fit){
  if(fit)fitRoute();
  drawSel();drawPl();loadCardImgs();
 }
-function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${fbar()}${opts.filter(o=>okF(o)||sel.has(o.id)).map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}${promoHtml()}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
+function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${fbar()}${opts.filter(o=>okF(o)||sel.has(o.id)).map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}${promoHtml()}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap${GRID_UPD?" (baza osvježena "+fdt(GRID_UPD)+")":""}. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
  try{store("last",{k:Date.now(),A,B,mode,extra,t0:$("#t0").value,d0:$("#d0").value,km:Math.round(S.km),stops:st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))})}catch(e){}
  $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b>${$("#d0").value?`<small style="display:block;color:var(--mu)">${fdate($("#d0").value)}</small>`:""}<div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
@@ -368,6 +374,9 @@ function tl(){
  st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}${isPromo(s.id)?" · promovisano":""}</small>${warn(s,a)}</div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><div class="r"><div class="b"><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;$("#tl").innerHTML=h;wx(s0,t)}
 function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);if(!u&&IMGC[c.id])u=IMGC[c.id].u;const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" referrerpolicy="origin" onerror="this.remove()">`:""}</div>`}
+function ph0src(c){const t=c.t,w=t.wikimedia_commons;if(/^https?:/.test(t.image||""))return`<div class="gsrc">Fotografija: ${esc((()=>{try{return new URL(t.image).hostname}catch(e){return"izvor"}})())}</div>`;
+ if(w&&/^File:/.test(w))return`<div class="gsrc">Fotografija: <a href="https://commons.wikimedia.org/wiki/${encodeURI(w.replace(/ /g,"_"))}" target="_blank" rel="noopener">Wikimedia Commons</a> (autor i licenca su na stranici fajla)</div>`;
+ const m=IMGC[c.id];if(m&&m.u)return`<div class="gsrc">Fotografija: Wikimedia Commons${m.by?" · "+esc(m.by):""}</div>`;return""}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
 function card(o,n){const m=o.dst?`<span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od centra</span>`:`<span>${I("clock")}${o.est} min dodatno</span><span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od rute</span>`;
  return`<div class="card sc"><div class="pic">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}${isPromo(o.id)?'<span class="pbd">Promovisano</span>':""}${fbHtml(o)?`<div>${fbHtml(o)}</div>`:""}<div class="m">${m}</div></button>${I("chevron-right","chev")}<button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="${sel.has(o.id)?"Ukloni iz plana":"Dodaj u plan"}">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
@@ -377,7 +386,7 @@ function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["cont
  <div class="pad dp" id="dpd" data-id="${id}"><h2>${esc(t.name)}</h2><div class="cr">${chip(o.c)}${isPromo(id)?'<span class="pbd">Promovisano</span>':""}${fbHtml(o)}<span class="rat" id="rat"></span></div>
  <div class="ds">${inr&&!o.dst?`<div>${I("clock")}<span><b>${o.est} min</b><small>dodatno vrijeme</small></span></div>`:""}<div>${I("clock")}<span><b>${fmt(o.v)}</b><small>trajanje posjete</small></span></div>${inr?`<div>${I("map-pin")}<span><b>${o.d.toFixed(1)} km</b><small>${o.dst?"od centra":"od rute"}</small></span></div>`:""}</div>
  ${t.description?`<p class="desc">${esc(t.description)}</p>`:""}${x.map(l=>`<div class="inf">${I(l[0])}<span>${esc(l[1])}</span></div>`).join("")}
- <div id="gx"></div>
+ ${ohAge(t)?`<div class="gsrc">${esc(ohAge(t))}</div>`:""}${ph0src(o)}<div id="gx"></div>
  <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a>${isPromo(id)&&t.website?`<a class="btn l" style="margin-top:8px" target="_blank" rel="sponsored noopener" href="${esc(t.website)}">Web stranica</a>`:""}${stopAff(o)}</div>
  ${inr?`<div class="fix"><button class="btn" onclick="tog('${id}')">${sel.has(id)?I("check")+" Ukloni iz plana":I("plus")+" Dodaj u plan"}</button></div>`:""}`;
  enrich(id,o);wdImg(id,o);if(!stay)go("det")}
