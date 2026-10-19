@@ -149,6 +149,7 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 a.inf{color:var(--mu);text-decoration:none}
 .gsrc{font-size:11.5px;color:var(--mu);margin-top:10px}
 .hero .ph .by{position:absolute;left:12px;bottom:34px;font-size:11px;color:#fff;text-shadow:0 1px 3px #0009;z-index:1}
+.mdl{position:fixed;inset:0;background:rgba(8,20,16,.55);display:flex;align-items:flex-end;justify-content:center;z-index:9999}.mdl[hidden]{display:none}.mdl>div{background:#fff;color:var(--tx);width:100%;max-width:520px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:20px 18px calc(env(safe-area-inset-bottom) + 18px)}.mdl p{margin:0 0 12px;line-height:1.45}.mdl .btn+.btn{margin-top:8px}
 #off{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:99999;background:#222;color:#fff;font:600 13px system-ui;padding:7px 14px;border-radius:16px;display:none;box-shadow:0 2px 8px #0004}.wxb{background:var(--bg);border-radius:14px;padding:11px 14px;margin:12px 0;font-size:13.5px}.wxb b{display:block;margin-bottom:2px}.tl .it small.wr{color:#b45309;font-weight:600}.tl .it small.wr.r{color:#c0283a}.wr .i{width:13px;height:13px;vertical-align:-2px}
 .aff{display:grid;gap:8px}.aff .btn{margin:0}.fld{display:block;width:100%;padding:13px;border:1px solid var(--bd);border-radius:12px;background:#fff;margin:6px 0}textarea.fld{min-height:90px;resize:vertical}.pbd{display:inline-flex;gap:4px;align-items:center;background:#fff3cd;color:#7a5b00;border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600}
 .fbd{display:inline-block;background:var(--bg);border-radius:8px;padding:2px 8px;font-size:12px;margin:4px 4px 0 0}
@@ -231,7 +232,20 @@ async function geo(q,auto){
  if(auto)return[]; // pretraga po slovu nikad ne ide direktno na javni Nominatim (zabranjeno njihovim pravilima)
  const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&accept-language=sr-Latn&q="+encodeURIComponent(q));if(!r.ok)throw Error("Traženje adrese trenutno ne radi");return(await r.json()).map(x=>({name:x.display_name.split(",")[0],full:x.display_name.split(",").slice(0,3).join(","),lat:+x.lat,lon:+x.lon}))}
 [["fa","la"],["fb","lb"]].forEach(([i,l])=>{const inp=$("#"+i);let tm;inp.addEventListener("input",()=>{inp._o=null;clearTimeout(tm);const v=inp.value.trim();if(v.length<3)return;tm=setTimeout(async()=>{try{const r=await geo(v,1);inp._s={};r.forEach(x=>inp._s[x.full]=x);$("#"+l).innerHTML=r.map(x=>`<option value="${esc(x.full)}">`).join("")}catch(e){}},600)})});
-function gps(){navigator.geolocation?.getCurrentPosition(p=>{const i=$("#fa");i.value="Moja lokacija";i._o={name:"Moja lokacija",lat:p.coords.latitude,lon:p.coords.longitude}},()=>$("#err").textContent="Lokacija nije dozvoljena.")}
+// ---------- modal, obavještenje o lokaciji, prijava greške, brisanje podataka ----------
+const EMAILRE=/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+function modal(h){const m=$("#mdl");m.firstElementChild.innerHTML=h;m.hidden=false;m.onclick=e=>{if(e.target==m)closeModal()}}
+function closeModal(){$("#mdl").hidden=true}
+function askGeo(ok,no){let g=false;try{g=localStorage.getItem("geo_ok")=="1"}catch(e){}if(g)return ok();
+ window._geoOk=()=>{try{localStorage.setItem("geo_ok","1")}catch(e){}closeModal();ok()};window._geoNo=()=>{closeModal();no&&no()};
+ modal(`<h3 style="margin:0 0 8px">Koristimo tvoju lokaciju</h3><p>Lokacija se koristi samo kad je ti tražiš: za polazište, mapu i praćenje puta. Blizu nema korisničke naloge i ne povezuje tvoj položaj s tobom.</p><p>Da bismo našli rutu, mjesta i prognozu, koordinate se šalju servisima navedenim u <a href="privatnost.html" target="_blank" rel="noopener">politici privatnosti</a>. Zatim će te preglednik pitati za dozvolu.</p><button class="btn" onclick="_geoOk()">Nastavi</button><button class="btn l" onclick="_geoNo()">Ne sad</button>`)}
+function reportPlace(id){const o=getP(id);if(!o)return;const t=o.t,osm=/^[nwr]\d+$/.test(id)?`https://www.openstreetmap.org/${{n:"node",w:"way",r:"relation"}[id[0]]}/${id.slice(1)}`:"",m=(window.BLIZU_REPORT_MAIL||window.BLIZU_CONTACT_MAIL||"").trim(),ok=EMAILRE.test(m),R=["Trajno zatvoreno","Pogrešna lokacija","Pogrešno radno vrijeme","Pogrešan opis ili kategorija","Drugo"];
+ window._rp=i=>{const b=["Mjesto: "+t.name,"ID: "+id,"Koordinate: "+o.p.join(","),"Problem: "+R[i],"","Opiši šta nije u redu (opciono):",""].join("\n");closeModal();location.href="mailto:"+m+"?subject="+encodeURIComponent("Blizu: prijava greške – "+t.name)+"&body="+encodeURIComponent(b)};
+ modal(`<h3 style="margin:0 0 8px">Prijavi grešku</h3><p><b>${esc(t.name)}</b></p>${ok?`<p>Izaberi šta nije u redu. Otvoriće se tvoja e-mail aplikacija; ništa se ne šalje automatski.</p>${R.map((r,i)=>`<button class="btn l" onclick="_rp(${i})">${r}</button>`).join("")}`:'<p>Prijava e-mailom još nije podešena.</p>'}${osm?`<p class="gsrc" style="margin-top:14px">Podaci o mjestu dolaze iz OpenStreetMap-a. Ako znaš tačno stanje, možeš ga ispraviti direktno, a ispravku će vidjeti svi: <a href="${osm}" target="_blank" rel="noopener">otvori mjesto na OpenStreetMap-u</a>.</p>`:""}<button class="btn l" style="margin-top:12px" onclick="closeModal()">Zatvori</button>`)}
+function wipeData(){if(!confirm("Obrisati sve što Blizu čuva na ovom uređaju (planove, putovanja, favorite, postavke i privremene podatke)?"))return;PL=[];FAV={};TR=[];IMGC={};
+ try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(/^(plans|trips|fav|fil|imgc|last|mode|geo_ok)$|^(pd_|ch_)/.test(k))localStorage.removeItem(k)})}catch(e){}drawProf()}
+function gps(){askGeo(gps0)}
+function gps0(){navigator.geolocation?.getCurrentPosition(p=>{const i=$("#fa");i.value="Moja lokacija";i._o={name:"Moja lokacija",lat:p.coords.latitude,lon:p.coords.longitude}},()=>$("#err").textContent="Lokacija nije dozvoljena.")}
 async function resolve(i){const v=i.value.trim();if(!v)throw Error("Unesi polazište i odredište.");if(i._o&&i._o.name=="Moja lokacija"&&v=="Moja lokacija")return i._o;if(i._s&&i._s[v])return i._s[v];const r=await geo(v);if(!r[0])throw Error("Ne mogu pronaći: "+v);return r[0]}
 
 // ---------- rute ----------
@@ -339,7 +353,7 @@ const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){retu
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
 function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,90],paddingBottomRight:[40,h]})}
-function locate(){if(!navigator.geolocation)return fitRoute();navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],13),()=>fitRoute(),{timeout:6000})}
+function locate(){if(!navigator.geolocation)return fitRoute();askGeo(()=>navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],13),()=>fitRoute(),{timeout:6000}),fitRoute)}
 async function refresh(fit){
  const st=[...sel].map(i=>cm.get(i)).filter(Boolean).sort((a,b)=>a.f-b.f);S.st=st;
  try{rt=st.length?await route([[A.lat,A.lon],...st.map(s=>s.p),[B.lat,B.lon]]):base}catch(e){rt=base}
@@ -395,7 +409,7 @@ function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["cont
  <div class="ds">${inr&&!o.dst?`<div>${I("clock")}<span><b>${o.est} min</b><small>dodatno vrijeme</small></span></div>`:""}<div>${I("clock")}<span><b>${fmt(o.v)}</b><small>trajanje posjete</small></span></div>${inr?`<div>${I("map-pin")}<span><b>${o.d.toFixed(1)} km</b><small>${o.dst?"od centra":"od rute"}</small></span></div>`:""}</div>
  ${t.description?`<p class="desc">${esc(t.description)}</p>`:""}${x.map(l=>`<div class="inf">${I(l[0])}<span>${esc(l[1])}</span></div>`).join("")}
  ${ohAge(t)?`<div class="gsrc">${esc(ohAge(t))}</div>`:""}${ph0src(o)}<div id="gx"></div>
- <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a>${isPromo(id)&&t.website?`<a class="btn l" style="margin-top:8px" target="_blank" rel="sponsored noopener" href="${esc(t.website)}">Web stranica</a>`:""}${stopAff(o)}</div>
+ <a class="btn nav" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">${I("navigation")} Navigacija do stanice</a><button class="btn l" style="margin-top:8px" onclick="reportPlace('${id}')">${I("alert")} Prijavi grešku</button>${isPromo(id)&&t.website?`<a class="btn l" style="margin-top:8px" target="_blank" rel="sponsored noopener" href="${esc(t.website)}">Web stranica</a>`:""}${stopAff(o)}</div>
  ${inr?`<div class="fix"><button class="btn" onclick="tog('${id}')">${sel.has(id)?I("check")+" Ukloni iz plana":I("plus")+" Dodaj u plan"}</button></div>`:""}`;
  enrich(id,o);wdImg(id,o);if(!stay)go("det")}
 // ---------- Google podaci (ocjena, radno vrijeme, fotografija) samo za mjesto koje korisnik otvori ----------
@@ -451,7 +465,7 @@ function delPlan(k){PL=PL.filter(p=>p.k!=k);store("plans",PL);drawSaved()}
 async function loadPlan(k,tid){CT=tid||null;const p=PL.find(x=>x.k==k);if(!p)return;S.pk=p.k;A=p.A;B=p.B;mode=p.mode;extra=p.extra;$("#t0").value=p.t0;$("#d0").value=p.d0||tdy();cm=new Map();p.stops.forEach(s=>cm.set(s.id,s));sel=new Set(p.stops.map(s=>s.id));opts=[...p.stops];dest=[];
  try{base=await route([[A.lat,A.lon],[B.lat,B.lon]])}catch(e){return alert(navigator.onLine?"Ruta se trenutno ne može učitati. Pokušaj ponovo.":"Nema internetske veze. Ruta se može učitati samo uz internet.")}
  go("res");initMap();await refresh(1);go("pl")}
-function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><button class="btn l" style="margin-top:12px" onclick="if(confirm('Obrisati sve sačuvane planove i favorite?')){PL=[];FAV={};localStorage.removeItem('plans');TR=[];localStorage.removeItem('trips');localStorage.removeItem('fav');drawProf()}">Obriši sačuvane podatke</button><button class="btn l" style="margin-top:12px" onclick="go('partner')">Za lokalne partnere</button>`;
+function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><button class="btn l" style="margin-top:12px" onclick="wipeData()">Obriši sačuvane podatke</button><a class="btn l" style="margin-top:12px" href="privatnost.html" target="_blank" rel="noopener">Politika privatnosti</a><a class="btn l" style="margin-top:12px" href="uslovi.html" target="_blank" rel="noopener">Uslovi korištenja</a><button class="btn l" style="margin-top:12px" onclick="go('partner')">Za lokalne partnere</button>`;
  chips($("#pm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>{mode=k;try{localStorage.setItem("mode",k)}catch(e){}chips($("#cm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>mode=k)})}
 // ---------- navigacija ----------
 let N=null,nmap,nlay,nme;
@@ -471,7 +485,8 @@ function setSteps(r){N.r=r;N.cum=[0];for(let i=1;i<r.line.length;i++)N.cum[i]=N.
  N.si=r.steps.map(s=>nidx(r.line,[s.maneuver.location[1],s.maneuver.location[0]])[0]);N.ti=N.st.map(s=>nidx(r.line,s.p)[0]);
  const ic=(h)=>L.divIcon({html:h,className:"",iconSize:[26,26],iconAnchor:[13,13]});nlay.clearLayers();L.polyline(r.line,{color:"#0b7a55",weight:7}).addTo(nlay);
  N.st.forEach((s,i)=>L.marker(s.p,{icon:ic(`<div class="dot" style="background:${CATS[s.c].c}">${i+1}</div>`)}).addTo(nlay));L.marker([B.lat,B.lon],{icon:ic('<div class="dot" style="background:#d6455a">B</div>')}).addTo(nlay)}
-async function startNav(){
+function startNav(){askGeo(startNav0)}
+async function startNav0(){
  if(!navigator.geolocation)return alert("Ovaj uređaj ne podržava lokaciju.");
  go("nav");if(!nmap){nmap=L.map("nmap",{zoomControl:false,attributionControl:false});tiles(0).addTo(nmap);nlay=L.layerGroup().addTo(nmap)}
  setTimeout(()=>nmap.invalidateSize(),60);if(nme){nme.remove();nme=null}
@@ -628,4 +643,4 @@ const SH=readShared();
 const LAST=ld("last",null);show("home");
 if(SH)loadShared(SH);else if(LAST&&LAST.stops&&Date.now()-LAST.k<432e5){(async()=>{try{A=LAST.A;B=LAST.B;mode=LAST.mode;extra=LAST.extra;$("#t0").value=LAST.t0;if(LAST.d0)$("#d0").value=LAST.d0;cm=new Map();LAST.stops.forEach(x=>cm.set(x.id,x));sel=new Set(LAST.stops.map(x=>x.id));opts=[...LAST.stops];dest=[];base=await route([[A.lat,A.lon],[B.lat,B.lon]]);go("res");initMap();await refresh(1);go("pl")}catch(e){show("home");store("last",LAST)}})()}
 addEventListener("pageshow",e=>{if(e.persisted)show(cur)});
-</script><div id="prt"></div><div id="off">Nema interneta – prikazani su sačuvani podaci</div><script>(function(){var o=document.getElementById("off");function u(){o.style.display=navigator.onLine?"none":"block"}addEventListener("online",u);addEventListener("offline",u);u()})()</script></body></html>
+</script><div id="prt"></div><div id="mdl" class="mdl" hidden role="dialog" aria-modal="true"><div></div></div><div id="off">Nema interneta – prikazani su sačuvani podaci</div><script>(function(){var o=document.getElementById("off");function u(){o.style.display=navigator.onLine?"none":"block"}addEventListener("online",u);addEventListener("offline",u);u()})()</script></body></html>

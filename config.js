@@ -13,6 +13,11 @@ window.BLIZU_API = "https://blizu-api.panpetar405.workers.dev";
 // Opciono: e-mail na koji stižu upiti lokalnih partnera (ekran "Za lokalne partnere").
 window.BLIZU_PARTNER_MAIL = "";
 
+// PRAVNI PODACI (prikazuju se na stranicama privatnost.html i uslovi.html) — OBAVEZNO popuniti prije javne objave.
+window.BLIZU_OPERATOR = "";      // npr. "Ime Prezime, Kotor, Crna Gora" ili naziv firme i adresa
+window.BLIZU_CONTACT_MAIL = "";  // kontakt za pitanja o privatnosti i podacima
+window.BLIZU_REPORT_MAIL = "";   // e-mail za prijave grešaka o mjestima (ako je prazno, koristi se BLIZU_CONTACT_MAIL)
+
 // Javni Overpass serveri se pozivaju direktno iz telefona korisnika samo kao rezerva izvan vlastite baze (data/places).
 // Za produkciju postavi na false kad provjeriš da vlastita baza pokriva tvoje područje.
 window.BLIZU_PUBLIC_OVERPASS = true;

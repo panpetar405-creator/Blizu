@@ -114,3 +114,16 @@ Dodato u `index.html`:
 - Plan s 12+ stanica: provjeriti da dijelovi 1/2 i 2/2 otvaraju ispravne rute u Google Maps na Androidu i iOS-u.
 - „Praćenje uživo”: ponašanje pri zaključavanju ekrana na iOS Safari i Android Chrome.
 - Ruta s „Pješice” i dugim vremenom (60 min): potvrditi da se i dalje dobijaju rezultati.
+
+## Osma iteracija — pravno i povjerenje (tačka 3 audita)
+
+- **`privatnost.html` i `uslovi.html`**: nove stranice (svijetla/tamna tema, rade i bez interneta preko keša). Tabela u politici privatnosti nabraja svaki vanjski servis koji aplikacija zaista poziva i šta mu šalje.
+- **Pravni podaci** se unose u `config.js`: `BLIZU_OPERATOR`, `BLIZU_CONTACT_MAIL`, `BLIZU_REPORT_MAIL`. Dok su prazni, stranice prikazuju žutu napomenu „[upiši … u config.js]". **Ne objavljivati prije nego što se popune.**
+- **Obavještenje o lokaciji**: prije prvog traženja lokacije (dugme za polazište, mapa, praćenje) prikazuje se prozor s objašnjenjem; odluka se pamti (`geo_ok`).
+- **„Prijavi grešku”** na svakom mjestu: izbor razloga otvara e-mail s popunjenim podacima (ništa se ne šalje automatski) i nudi direktan link za ispravku na OpenStreetMap-u.
+- **Brisanje podataka** sada briše i postavke, filtere, keš i pristanak, a ne samo planove i favorite. Briše samo ključeve Blizu (ne `localStorage.clear()`).
+- Linkovi na politiku privatnosti i uslove su u Profilu. `sw.js`: keš `blizu-v17`.
+
+### Napomene
+- Tekstovi su polazna osnova, a ne pravni savjet. Prije lansiranja ih treba pregledati pravnik upoznat s propisima Crne Gore i EU.
+- Aplikacija je na domenu `panpetar405-creator.github.io`. `localStorage` je vezan za domen, a ne za putanju, pa svaki drugi projekat na istom domenu vidi iste ključeve. Vlastiti domen to rješava.
