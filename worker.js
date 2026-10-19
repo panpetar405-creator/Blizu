@@ -31,7 +31,8 @@ const QF = {
   info: 'nwr@[amenity~"^(pharmacy|atm|bank|hospital|clinic|doctors|post_office|police|fuel)$"];nwr@[tourism=information][name];',
 };
 const CATS = Object.keys(QF);
-const KEEP = ["name", "name:sr", "name:en", "amenity", "tourism", "historic", "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "brand", "operator", "description", "image", "wikimedia_commons", "wikidata"];
+const KEEP = ["name", "name:sr", "name:en", "amenity", "tourism", "historic", "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "brand", "operator", "description", "image", "wikimedia_commons", "wikidata",
+  "diet:vegetarian", "diet:vegan", "wheelchair", "dog", "pets_allowed", "fee", "kids_area", "highchair", "changing_table"];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function km(a, b) {
