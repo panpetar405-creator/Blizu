@@ -344,7 +344,7 @@ async function refresh(fit){
  <div class="sts"><div>${I(mode=="car"?"car":mode=="bike"?"bike":"walk")}<span><b>${fmt(base.dur/60)}</b><small>${mode=="car"?"vožnja":mode=="bike"?"vožnja biciklom":"hodanje"} (osnovna ruta)</small></span></div><div>${I("clock")}<span><b>${fmt(tot)}</b><small>ukupno vrijeme putovanja</small></span></div></div>
  <button class="pbtn" onclick="go('pl')">Pogledaj plan ${I("chevron-right")}</button>`;
  if(fit)fitRoute();
- drawSel();drawPl();
+ drawSel();drawPl();loadCardImgs();
 }
 function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${opts.map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
@@ -356,7 +356,7 @@ function tl(){
  const st=S.st,t0=$("#t0").value.split(":"),s0=+t0[0]*60+ +t0[1];let t=s0,h=`<div class="it"><i>A</i><div class="r"><div class="b"><b>${esc(A.name)}</b><br><small>Početak putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;
  st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}</small></div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><div class="r"><div class="b"><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;$("#tl").innerHTML=h}
-function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" onerror="this.remove()">`:""}</div>`}
+function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);if(!u&&IMGC[c.id])u=IMGC[c.id].u;const k=CATS[c.c];return`<div class="ph" style="background:${k.bg};color:${k.c}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" referrerpolicy="origin" onerror="this.remove()">`:""}</div>`}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
 function card(o,n){const m=o.dst?`<span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od centra</span>`:`<span>${I("clock")}${o.est} min dodatno</span><span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od rute</span>`;
  return`<div class="card sc"><div class="pic">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<div class="m">${m}</div></button>${I("chevron-right","chev")}<button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="${sel.has(o.id)?"Ukloni iz plana":"Dodaj u plan"}">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
@@ -372,10 +372,30 @@ function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["cont
  enrich(id,o);wdImg(id,o);if(!stay)go("det")}
 // ---------- Google podaci (ocjena, radno vrijeme, fotografija) samo za mjesto koje korisnik otvori ----------
 const EN={};
+let IMGC=ld("imgc",{});const IMGMISS=new Set();
+function imgSave(id,u,by){IMGC[id]={u,by:by||""};const ks=Object.keys(IMGC);if(ks.length>300)ks.slice(0,ks.length-300).forEach(k=>delete IMGC[k]);store("imgc",IMGC)}
+async function loadCardImgs(){
+ const all=[...(S.st||[]),...opts,...dest],seen=new Set(),L=[];
+ for(const o of all){if(!o||!o.t||seen.has(o.id))continue;seen.add(o.id);const t=o.t;if(IMGC[o.id]||IMGMISS.has(o.id)||/^https?:/.test(t.image||"")||/^File:/.test(t.wikimedia_commons||""))continue;L.push(o)}
+ if(!L.length)return;let got=0;
+ // 1) Wikidata: jedan upit za sva mjesta s wikidata oznakom
+ const wd=L.filter(o=>/^Q\d+$/.test(o.t.wikidata||""));
+ for(let i=0;i<wd.length;i+=40){const ch=wd.slice(i,i+40);
+  try{const r=await fetch("https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&origin=*&ids="+ch.map(o=>o.t.wikidata).join("|"),{signal:AbortSignal.timeout(8000)});const j=await r.json();
+   for(const o of ch){const e=(j.entities||{})[o.t.wikidata],c=e&&e.claims&&e.claims.P18&&e.claims.P18[0],f=c&&c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;
+    if(f){imgSave(o.id,"https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f)+"?width=500","Wikimedia Commons");got++}}}catch(e){}}
+ // 2) fotografije snimljene na lokaciji (osim za hranu, gdje bi pogrešna slika zavarala)
+ const geo=L.filter(o=>!IMGC[o.id]&&o.c!="hrana").slice(0,14);let k=0;
+ await Promise.all(Array.from({length:3},async()=>{while(k<geo.length){const o=geo[k++];
+  try{const r=await fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=${o.p[0]}|${o.p[1]}&ggsradius=120&ggsnamespace=6&ggslimit=10&prop=imageinfo&iiprop=url|mime&iiurlwidth=500&format=json&origin=*`,{signal:AbortSignal.timeout(8000)});const j=await r.json();
+   const pg=Object.values((j.query||{}).pages||{}).filter(x=>x.imageinfo&&/^image\/(jpeg|png)$/.test(x.imageinfo[0].mime)).sort((a,b)=>a.index-b.index)[0];
+   if(pg){imgSave(o.id,pg.imageinfo[0].thumburl,"Wikimedia Commons");got++}}catch(e){}}}));
+ L.forEach(o=>{if(!IMGC[o.id])IMGMISS.add(o.id)});
+ if(got&&(cur=="res"||cur=="pl")){const y=document.scrollingElement.scrollTop;if(cur=="res")drawSel();else tl();scrollTo(0,y)}}
 async function wdImg(id,o){
  const setH=(u,by)=>{const ph=document.querySelector(".hero .ph"),d=$("#dpd");if(!ph||!d||d.dataset.id!=id||ph.querySelector("img"))return;
   const im=new Image();im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";
-  im.onload=()=>{if(!ph.querySelector("img")){ph.appendChild(im);ph.insertAdjacentHTML("beforeend",'<span class="by">'+by+'</span>')}};im.src=u};
+  im.onload=()=>{if(!ph.querySelector("img")){ph.appendChild(im);ph.insertAdjacentHTML("beforeend",'<span class="by">'+by+'</span>');imgSave(id,u,"Wikimedia Commons")}};im.src=u};
  const q=o.t.wikidata;
  if(q&&/^Q\d+$/.test(q)){try{const r=await fetch(`https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=${q}&property=P18&format=json&origin=*`,{signal:AbortSignal.timeout(7000)});const j=await r.json();
   const c=((j.claims||{}).P18||[])[0],f=c&&c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value;
@@ -394,7 +414,7 @@ async function enrich(id,o){if(!API)return;
  if(e.phone&&!(o.t.phone||o.t["contact:phone"]))h+=`<a class="inf" href="tel:${esc(e.phone.replace(/[^+\d]/g,""))}">${I("phone")}<span>${esc(e.phone)}</span></a>`;
  if(h||e.rating)h+=`<div class="gsrc">Ocjene i radno vrijeme: Google</div>`;
  $("#gx").innerHTML=h;
- const ph=$(".hero .ph");if(e.photo&&ph&&!ph.querySelector("img")){const im=new Image();im.onload=()=>{ph.appendChild(im);ph.insertAdjacentHTML("beforeend",`<span class="by">Foto: ${esc(e.by||"Google")} / Google</span>`)};im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";im.referrerPolicy="origin";im.src=`${API}/api/photo?ref=${encodeURIComponent(e.photo)}`}}
+ const ph=$(".hero .ph");if(e.photo&&ph&&!ph.querySelector("img")){const im=new Image();im.onload=()=>{ph.appendChild(im);ph.insertAdjacentHTML("beforeend",`<span class="by">Foto: ${esc(e.by||"Google")} / Google</span>`);imgSave(id,im.src,"Google")};im.style.cssText="position:absolute;inset:0;width:100%;height:100%;object-fit:cover";im.referrerPolicy="origin";im.src=`${API}/api/photo?ref=${encodeURIComponent(e.photo)}`}}
 function fv(id){const o=getP(id);if(FAV[id])delete FAV[id];else FAV[id]={id,t:mt(o.t),c:o.c,p:o.p,v:o.v,fv:1,est:0,d:0};store("fav",FAV);const h=$("#hrt");if(h){h.innerHTML=I("heart",FAV[id]?"fill":"");h.classList.toggle("fav",!!FAV[id])};if(cur=="fav")drawFav()}
 function drawFav(){const l=Object.values(FAV);$("#fvc").innerHTML=l.length?l.map(o=>`<div class="card sc"><div class="pic">${ph(o)}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<div class="m"><span>${I("clock")}${fmt(o.v)} posjeta</span></div></button>${I("chevron-right","chev")}<button class="add on" onclick="fv('${o.id}')" aria-label="Ukloni iz favorita">${I("heart","fill")}</button></div>`).join(""):`<p style="color:var(--mu)">Još nema favorita. Dodaj mjesta srcem na stranici mjesta.</p>`}
 function savePlan(){if(!S.st)return;const p={k:Date.now(),A,B,mode,extra,t0:$("#t0").value,km:Math.round(S.km),stops:S.st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))};PL=[p,...PL].slice(0,20);store("plans",PL);const b=$("#svb");if(b)b.innerHTML=I("check")+" Sačuvano"}
