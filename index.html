@@ -97,7 +97,7 @@ const $=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const MODES={car:{n:"🚗 Auto",spd:40,gm:"driving"},bike:{n:"🚲 Bicikl",spd:15,gm:"bicycling"},foot:{n:"🚶 Pješice",spd:4.5,gm:"walking"}};
 const CATS={hrana:{n:"Lokalna hrana",ic:"🍴",c:"#e8890c",bg:"#fff1dc",q:["jesti"],v:60},vid:{n:"Vidikovci",ic:"⛰️",c:"#1d78c9",bg:"#e1f0fc",q:["videti"],v:20},pri:{n:"Priroda",ic:"🌿",c:"#2a9d57",bg:"#e0f5e8",q:["odmoriti"],v:45},kul:{n:"Kultura",ic:"🏛️",c:"#7b4bc4",bg:"#efe6fb",q:["videti","dogadjaji"],v:45},ist:{n:"Istorija",ic:"🏰",c:"#d6455a",bg:"#fde4e8",q:["videti"],v:40}};
-let mode="car",extra=20,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],rt,map,layer,S={};
+let mode="car",extra=20,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
 
 function go(id){document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50)}
 function chips(el,items,isOn,fn,cls){el.innerHTML=items.map(([k,l])=>`<button class="ch ${isOn(k)?"on":""}" data-k="${k}" ${cls?`style="--c:${CATS[k].c};--bgc:${CATS[k].bg}"`:""}>${l}</button>`).join("");el.onclick=e=>{const b=e.target.closest("button");if(b){fn(b.dataset.k);chips(el,items,isOn,fn,cls)}}}
@@ -155,14 +155,22 @@ async function plan(){
   const fails=res.filter(x=>!x).length;
   if(fails==res.length)throw Error("Ne mogu da preuzmem mjesta (ni Worker ni Overpass ne odgovaraju). Pokušaj ponovo za koji minut."+(why?" ["+why+"]":""));
   const els=res.flatMap(x=>x||[]);
-  cm=new Map();const names=new Set();
+  cm=new Map();const names=new Set();const buf=Math.max(1.5,.12*D),s0=+$("#t0").value.slice(0,2)*60+ +$("#t0").value.slice(3,5);
+  const meal=(c,t,m)=>{if(c!="hrana")return 0;m%=1440;const ok=(m>=660&&m<=900)||(m>=1080&&m<=1290)||(t.amenity=="cafe"&&m>=540&&m<=660);return ok?0:4};
+  const NT=t=>(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
+  btn.textContent="Tražim mjesta na odredištu…";
+  const dsel=await point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats,"jesti"])]).catch(()=>null),dn=new Set(),dl=[];
+  for(const el of dsel||[]){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||(c!="hrana"&&!want.has(c))||dn.has(t.name+c))continue;const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;const d=dk(p,[B.lat,B.lon]);if(d>2.5)continue;dn.add(t.name+c);
+   dl.push({id:el.type[0]+el.id,t,c,p,d,est:Math.max(1,Math.round(d*1.35/spd*60)),f:1+d/100,v:t.amenity=="cafe"?30:CATS[c].v,dst:1,sc:NT(t)-meal(c,t,s0+base.dur/60)-d*.3})}
+  dl.sort((a,b)=>b.sc-a.sc);dest=[...dl.filter(x=>x.c=="hrana").slice(0,4),...dl.filter(x=>x.c!="hrana").slice(0,2)].sort((a,b)=>b.sc-a.sc);
+  
   for(const el of els){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||!want.has(c))continue;const id=el.type[0]+el.id;if(cm.has(id)||names.has(t.name+c))continue;
    const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
-   let d=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(p,line[i]);if(x<d){d=x;bi=i}}if(d>reach)continue;
+   let d=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(p,line[i]);if(x<d){d=x;bi=i}}if(d>reach)continue;const sk=cum[bi];if(sk<buf||D-sk<buf*.6||dk(p,[A.lat,A.lon])<buf*.8||dk(p,[B.lat,B.lon])<buf*.6)continue;
    const est=Math.max(2,Math.round(2*d*1.35/spd*60)),nt=(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
-   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,v:CATS[c].v,sc:nt-est/extra*1.2})}
-  const all=[...cm.values()].sort((a,b)=>b.sc-a.sc);
-  if(!all.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
+   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,v:CATS[c].v,sc:nt-est/extra*1.2-meal(c,t,s0+sk/D*base.dur/60)})}
+  dest.forEach(x=>cm.set(x.id,x));const all=[...cm.values()].filter(x=>!x.dst).sort((a,b)=>b.sc-a.sc);
+  if(!all.length&&!dest.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
   const pick=[],cc={};for(const c of all){if(pick.length>=4)break;if((cc[c.c]||0)>=2||pick.some(p=>Math.abs(p.f-c.f)<.08))continue;pick.push(c);cc[c.c]=(cc[c.c]||0)+1}
   sel=new Set(pick.map(c=>c.id));opts=[...new Set([...pick,...all.slice(0,14)])].sort((a,b)=>b.sc-a.sc);
   go("res");if(!map){map=L.map("map",{zoomControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);layer=L.layerGroup().addTo(map)}
@@ -187,6 +195,7 @@ async function refresh(fit){
  <div style="color:var(--mu);font-size:13px">${st.length} stanica · ${km.toFixed(0)} km · polazak ${$("#t0").value}</div>
  <div class="stats"><div><b>${fmt(base.dur/60)}</b><small>vožnja (osnovna ruta)</small></div><div><b>${fmt(tot)}</b><small>ukupno sa stanicama</small></div></div>
  <h3>Tvoj plan putovanja</h3><div class="tl" id="tl"></div>
+ ${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(card).join("")}`:""}
  <h3>Najbolje opcije duž puta</h3>${opts.map(o=>card(o)).join("")}
  <p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`;
  tl();
@@ -197,11 +206,11 @@ function tl(){
  t+=rt.legs.at(-1)/60;h+=`<div class="it"><i style="background:#d6455a">B</i><span class="t">${hhmm(t)}</span><b>${esc(B.name)}</b><br><small>Cilj putovanja</small></div>`;$("#tl").innerHTML=h}
 function ph(c,big){const t=c.t,w=t.wikimedia_commons;let u=/^https?:/.test(t.image||"")?t.image:null;if(!u&&w&&/^File:/.test(w))u="https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(w.slice(5))+"?width="+(big?800:200);const k=CATS[c.c];return`<div class="ph" style="background:${k.bg}">${k.ic}${u?`<img src="${esc(u)}" loading="lazy" onerror="this.remove()">`:""}</div>`}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
-function card(o){return`<div class="card">${ph(o)}<button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<small>+${o.est} min · ${fmt(o.v)} posjeta · ${o.d.toFixed(1)} km od rute</small></button><button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="Dodaj u plan">${sel.has(o.id)?"✓":"+"}</button></div>`}
+function card(o){return`<div class="card">${ph(o)}<button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}<small>${o.dst?`${fmt(o.v)} · ${o.d.toFixed(1)} km od centra odredišta`:`+${o.est} min · ${fmt(o.v)} posjeta · ${o.d.toFixed(1)} km od rute`}</small></button><button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="Dodaj u plan">${sel.has(o.id)?"✓":"+"}</button></div>`}
 async function tog(id){const y=document.scrollingElement.scrollTop;sel.has(id)?sel.delete(id):sel.add(id);$("#sh").classList.remove("on");await refresh();scrollTo(0,y)}
 function opn(id){const o=cm.get(id),t=o.t,x=[t.cuisine&&"Kuhinja: "+t.cuisine.replace(/;/g,", "),t.opening_hours&&"Radno vrijeme: "+t.opening_hours,t.phone||t["contact:phone"]].filter(Boolean);
  $("#shc").innerHTML=`${ph(o,1)}<h2 style="font-size:20px">${esc(t.name)}</h2>${chip(o.c)}
- <div class="stats"><div><b>~+${o.est} min</b><small>dodatno vrijeme</small></div><div><b>${fmt(o.v)}</b><small>trajanje posjete</small></div><div><b>${o.d.toFixed(1)} km</b><small>od rute</small></div></div>
+ <div class="stats"><div><b>~+${o.est} min</b><small>dodatno vrijeme</small></div><div><b>${fmt(o.v)}</b><small>trajanje posjete</small></div><div><b>${o.d.toFixed(1)} km</b><small>${o.dst?"od odredišta":"od rute"}</small></div></div>
  ${t.description?`<p>${esc(t.description)}</p>`:""}${x.map(l=>`<p style="color:var(--mu);margin-top:6px">${esc(l)}</p>`).join("")}
  <button class="btn" onclick="tog('${id}')">${sel.has(id)?"Ukloni iz plana":"Dodaj u plan"}</button>
  <a class="btn l" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${o.p.join(",")}&travelmode=${MODES[mode].gm}">➤ Navigacija do stanice</a>`;$("#sh").classList.add("on")}
