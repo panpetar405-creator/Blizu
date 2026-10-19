@@ -54,3 +54,15 @@ Dodato u `index.html`:
 - Aplikacija i dalje koristi procenu vremena kretanja na osnovu koordinata za rangiranje. Prikaz navigacije otvara Google Maps pešačku rutu; ovo izdanje ne računa sopstvenu mrežnu pešačku rutu unutar aplikacije.
 - Alternativni plan zavisi od količine i raznovrsnosti mesta u trenutnoj kategoriji i okolini. Ako nema dovoljno alternativa, neke stanice mogu ostati iste.
 - Potrebno je testirati ponašanje u pregledaču na mobilnim uređajima i sa stvarnim skupom lokacija pre produkcionog objavljivanja.
+
+## Treća iteracija — dijeljenje plana i ispis
+
+- „Podijeli link plana”: plan se kodira u URL (`#p=…`), bez backenda. Koristi Web Share API, a ako ga nema, kopira link u clipboard.
+- Otvaranje linka učitava plan (A, B, stanice, prevoz, vrijeme polaska) i ponovo računa rutu. Podaci iz linka se validiraju (raspon koordinata, format ID-a, tipovi, dužine), jer je link nepouzdan ulaz.
+- „Ispiši / sačuvaj PDF”: `window.print()` s posebnim print stilom (naslov, satnica, radno vrijeme, linkovi na plan i Google Maps). PDF se dobija kroz „Sačuvaj kao PDF” u dijalogu za štampu.
+- `sw.js`: verzija keša podignuta na `blizu-v10` da klijenti dobiju novi `index.html`.
+
+### Treba testirati
+- Dijeljenje i otvaranje linka na iOS Safari i Android Chrome, te na starom linku iz drugog uređaja.
+- Ispis/PDF na mobilnom (print dijalog se razlikuje po pregledaču).
+- Dužina linka kod 12 stanica (poruke/WhatsApp ponekad skraćuju vrlo duge linkove).
