@@ -189,7 +189,7 @@ a.inf{color:var(--mu);text-decoration:none}
 </section>
 <section class="s" id="sel"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Gotov izbor stanica</div><div class="pad" id="selc"></div><div class="fix"><button class="btn" onclick="go('pl')">Pogledaj plan <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></section>
 <section class="s" id="det"><div id="detc"></div></section>
-<section class="s" id="pl"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Tvoj plan putovanja<button style="margin-left:auto" onclick="go('sel')" aria-label="Uredi"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button></div><div class="pad" id="plc"></div><div class="fix"><button class="btn" onclick="startNav()"><svg class="i" aria-hidden="true"><use href="#i-navigation"/></svg> Pokreni navigaciju</button></div></section>
+<section class="s" id="pl"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Tvoj plan putovanja<button style="margin-left:auto" onclick="go('sel')" aria-label="Uredi"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button></div><div class="pad" id="plc"></div><div class="fix"><a class="btn" id="gmf" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-navigation"/></svg> Navigacija (Google Maps)</a></div></section>
 <section class="s" id="nav"><div id="nmap"></div>
  <div id="nb"><span id="nbi"><svg class="i" aria-hidden="true"><use href="#i-navigation"/></svg></span><div><b id="nbt"></b><br><small id="nbd"></small></div><button onclick="stopNav()" aria-label="Zatvori"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
  <div id="nsp"><b id="nsv">0</b><small>km/h</small></div>
@@ -210,7 +210,7 @@ a.inf{color:var(--mu);text-decoration:none}
 <script>
 const I=(n,c)=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`,$=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const MODES={car:{n:I("car")+" Auto",spd:40,gm:"driving"},bike:{n:I("bike")+" Bicikl",spd:15,gm:"bicycling"},foot:{n:I("walk")+" Pješice",spd:4.5,gm:"walking"}};
+const MODES={car:{n:I("car")+" Auto",spd:40,gm:"driving"},bike:{n:I("bike")+" Bicikl",spd:15,gm:"bicycling"},foot:{n:I("walk")+" Pješice",spd:4.2,gm:"walking"}};
 const CATS={hrana:{n:"Lokalna hrana",ic:I("utensils"),c:"#e8890c",bg:"#fff1dc",q:["jesti"],v:60},vid:{n:"Vidikovci",ic:I("mountain"),c:"#1d78c9",bg:"#e1f0fc",q:["videti"],v:20},pri:{n:"Priroda",ic:I("leaf"),c:"#2a9d57",bg:"#e0f5e8",q:["odmoriti"],v:45},kul:{n:"Kultura",ic:I("landmark"),c:"#7b4bc4",bg:"#efe6fb",q:["videti","dogadjaji"],v:45},ist:{n:"Istorija",ic:I("castle"),c:"#d6455a",bg:"#fde4e8",q:["videti"],v:40}};
 let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}catch(e){return"car"}})(),extra=20,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
 
@@ -293,7 +293,7 @@ async function plan(){
   btn.textContent="Tražim adrese…";[A,B]=await Promise.all([resolve($("#fa")),resolve($("#fb"))]);A.name=tr(A.name);B.name=tr(B.name);const cats0=[...new Set([...want].flatMap(k=>CATS[k].q))],destP=point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats0,"jesti"])]).catch(()=>null);
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
-  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.round(rk*1000);
+  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.min(25000,Math.round(rk*1000));
   const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],pts=[];
   for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;pts.push(line[j])}
   btn.textContent="Tražim mjesta duž puta…";
@@ -367,8 +367,16 @@ function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno
 function drawPl(){const st=S.st;
  try{store("last",{k:Date.now(),A,B,mode,extra,t0:$("#t0").value,d0:$("#d0").value,km:Math.round(S.km),stops:st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))})}catch(e){}
  $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b>${$("#d0").value?`<small style="display:block;color:var(--mu)">${fdate($("#d0").value)}</small>`:""}<div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
- <div id="wx"></div><div class="tl" id="tl"></div><div id="aff"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><button class="btn l" style="margin-top:8px" onclick="addToTrip()">${I("plus")} ${CT&&TR.find(t=>t.id==CT)?"Dodaj u „"+esc(TR.find(t=>t.id==CT).name)+"”":"Dodaj u putovanje"}</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a><button class="btn l" style="margin-top:8px" onclick="sharePlan(this)">${I("share")} Podijeli link plana</button><button class="btn l" style="margin-top:8px" onclick="printPlan()">${I("printer")} Ispiši / sačuvaj PDF</button>`;
- $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl();loadWx();aff()}
+ <div id="wx"></div><div class="tl" id="tl"></div><div id="aff"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><button class="btn l" style="margin-top:8px" onclick="addToTrip()">${I("plus")} ${CT&&TR.find(t=>t.id==CT)?"Dodaj u „"+esc(TR.find(t=>t.id==CT).name)+"”":"Dodaj u putovanje"}</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a><div id="gmx"></div><button class="btn l" style="margin-top:8px" onclick="startNav()">${I("locate")} Praćenje uživo u aplikaciji</button><p class="gsrc">Praćenje u aplikaciji radi samo dok je ekran upaljen i aplikacija otvorena. Za vođenje uz zaključan ekran koristi Google Maps.</p><button class="btn l" style="margin-top:8px" onclick="sharePlan(this)">${I("share")} Podijeli link plana</button><button class="btn l" style="margin-top:8px" onclick="printPlan()">${I("printer")} Ispiši / sačuvaj PDF</button>`;
+ setMaps();tl();loadWx();aff()}
+// Google Maps URL dozvoljava najviše 9 međutačaka; duži planovi se dijele na uzastopne dijelove (kraj jednog = početak sljedećeg).
+function mapsLinks(){const P=[[A.lat,A.lon],...S.st.map(x=>x.p),[B.lat,B.lon]],out=[];
+ for(let i=0;i<P.length-1;i+=10){const seg=P.slice(i,i+11),o=seg[0],d=seg.at(-1),w=seg.slice(1,-1);
+  out.push(`https://www.google.com/maps/dir/?api=1&origin=${o[0]},${o[1]}&destination=${d[0]},${d[1]}&travelmode=${MODES[mode].gm}${w.length?"&waypoints="+encodeURIComponent(w.map(x=>x.join(",")).join("|")):""}`)}
+ return out}
+function setMaps(){const L=mapsLinks(),g=$("#gm"),x=$("#gmx"),f=$("#gmf");if(!g)return;
+ g.href=L[0];g.innerHTML=L.length>1?"Google Maps · dio 1 od "+L.length:"Otvori u Google Maps";if(f){f.href=L[0];f.innerHTML=I("navigation")+(L.length>1?" Navigacija · dio 1 od "+L.length:" Navigacija (Google Maps)")}
+ if(x)x.innerHTML=L.slice(1).map((h,i)=>`<a class="btn l" target="_blank" rel="noopener" style="margin-top:8px" href="${esc(h)}">Google Maps · dio ${i+2} od ${L.length}</a>`).join("")+(L.length>1?'<p class="gsrc">Google Maps prima najviše 9 međustanica po ruti, pa je plan podijeljen na dijelove. Kad stigneš do kraja jednog dijela, otvori sljedeći.</p>':"")}
 function tl(){
  const st=S.st,t0=$("#t0").value.split(":"),s0=+t0[0]*60+ +t0[1];let t=s0,h=`<div class="it"><i>A</i><div class="r"><div class="b"><b>${esc(A.name)}</b><br><small>Početak putovanja</small></div><div class="t">${hhmm(t)}</div></div></div>`;
  st.forEach((s,i)=>{t+=rt.legs[i]/60;const a=t;t+=s.v;h+=`<div class="it"><i style="background:${CATS[s.c].c}">${i+1}</i><div class="r" role="button" tabindex="0" style="cursor:pointer" onclick="getP('${s.id}')&&opn('${s.id}')">${ph(s)}<div class="b"><b>${esc(s.t.name)}</b><br><small>${CATS[s.c].n} · ${fmt(s.v)}${isPromo(s.id)?" · promovisano":""}</small>${warn(s,a)}</div><div class="t">~+${s.est} min<br>${hhmm(a)}</div></div></div>`});
@@ -468,9 +476,10 @@ async function startNav(){
  go("nav");if(!nmap){nmap=L.map("nmap",{zoomControl:false,attributionControl:false});tiles(0).addTo(nmap);nlay=L.layerGroup().addTo(nmap)}
  setTimeout(()=>nmap.invalidateSize(),60);if(nme){nme.remove();nme=null}
  N={st:[...S.st]};setSteps(rt);nmap.fitBounds(L.polyline(rt.line).getBounds());
- $("#nbi").innerHTML=I("navigation");$("#nbt").textContent="Čekam GPS signal…";$("#nbd").textContent="Izađi na otvoreno ako signal kasni";$("#nst").innerHTML="";
+ $("#nbi").innerHTML=I("navigation");$("#nbt").textContent="Čekam GPS signal…";$("#nbd").textContent=navigator.wakeLock?"Drži aplikaciju otvorenu; za zaključan ekran koristi Google Maps":"Ovaj preglednik ne može držati ekran upaljen — za vođenje koristi Google Maps";$("#nst").innerHTML="";
  try{N.wl=await navigator.wakeLock.request("screen")}catch(e){}
  N.w=navigator.geolocation.watchPosition(onPos,()=>{if(N)$("#nbt").textContent="Nema signala lokacije"},{enableHighAccuracy:true,maximumAge:1000,timeout:30000})}
+document.addEventListener("visibilitychange",()=>{if(N&&document.visibilityState=="visible"&&navigator.wakeLock)navigator.wakeLock.request("screen").then(l=>{N.wl=l}).catch(()=>{})});
 function stopNav(done){if(N){navigator.geolocation.clearWatch(N.w);try{N.wl&&N.wl.release()}catch(e){}}N=null;if(!done)back()}
 async function reroute(c){N.rr=Date.now();try{const r=await route([c,...N.st.map(s=>s.p),[B.lat,B.lon]]);if(N)setSteps(r)}catch(e){}}
 function onPos(p){if(!N)return;const c=[p.coords.latitude,p.coords.longitude];$("#nsv").textContent=p.coords.speed!=null?Math.round(p.coords.speed*3.6):0;

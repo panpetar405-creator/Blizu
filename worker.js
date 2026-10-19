@@ -11,6 +11,7 @@ const CITIES = {
 };
 // koji cron okida koji grad (podesi u Settings → Triggers → Cron)
 const CRON_CITY = { "0 3 * * *": "tivat", "10 3 * * *": "kotor", "20 3 * * *": "budva", "30 3 * * *": "hn" };
+const MIN_R = 250, MAX_R = 25000; // dozvoljeni radijus upita (m); klijent ga ograničava na isto
 const COVER_M = 15000; // radijus oko centra grada koji se unapred povlači
 const ORIGINS = ["https://panpetar405-creator.github.io"];
 const OVP = [
@@ -265,7 +266,7 @@ export default {
 
     const lat = parseFloat(url.searchParams.get("lat")), lng = parseFloat(url.searchParams.get("lng"));
     const rawR = parseInt(url.searchParams.get("r") || "5000", 10);
-    const r = Math.max(250, Math.min(Number.isFinite(rawR) ? rawR : 5000, 25000));
+    const r = Math.max(MIN_R, Math.min(Number.isFinite(rawR) ? rawR : 5000, MAX_R));
     const cat = url.searchParams.get("cat") || "sve";
     if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || (cat !== "sve" && !QF[cat])) return json({ error: "bad params" }, req, 400);
     const cats = cat === "sve" ? CATS.filter((k) => k !== "info") : [cat];

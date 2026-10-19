@@ -10,7 +10,7 @@
 
 2. **Validacija koordinata i radijusa**
    - API odbacuje geografski nemoguće latitude/longitude vrednosti.
-   - Radijus se ograničava na 250–15.000 metara, sa podrazumevanom vrednošću 5.000 m.
+   - Radijus se ograničava na 250–25.000 metara (isto u Workeru i u aplikaciji), sa podrazumevanom vrednošću 5.000 m.
 
 3. **Realističnija, ali i dalje okvirna procena hodanja**
    - Planer koristi faktor 1,35 u odnosu na vazdušnu udaljenost i prosečnu brzinu 4,2 km/h.
@@ -103,3 +103,14 @@ Dodato u `index.html`:
 - Postaviti `GEOCODER_URL` i provjeriti da Worker vraća rezultate za „Kotor", „Mostar", „Beograd".
 - Provjeriti da `data/places/index.json` pokriva sve ciljane gradove, pa isključiti javni Overpass.
 - Zamijeniti OSM pločice i `routing.openstreetmap.de` produkcionim servisom (MapTiler ključ već podržan preko `BLIZU_MAPTILER_KEY`; za rute ORS/Valhalla) — to je sljedeći korak ove tačke.
+
+## Sedma iteracija — navigacija i usklađene vrijednosti (tačka 2 audita)
+
+- **Navigacija**: glavno dugme na planu sada otvara Google Maps sa svim stanicama kao međutačkama (radi i uz zaključan ekran). Google dozvoljava najviše 9 međutačaka po ruti, pa se duži plan dijeli na dijelove („dio 1 od N”), gdje kraj jednog dijela postaje početak sljedećeg. Međutačke su ispravno URL-kodirane.
+- **Praćenje uživo u aplikaciji** ostaje kao dodatna opcija uz jasnu napomenu da radi samo dok je ekran upaljen. Dodano je ponovno traženje „wake lock”-a kad se aplikacija vrati u prvi plan i poruka kad preglednik to ne podržava.
+- **Usklađeno**: hodanje 4,2 km/h (kod je imao 4,5); gornji radijus 25 km i u dokumentaciji, Workeru (`MIN_R`/`MAX_R`) i aplikaciji (prije je klijent mogao tražiti i više od dozvoljenog).
+
+### Treba testirati
+- Plan s 12+ stanica: provjeriti da dijelovi 1/2 i 2/2 otvaraju ispravne rute u Google Maps na Androidu i iOS-u.
+- „Praćenje uživo”: ponašanje pri zaključavanju ekrana na iOS Safari i Android Chrome.
+- Ruta s „Pješice” i dugim vremenom (60 min): potvrditi da se i dalje dobijaju rezultati.
