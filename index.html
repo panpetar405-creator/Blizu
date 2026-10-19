@@ -75,7 +75,8 @@ h3{font-size:15px;margin:20px 0 8px}
 #tabs{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--bd);z-index:900;padding:6px 0 calc(env(safe-area-inset-bottom) + 6px)}
 #tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mu)}#tabs .i{width:24px;height:24px;stroke-width:1.9}#tabs .on .i{stroke-width:2.3}#tabs small{font-size:11px}#tabs .on{color:var(--g);font-weight:700}
 body.tb .pad{padding-bottom:90px}
-body.tb #home,body.tb #fin{min-height:100vh;min-height:100dvh;padding-bottom:calc(var(--tb) + env(safe-area-inset-bottom) + 20px)}
+#home.on,#fin.on{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 #fin{background:linear-gradient(#0003,#000b),url(img/hero.jpg) center/cover;color:#fff;padding:24px 20px;flex-direction:column;justify-content:flex-end;gap:10px}#fin.on{display:flex}#fin h1{font-size:30px;line-height:1.2}
 #nav{position:relative;height:100dvh;overflow:hidden}#nmap{position:absolute;inset:0;z-index:0}
 #nb{position:absolute;z-index:10;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 12px);background:#0a3a30;color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center}
@@ -196,7 +197,8 @@ const CATS={hrana:{n:"Lokalna hrana",ic:I("utensils"),c:"#e8890c",bg:"#fff1dc",q
 let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}catch(e){return"car"}})(),extra=20,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
 
 const H=[],TABS=["home","saved","fav","prof","fin"];let cur="home";
-function show(id){cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf()}
+function fitTb(){const t=$("#tabs");if(t.offsetHeight)document.documentElement.style.setProperty("--tbh",t.offsetHeight+"px")}addEventListener("resize",fitTb);addEventListener("pageshow",fitTb);
+function show(id){cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";fitTb();document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf()}
 function go(id){if(id!=cur)H.push(cur);show(id)}
 function tab(id){H.length=0;show(id)}
 function back(){show(H.pop()||"home")}
