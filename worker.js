@@ -31,7 +31,7 @@ const QF = {
   info: 'nwr@[amenity~"^(pharmacy|atm|bank|hospital|clinic|doctors|post_office|police|fuel)$"];nwr@[tourism=information][name];',
 };
 const CATS = Object.keys(QF);
-const KEEP = ["name", "name:sr", "name:en", "amenity", "tourism", "historic", "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "brand", "operator", "description", "image", "wikimedia_commons", "wikidata",
+const KEEP = ["name", "name:sr", "name:en", "amenity", "tourism", "historic", "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "brand", "operator", "description", "image", "wikimedia_commons", "wikidata", "website", "check_date", "survey:date",
   "diet:vegetarian", "diet:vegan", "wheelchair", "dog", "pets_allowed", "fee", "kids_area", "highchair", "changing_table"];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -188,6 +188,29 @@ async function walkLegs(env, pts) {
   return legs;
 }
 
+// Geokodiranje (pretraga adresa/mjesta). Podrazumijevano Photon (OSM podaci, dozvoljen autocomplete uz razumnu upotrebu);
+// za produkciju postavi env GEOCODER_URL na vlastiti Photon ili plaćeni servis istog GeoJSON oblika (npr. Geoapify/MapTiler).
+// Rezultati se keširaju u KV 7 dana, pa isti upit ne opterećuje vanjski servis.
+async function geocode(env, q) {
+  const key = "geo:" + norm(q).slice(0, 100);
+  const hit = await env.PLACES.get(key, "json");
+  if (hit) return hit;
+  const base = env.GEOCODER_URL || "https://photon.komoot.io/api/";
+  const u = new URL(base);
+  u.searchParams.set("q", q); u.searchParams.set("limit", "5"); u.searchParams.set("lang", "en");
+  u.searchParams.set("lat", "43.5"); u.searchParams.set("lon", "19.0"); // blaga prednost Balkanu
+  const r = await fetch(u.toString(), { headers: { "User-Agent": "Blizu/1.0 (geocoding via worker)" } });
+  if (!r.ok) throw new Error("geocoder");
+  const out = [];
+  for (const f of (await r.json()).features || []) {
+    const p = f.properties || {}, c = (f.geometry || {}).coordinates;
+    if (!p.name || !Array.isArray(c) || !Number.isFinite(c[0]) || !Number.isFinite(c[1])) continue;
+    out.push({ name: p.name, full: [p.name, p.city || p.state, p.country].filter(Boolean).join(", "), lat: c[1], lon: c[0] });
+  }
+  await env.PLACES.put(key, JSON.stringify(out), { expirationTtl: out.length ? 604800 : 3600 });
+  return out;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -210,6 +233,12 @@ export default {
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
       try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream", g: e && e.g, m: (e && e.m) || "" }, req, 502); }
+    }
+    if (url.pathname === "/api/geocode") {
+      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
+      const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
+      if (q.length < 3) return json({ results: [] }, req);
+      try { return json({ results: await geocode(env, q) }, req, 200, { "Cache-Control": "public, max-age=86400" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/walk") {
       if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
