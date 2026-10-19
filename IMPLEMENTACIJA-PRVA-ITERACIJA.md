@@ -90,3 +90,16 @@ Dodato u `index.html`:
 - Upiši `BLIZU_PARTNER_MAIL`, partnerske ID-eve i postavi `paid:true` samo za linkove koji to stvarno jesu.
 - Provjeri uslove partnerskih programa (npr. obavezne oznake i dozvoljena mjesta za linkove).
 - Ugovorom s lokalnim partnerima odredi cijenu, trajanje (`until`) i pravila označavanja.
+
+## Šesta iteracija — pouzdanost podataka i servisa (tačka 1 audita)
+
+- **Geokodiranje preko Workera** (`/api/geocode`, provjera Origin-a, KV keš 7 dana). Podrazumijevano Photon; za produkciju postavi `GEOCODER_URL` (vlastiti Photon ili plaćeni servis istog GeoJSON oblika). Pretraga po slovu više nikad ne ide direktno na javni Nominatim; on se koristi samo kao rezerva pri izričitom pokretanju plana.
+- **Svježina podataka**: u izboru stanica piše datum osvježavanja baze mjesta; u detaljima mjesta piše koliko je staro radno vrijeme (OSM `check_date` / `survey:date`), uz upozorenje za podatke starije od 24 mjeseca ili bez datuma.
+- **Atribucija fotografija**: uz sliku se navodi izvor (Wikimedia Commons s linkom na stranicu fajla gdje su autor i licenca).
+- **`BLIZU_PUBLIC_OVERPASS`** (`config.js`): kad se postavi na `false`, telefoni korisnika ne gađaju javne Overpass servere. Za sada je `true` jer duge rute izvan vlastite baze zavise od toga.
+- Worker sada zadržava i `website`, `check_date`, `survey:date` (isto kao `tools/build-grid.py`). `sw.js`: keš `blizu-v15`.
+
+### Treba uraditi / testirati
+- Postaviti `GEOCODER_URL` i provjeriti da Worker vraća rezultate za „Kotor", „Mostar", „Beograd".
+- Provjeriti da `data/places/index.json` pokriva sve ciljane gradove, pa isključiti javni Overpass.
+- Zamijeniti OSM pločice i `routing.openstreetmap.de` produkcionim servisom (MapTiler ključ već podržan preko `BLIZU_MAPTILER_KEY`; za rute ORS/Valhalla) — to je sljedeći korak ove tačke.
