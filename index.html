@@ -205,7 +205,7 @@ let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}
 
 const H=[],TABS=["home","saved","fav","prof","fin"];let cur="home";
 function fitTb(){const t=$("#tabs");if(t.offsetHeight)document.documentElement.style.setProperty("--tbh",t.offsetHeight+"px")}addEventListener("resize",fitTb);addEventListener("pageshow",fitTb);
-function show(id){cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";fitTb();document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf()}
+function show(id){if(TABS.includes(id))try{localStorage.removeItem("last")}catch(e){}cur=id;document.querySelectorAll(".s").forEach(e=>e.classList.toggle("on",e.id==id));const tb=TABS.includes(id);document.body.classList.toggle("tb",tb);$("#tabs").style.display=tb?"flex":"none";fitTb();document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t==(id=="fin"?"home":id)));scrollTo(0,0);if(id=="res"&&map)setTimeout(()=>map.invalidateSize(),50);if(id=="saved")drawSaved();if(id=="fav")drawFav();if(id=="prof")drawProf()}
 function go(id){if(id!=cur)H.push(cur);show(id)}
 function tab(id){H.length=0;show(id)}
 function back(){show(H.pop()||"home")}
@@ -344,6 +344,7 @@ async function refresh(fit){
 }
 function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${opts.map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
+ try{store("last",{k:Date.now(),A,B,mode,extra,t0:$("#t0").value,km:Math.round(S.km),stops:st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))})}catch(e){}
  $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b><div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
  <div class="tl" id="tl"></div><button class="btn l" id="svb" onclick="savePlan()">${I("bookmark")} Sačuvaj plan</button><a class="btn l" id="gm" target="_blank" rel="noopener" style="margin-top:8px">Otvori u Google Maps</a>`;
  $("#gm").href=`https://www.google.com/maps/dir/?api=1&origin=${A.lat},${A.lon}&destination=${B.lat},${B.lon}&travelmode=${MODES[mode].gm}${st.length?"&waypoints="+st.map(s=>s.p.join(",")).join("|"):""}`;tl()}
@@ -432,6 +433,7 @@ function onPos(p){if(!N)return;const c=[p.coords.latitude,p.coords.longitude];$(
  $("#nbar").innerHTML=`<i style="width:${(N.cum[ni]/N.D*100).toFixed(1)}%"></i>`+N.st.map((s,k)=>`<u style="left:${(N.cum[N.ti[k]]/N.D*100).toFixed(1)}%"></u>`).join("")}
 $("#t0").addEventListener("change",()=>{if(rt&&S.st)tl()});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-show("home");
+const LAST=ld("last",null);show("home");
+if(LAST&&LAST.stops&&Date.now()-LAST.k<432e5){(async()=>{try{A=LAST.A;B=LAST.B;mode=LAST.mode;extra=LAST.extra;$("#t0").value=LAST.t0;cm=new Map();LAST.stops.forEach(x=>cm.set(x.id,x));sel=new Set(LAST.stops.map(x=>x.id));opts=[...LAST.stops];dest=[];base=await route([[A.lat,A.lon],[B.lat,B.lon]]);go("res");initMap();await refresh(1);go("pl")}catch(e){show("home");store("last",LAST)}})()}
 addEventListener("pageshow",e=>{if(e.persisted)show(cur)});
 </script></body></html>
