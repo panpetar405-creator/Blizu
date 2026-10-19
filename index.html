@@ -5,7 +5,8 @@
 <meta name="description" content="Putuješ od A do B? Pronađi šta vrijedi doživjeti usput: hrana, vidikovci, priroda, kultura i istorija.">
 <meta name="theme-color" content="#0b7a55">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="img/icon.svg">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin><link rel="preload" as="image" href="img/hero.jpg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"></noscript>
 <style>
 :root{--tb:64px;--g:#0b7a55;--tx:#16221d;--mu:#6b7a73;--bd:#e3e9e5;--bg:#f4f8f6}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
@@ -188,7 +189,7 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 <nav id="tabs"><button data-t="home" onclick="tab('home')"><svg class="i" aria-hidden="true"><use href="#i-house"/></svg><small>Početna</small></button><button data-t="saved" onclick="tab('saved')"><svg class="i" aria-hidden="true"><use href="#i-map"/></svg><small>Planovi</small></button><button data-t="fav" onclick="tab('fav')"><svg class="i" aria-hidden="true"><use href="#i-heart"/></svg><small>Favoriti</small></button><button data-t="prof" onclick="tab('prof')"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg><small>Profil</small></button></nav>
 
 <script src="config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
 <script>
 const I=(n,c)=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`,$=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -229,12 +230,12 @@ const QF={
 };
 let why="";
 const first=ps=>new Promise(res=>{let n=ps.length;ps.forEach(p=>p.then(v=>{v?res(v):--n||res(null)},()=>--n||res(null)))});
-function ovp(u,q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>j&&j.elements&&!(j.remark&&/error|timed out|out of memory|rate|too many/i.test(j.remark))?j.elements:null).finally(()=>clearTimeout(t))}
+function ovp(u,q){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),10000);return fetch(u,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal}).then(r=>r.ok?r.json():null).then(j=>j&&j.elements&&!(j.remark&&/error|timed out|out of memory|rate|too many/i.test(j.remark))?j.elements:null).finally(()=>clearTimeout(t))}
 // Worker prvi (brz, iz KV-a); ako ne odgovori, javni Overpass serveri direktno (kao u staroj aplikaciji); rezultat se kešira 6 h
 async function point(lat,lng,r,cats){
  const ck="pd_"+lat.toFixed(2)+"_"+lng.toFixed(2)+"_"+r+"_"+cats.join();
  try{const c=JSON.parse(localStorage.getItem(ck)||"null");if(c&&Date.now()-c.t<216e5)return c.e}catch(e){}
- const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(6000)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
+ const w=await Promise.all(cats.map(c=>fetch(`${API}/api/places?lat=${lat}&lng=${lng}&r=${r}&cat=${c}`,{signal:AbortSignal.timeout(4500)}).then(x=>x.ok?x.json():(why=why||"Worker HTTP "+x.status,null)).catch(e=>(why=why||"Worker: "+e.message,null))));
  let els=null;const ok=w.filter(Boolean);
  if(ok.length)els=ok.flatMap(x=>x.elements||[]);
  else{const A=`(around:${r},${lat},${lng})`,q=`[out:json][timeout:25];(${cats.map(c=>QF[c].replace(/@/g,A)).join("")});out center tags 300;`;els=await first(OVP.map(u=>ovp(u,q)))}
@@ -246,14 +247,15 @@ async function plan(){
  if(!API)return err.textContent="Nedostaje BLIZU_API u config.js.";
  btn.disabled=true;
  try{
-  btn.textContent="Tražim adrese…";A=await resolve($("#fa"));B=await resolve($("#fb"));
+  btn.textContent="Tražim adrese…";[A,B]=await Promise.all([resolve($("#fa")),resolve($("#fb"))]);const cats0=[...new Set([...want].flatMap(k=>CATS[k].q))],destP=point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats0,"jesti"])]).catch(()=>null);
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
   const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.round(rk*1000);
   const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],pts=[];
   for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;pts.push(line[j])}
   btn.textContent="Tražim mjesta duž puta…";
-  const res=[];for(let i=0;i<pts.length;i+=3)res.push(...await Promise.all(pts.slice(i,i+3).map(p=>point(+p[0].toFixed(4),+p[1].toFixed(4),r,cats).catch(()=>null))));
+  const res=new Array(pts.length).fill(null);let done=0,nx=0;
+  await Promise.race([Promise.all(Array.from({length:Math.min(6,pts.length)},async()=>{while(nx<pts.length){const i=nx++;try{res[i]=await point(+pts[i][0].toFixed(4),+pts[i][1].toFixed(4),r,cats)}catch(e){}btn.textContent=`Tražim mjesta duž puta… ${++done}/${pts.length}`}})),new Promise(ok=>setTimeout(ok,25000))]);
   const fails=res.filter(x=>!x).length;
   if(fails==res.length)throw Error("Ne mogu da preuzmem mjesta (ni Worker ni Overpass ne odgovaraju). Pokušaj ponovo za koji minut."+(why?" ["+why+"]":""));
   const els=res.flatMap(x=>x||[]);
@@ -261,7 +263,7 @@ async function plan(){
   const meal=(c,t,m)=>{if(c!="hrana")return 0;m%=1440;const ok=(m>=660&&m<=900)||(m>=1080&&m<=1290)||(t.amenity=="cafe"&&m>=540&&m<=660);return ok?0:4};
   const NT=t=>(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
   btn.textContent="Tražim mjesta na odredištu…";
-  const dsel=await point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats,"jesti"])]).catch(()=>null),dn=new Set(),dl=[];
+  const dsel=await destP,dn=new Set(),dl=[];
   for(const el of dsel||[]){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||(c!="hrana"&&!want.has(c))||dn.has(t.name+c))continue;const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;const d=dk(p,[B.lat,B.lon]);if(d>2.5)continue;dn.add(t.name+c);
    dl.push({id:el.type[0]+el.id,t,c,p,d,est:Math.max(1,Math.round(d*1.35/spd*60)),f:1+d/100,v:t.amenity=="cafe"?30:CATS[c].v,dst:1,sc:NT(t)-meal(c,t,s0+base.dur/60)-d*.3})}
   dl.sort((a,b)=>b.sc-a.sc);dest=[...dl.filter(x=>x.c=="hrana").slice(0,4),...dl.filter(x=>x.c!="hrana").slice(0,2)].sort((a,b)=>b.sc-a.sc);
