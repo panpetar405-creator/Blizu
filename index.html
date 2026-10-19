@@ -5,7 +5,7 @@
 <meta name="description" content="Putuješ od A do B? Pronađi šta vrijedi doživjeti usput: hrana, vidikovci, priroda, kultura i istorija.">
 <meta name="theme-color" content="#0b7a55">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="img/icon.svg">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin><link rel="preload" as="image" href="img/hero.jpg">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin><link rel="preload" as="image" href="img/hero.jpg">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"></noscript>
 <style>
 :root{--tb:64px;--g:#0b7a55;--tx:#16221d;--mu:#6b7a73;--bd:#e3e9e5;--bg:#f4f8f6}
@@ -313,7 +313,7 @@ async function plan(){
  btn.disabled=false;btn.innerHTML="Pronađi najbolje opcije "+I("arrow-right");
 }
 
-function initMap(){if(map)return;map=L.map("map",{zoomControl:false});L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:18,subdomains:"abcd",attribution:"© OpenStreetMap © CARTO"}).addTo(map);layer=L.layerGroup().addTo(map)}
+function initMap(){if(map)return;map=L.map("map",{zoomControl:false});L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);layer=L.layerGroup().addTo(map)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,description:t.description,opening_hours:t.opening_hours,phone:t.phone});
