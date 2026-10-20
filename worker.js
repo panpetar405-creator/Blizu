@@ -117,8 +117,10 @@ async function refreshCity(env, id) {
 
 const norm = (x) => (x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "dj");
 const toks = (x) => norm(x).split(/[^a-z0-9]+/).filter((t) => t.length > 2);
-async function enrich(env, name, lat, lng) {
-  const key = `g4:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}`;
+const HLS = { "sr-Latn": "sr-Latn", en: "en", de: "de", ru: "ru" }; // dozvoljeni jezici interfejsa
+async function enrich(env, name, lat, lng, hl) {
+  hl = HLS[hl] || "sr-Latn";
+  const key = `g4:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}` + (hl === "sr-Latn" ? "" : ":" + hl);
   const hit = await env.PLACES.get(key, "json");
   if (hit) return hit;
   // locationRestriction (pravougaonik ~450 x 650 m) garantuje da dobijemo mjesto sa te lokacije, a ne istoimeno mjesto negdje drugo
@@ -132,7 +134,7 @@ async function enrich(env, name, lat, lng) {
     body: JSON.stringify({
       textQuery: name,
       maxResultCount: 5,
-      languageCode: "sr-Latn",
+      languageCode: hl,
       locationRestriction: { rectangle: { low: { latitude: lat - 0.002, longitude: lng - 0.003 }, high: { latitude: lat + 0.002, longitude: lng + 0.003 } } },
     }),
   });
@@ -192,13 +194,14 @@ async function walkLegs(env, pts) {
 // Geokodiranje (pretraga adresa/mjesta). Podrazumijevano Photon (OSM podaci, dozvoljen autocomplete uz razumnu upotrebu);
 // za produkciju postavi env GEOCODER_URL na vlastiti Photon ili plaćeni servis istog GeoJSON oblika (npr. Geoapify/MapTiler).
 // Rezultati se keširaju u KV 7 dana, pa isti upit ne opterećuje vanjski servis.
-async function geocode(env, q) {
-  const key = "geo:" + norm(q).slice(0, 100);
+async function geocode(env, q, hl) {
+  const lg = hl === "de" ? "de" : "en"; // Photon podržava samo en/de/fr/podrazumijevani
+  const key = "geo:" + (lg === "en" ? "" : lg + ":") + norm(q).slice(0, 100);
   const hit = await env.PLACES.get(key, "json");
   if (hit) return hit;
   const base = env.GEOCODER_URL || "https://photon.komoot.io/api/";
   const u = new URL(base);
-  u.searchParams.set("q", q); u.searchParams.set("limit", "5"); u.searchParams.set("lang", "en");
+  u.searchParams.set("q", q); u.searchParams.set("limit", "5"); u.searchParams.set("lang", lg);
   u.searchParams.set("lat", "43.5"); u.searchParams.set("lon", "19.0"); // blaga prednost Balkanu
   const r = await fetch(u.toString(), { headers: { "User-Agent": "Blizu/1.0 (geocoding via worker)" } });
   if (!r.ok) throw new Error("geocoder");
@@ -233,13 +236,13 @@ export default {
       const name = (url.searchParams.get("name") || "").slice(0, 80);
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
-      try { return json(await enrich(env, name, la, ln), req); } catch (e) { return json({ error: "upstream", g: e && e.g, m: (e && e.m) || "" }, req, 502); }
+      try { return json(await enrich(env, name, la, ln, url.searchParams.get("hl")), req); } catch (e) { return json({ error: "upstream", g: e && e.g, m: (e && e.m) || "" }, req, 502); }
     }
     if (url.pathname === "/api/geocode") {
       if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
       const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
       if (q.length < 3) return json({ results: [] }, req);
-      try { return json({ results: await geocode(env, q) }, req, 200, { "Cache-Control": "public, max-age=86400" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
+      try { return json({ results: await geocode(env, q, url.searchParams.get("hl")) }, req, 200, { "Cache-Control": "public, max-age=86400" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/walk") {
       if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);

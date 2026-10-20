@@ -127,3 +127,17 @@ Dodato u `index.html`:
 ### Napomene
 - Tekstovi su polazna osnova, a ne pravni savjet. Prije lansiranja ih treba pregledati pravnik upoznat s propisima Crne Gore i EU.
 - Aplikacija je na domenu `panpetar405-creator.github.io`. `localStorage` je vezan za domen, a ne za putanju, pa svaki drugi projekat na istom domenu vidi iste ključeve. Vlastiti domen to rješava.
+
+## Deveta iteracija — jezici (tačka 4 audita)
+
+- **`i18n.js`**: sloj za prevod (srpski izvorni tekst → engleski, njemački, ruski). Prevodi svaki tekst čim se pojavi na ekranu (MutationObserver), uključujući `placeholder`/`aria-label`, `alert`/`confirm`/`prompt`. Rječnik (`a(...)`) za cijele rečenice i pravila (`r(...)`) za tekstove s brojevima, množinom (ruska množina s tri oblika), uputama za skretanje i vremenskom prognozom. Nepoznat tekst ostaje na srpskom. Dodavanje jezika = dopuna rječnika.
+- **Izbor jezika**: na početnom ekranu i u Profilu (SR / EN / DE / RU). Pamti se (`lang`); prvi put se bira prema jeziku preglednika (sr/hr/bs/me → srpski, de, ru, ostalo → engleski). Promjena jezika ponovo učitava stranicu.
+- **Datumi** prate jezik (`I18N.loc()`); pretraga adresa (Photon/Nominatim) i Google podaci o mjestu (opis, radno vrijeme) traže se na izabranom jeziku (`hl` parametar u Workeru; keš ključevi uključuju jezik).
+- Ruske jedinice (мин, км, ч) i ispravna množina („1 остановка / 2 остановки / 5 остановок”).
+- E-mailovi za prijavu greške i partnerske upite ostaju na srpskom jer ih čita operater.
+- Pregled neprevedenog: otvori aplikaciju s `#i18n-debug` u adresi; konzola ispisuje tekstove bez prevoda.
+
+### Nije prevedeno (treba odlučiti)
+- `privatnost.html`, `uslovi.html` i SEO stranice (`grad/*`) su samo na srpskom. Pravne tekstove treba prevoditi uz pravnu provjeru.
+- Nazivi mjesta, opisi i vrste kuhinje dolaze iz OpenStreetMap-a i ostaju kakvi jesu.
+- Prevod je pisao AI; prije objave neka ga pregleda izvorni govornik za njemački i ruski.
