@@ -1,0 +1,34 @@
+name: Verzija keša (sw.js)
+# Kad se promijeni neki fajl ljuske aplikacije, ime keša u sw.js se automatski postavlja na otisak sadržaja,
+# pa korisnici dobijaju novu verziju bez ručnog podizanja "blizu-vN".
+on:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - i18n.js
+      - config.js
+      - curated.js
+      - manifest.json
+      - privatnost.html
+      - uslovi.html
+      - img/icon.svg
+      - lib/**
+      - sw.js
+permissions:
+  contents: write
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/stamp-sw.mjs
+      - name: Upiši ako se promijenilo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add sw.js
+          git diff --cached --quiet || (git commit -m "Keš: nova verzija ljuske aplikacije" && git push)
