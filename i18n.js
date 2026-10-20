@@ -217,6 +217,18 @@
   a("Upit se otvara u tvojoj e-mail aplikaciji. Ništa se ne šalje automatski.", "The enquiry opens in your email app. Nothing is sent automatically.", "Die Anfrage öffnet sich in deiner E-Mail-App. Es wird nichts automatisch gesendet.", "Запрос откроется в вашем почтовом приложении. Ничего не отправляется автоматически.");
   a("E-mail za upite još nije podešen.", "The enquiry email isn't set up yet.", "Die E-Mail-Adresse für Anfragen ist noch nicht eingerichtet.", "E-mail для запросов пока не настроен.");
   a("Upiši naziv objekta i kontakt.", "Enter the business name and a contact.", "Gib den Namen des Betriebs und einen Kontakt ein.", "Укажите название заведения и контакт.");
+  // plan B, zalazak sunca, trajekt
+  a("Plan B", "Plan B", "Plan B", "План Б");
+  a("Zamijeni", "Replace", "Ersetzen", "Заменить");
+  a("Mjesto je u to vrijeme zatvoreno ili uskoro zatvara. Evo otvorenih opcija na sličnom dijelu puta.", "This place is closed at that time or closes soon. Here are open options along a similar part of the route.", "Dieser Ort ist zu dieser Zeit geschlossen oder schließt bald. Hier sind geöffnete Optionen an einem ähnlichen Abschnitt der Strecke.", "В это время место закрыто или скоро закроется. Вот открытые варианты на похожем участке пути.");
+  a("Moguća je kiša. Evo opcija u zatvorenom na sličnom dijelu puta.", "Rain is possible. Here are indoor options along a similar part of the route.", "Regen ist möglich. Hier sind Optionen in Innenräumen an einem ähnlichen Abschnitt der Strecke.", "Возможен дождь. Вот варианты в помещении на похожем участке пути.");
+  a("Dolaziš nakon zalaska sunca. Evo opcija koje nisu na otvorenom.", "You'd arrive after sunset. Here are options that aren't outdoors.", "Du kommst nach Sonnenuntergang an. Hier sind Optionen, die nicht im Freien sind.", "Вы приедете после захода солнца. Вот варианты не на открытом воздухе.");
+  a("Evo sličnih opcija na istom dijelu puta.", "Here are similar options along the same part of the route.", "Hier sind ähnliche Optionen am gleichen Abschnitt der Strecke.", "Вот похожие варианты на том же участке пути.");
+  a("Nema boljih zamjena u blizini. Probaj više vremena ili druge interese.", "No better replacements nearby. Try more time or different interests.", "Keine besseren Alternativen in der Nähe. Versuche mehr Zeit oder andere Interessen.", "Лучших замен поблизости нет. Добавьте времени или выберите другие интересы.");
+  a("Otvoreno u to vrijeme", "Open at that time", "Zu dieser Zeit geöffnet", "В это время открыто");
+  a("Radno vrijeme nije potvrđeno", "Opening hours unconfirmed", "Öffnungszeiten nicht bestätigt", "Часы работы не подтверждены");
+  a("U zatvorenom", "Indoors", "In Innenräumen", "В помещении");
+  a("Ruta uključuje trajekt. Čekanje i red vožnje nisu uračunati; provjeri prije polaska.", "The route includes a ferry. Waiting time and the timetable aren't included; check before you go.", "Die Route enthält eine Fähre. Wartezeit und Fahrplan sind nicht berücksichtigt; prüfe sie vor der Abfahrt.", "Маршрут включает паром. Время ожидания и расписание не учтены; проверьте перед выездом.");
   // putovanja, planovi, profil
   a("Izvezi podatke", "Export data", "Daten exportieren", "Экспортировать данные");
   a("Uvezi podatke", "Import data", "Daten importieren", "Импортировать данные");
@@ -267,6 +279,12 @@
   r(/^(\d+) dan\(a\)(.*)$/, function (m) { return m[1] + " " + P(+m[1], DAYS) + m[2]; });
   r(/^Uvezeno: (\d+) planova, (\d+) putovanja, (\d+) favorita\.$/, function (m) {
     return ["Imported: " + m[1] + " plans, " + m[2] + " trips, " + m[3] + " favourites.", "Importiert: " + m[1] + " Pläne, " + m[2] + " Reisen, " + m[3] + " Favoriten.", "Импортировано: планов — " + m[1] + ", поездок — " + m[2] + ", избранного — " + m[3] + "."][L];
+  });
+  r(/^Plan B: (.+)$/, function (m) { return ["Plan B: ", "Plan B: ", "План Б: "][L] + m[1]; });
+  r(/^Dolazak nakon zalaska sunca \((\d\d:\d\d)\)$/, function (m) { return ["Arrival after sunset (" + m[1] + ")", "Ankunft nach Sonnenuntergang (" + m[1] + ")", "Прибытие после захода солнца (" + m[1] + ")"][L]; });
+  r(/^Zalazak sunca u (\d\d:\d\d), prije kraja posjete$/, function (m) { return ["Sunset at " + m[1] + ", before the visit ends", "Sonnenuntergang um " + m[1] + ", vor Ende des Besuchs", "Закат в " + m[1] + ", до конца посещения"][L]; });
+  r(/^Ruta uključuje trajekt \(oko (\d+) min prelaza\)\. Čekanje i red vožnje nisu uračunati; provjeri prije polaska\.$/, function (m) {
+    return ["The route includes a ferry (about " + m[1] + " min crossing). Waiting time and the timetable aren't included; check before you go.", "Die Route enthält eine Fähre (Überfahrt ca. " + m[1] + " Min.). Wartezeit und Fahrplan sind nicht berücksichtigt; prüfe sie vor der Abfahrt.", "Маршрут включает паром (переправа около " + m[1] + " мин). Время ожидания и расписание не учтены; проверьте перед выездом."][L];
   });
   r(/^Putovanje (\d+)$/, function (m) { return ["Trip ", "Reise ", "Поездка "][L] + m[1]; });
   r(/^(\d+) sačuvanih planova · (\d+) favorita\. Podaci ostaju samo na ovom uređaju\.$/, function (m) {

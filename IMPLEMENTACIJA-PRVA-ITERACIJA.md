@@ -178,3 +178,15 @@ Dodato u `index.html`:
 ### Nije urađeno
 - Ostatak `index.html` (~95 KB) je i dalje jedna skripta s `onclick` atributima; dalje razdvajanje (planer, mapa, ekrani) traži testiranje u pravom pregledniku.
 - Praćenje grešaka (npr. Sentry) nije dodato jer šalje podatke trećoj strani; ako ga želiš, treba ažurirati i politiku privatnosti.
+
+## Dvanaesta iteracija — proizvod (tačka 7 audita)
+
+- **Plan B**: uz svako upozorenje u planu (zatvoreno / uskoro zatvara, moguća kiša, zalazak sunca) pojavljuje se dugme „Plan B”. Otvara do 3 zamjene sa istog dijela puta: izostavlja već izabrane, zatvorene u trenutku dolaska, a pri kiši ili zalasku i sve na otvorenom. Rangira po blizini na putu, dodatnom vremenu i kategoriji; mjesta bez potvrđenog radnog vremena su dozvoljena, ali niže. Jedan dodir zamjenjuje stanicu i preračunava plan.
+- **Zalazak sunca**: za stanice na otvorenom (vidikovci, priroda) plan upozorava na dolazak nakon zalaska ili zalazak usred posjete. Vrijeme se računa lokalno formulom (bez mreže), u srednjoevropskom vremenu s ljetnim računanjem, i to samo za Balkan i okolinu (geografska širina 34–50, dužina 12–30); izvan toga nema upozorenja jer nema pouzdane vremenske zone.
+- **Trajekt**: ako ruta sadrži trajekt (OSRM korak `mode: "ferry"`), plan prikazuje obavještenje s trajanjem prelaza i napomenom da čekanje i red vožnje nisu uračunati.
+- Sva logika je u `lib/blizu-lib.js` (`sunTimes`, `sunWarn`, `altFor`, `ferryInfo`) i pokrivena testovima, uključujući ponašanje u aplikaciji.
+
+### Nije urađeno (i zašto)
+- **Optimizacija redoslijeda**: stanice su već poređane po položaju duž puta, što je za koridor obično ispravno. Stvarno preslagivanje po radnom vremenu traži vremenske prozore i ima smisla tek uz podatke o radnom vremenu za većinu mjesta; sada ih OSM često nema.
+- **Gužva u sezoni**: nema pouzdanog izvora podataka, pa se ne prikazuje procjena.
+- **Trajekt Kamenari–Lepetane** nije posebno kodiran: prikazuje se samo ako ga javni servis za rute uključi u rutu. Provjeri na stvarnoj ruti da li ga uključuje, i da li je prelaz uračunat u vrijeme.
