@@ -218,6 +218,11 @@
   a("E-mail za upite još nije podešen.", "The enquiry email isn't set up yet.", "Die E-Mail-Adresse für Anfragen ist noch nicht eingerichtet.", "E-mail для запросов пока не настроен.");
   a("Upiši naziv objekta i kontakt.", "Enter the business name and a contact.", "Gib den Namen des Betriebs und einen Kontakt ein.", "Укажите название заведения и контакт.");
   // putovanja, planovi, profil
+  a("Izvezi podatke", "Export data", "Daten exportieren", "Экспортировать данные");
+  a("Uvezi podatke", "Import data", "Daten importieren", "Импортировать данные");
+  a("Izvoz čuva planove, putovanja i favorite u fajl, a uvoz ih spaja s onim što već imaš.", "Export saves your plans, trips and favourites to a file, and import merges them with what you already have.", "Der Export speichert deine Pläne, Reisen und Favoriten in einer Datei, der Import führt sie mit deinen vorhandenen Daten zusammen.", "Экспорт сохраняет ваши планы, поездки и избранное в файл, а импорт объединяет их с уже имеющимися данными.");
+  a("Fajl nije ispravan Blizu izvoz.", "This file is not a valid Blizu export.", "Diese Datei ist kein gültiger Blizu-Export.", "Этот файл не является корректным экспортом Blizu.");
+  a("Lokacija", "Location", "Standort", "Место");
   a("Izaberi putovanje ili napravi novo.", "Choose a trip or create a new one.", "Wähle eine Reise oder erstelle eine neue.", "Выберите поездку или создайте новую.");
   a("Naziv novog putovanja", "New trip name", "Name der neuen Reise", "Название новой поездки");
   a("Novo putovanje", "New trip", "Neue Reise", "Новая поездка");
@@ -260,6 +265,9 @@
   r(/^Dodaj u „(.+)”$/, function (m) { return [["Add to “", "”"], ["Zu „", "“ hinzufügen"], ["Добавить в «", "»"]][L][0] + m[1] + [["Add to “", "”"], ["Zu „", "“ hinzufügen"], ["Добавить в «", "»"]][L][1]; });
   r(/^Dan (\d+)(?: · (.+))?$/, function (m) { return ["Day ", "Tag ", "День "][L] + m[1] + (m[2] ? " · " + t(m[2]) : ""); });
   r(/^(\d+) dan\(a\)(.*)$/, function (m) { return m[1] + " " + P(+m[1], DAYS) + m[2]; });
+  r(/^Uvezeno: (\d+) planova, (\d+) putovanja, (\d+) favorita\.$/, function (m) {
+    return ["Imported: " + m[1] + " plans, " + m[2] + " trips, " + m[3] + " favourites.", "Importiert: " + m[1] + " Pläne, " + m[2] + " Reisen, " + m[3] + " Favoriten.", "Импортировано: планов — " + m[1] + ", поездок — " + m[2] + ", избранного — " + m[3] + "."][L];
+  });
   r(/^Putovanje (\d+)$/, function (m) { return ["Trip ", "Reise ", "Поездка "][L] + m[1]; });
   r(/^(\d+) sačuvanih planova · (\d+) favorita\. Podaci ostaju samo na ovom uređaju\.$/, function (m) {
     return [m[1] + " saved plans · " + m[2] + " favourites. Data stays only on this device.",

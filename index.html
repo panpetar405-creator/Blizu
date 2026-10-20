@@ -210,7 +210,9 @@ a.inf{color:var(--mu);text-decoration:none}
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
 <script src="i18n.js"></script>
+<script src="lib/blizu-lib.js"></script>
 <script>
+const{dk,fmt,hhmm,fkm,ohCheck,mtxt,b64e}=BlizuLib; // čista logika: lib/blizu-lib.js (testira se u test/)
 const I=(n,c)=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`,$=s=>document.querySelector(s),API=window.BLIZU_API||"",R=Math.PI/180;
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const MODES={car:{n:I("car")+" Auto",spd:40,gm:"driving"},bike:{n:I("bike")+" Bicikl",spd:15,gm:"bicycling"},foot:{n:I("walk")+" Pješice",spd:4.2,gm:"walking"}};
@@ -244,6 +246,11 @@ function askGeo(ok,no){let g=false;try{g=localStorage.getItem("geo_ok")=="1"}cat
 function reportPlace(id){const o=getP(id);if(!o)return;const t=o.t,osm=/^[nwr]\d+$/.test(id)?`https://www.openstreetmap.org/${{n:"node",w:"way",r:"relation"}[id[0]]}/${id.slice(1)}`:"",m=(window.BLIZU_REPORT_MAIL||window.BLIZU_CONTACT_MAIL||"").trim(),ok=EMAILRE.test(m),R=["Trajno zatvoreno","Pogrešna lokacija","Pogrešno radno vrijeme","Pogrešan opis ili kategorija","Drugo"];
  window._rp=i=>{const b=["Mjesto: "+t.name,"ID: "+id,"Koordinate: "+o.p.join(","),"Problem: "+R[i],"","Opiši šta nije u redu (opciono):",""].join("\n");closeModal();location.href="mailto:"+m+"?subject="+encodeURIComponent("Blizu: prijava greške – "+t.name)+"&body="+encodeURIComponent(b)};
  modal(`<h3 style="margin:0 0 8px">Prijavi grešku</h3><p><b>${esc(t.name)}</b></p>${ok?`<p>Izaberi šta nije u redu. Otvoriće se tvoja e-mail aplikacija; ništa se ne šalje automatski.</p>${R.map((r,i)=>`<button class="btn l" onclick="_rp(${i})">${r}</button>`).join("")}`:'<p>Prijava e-mailom još nije podešena.</p>'}${osm?`<p class="gsrc" style="margin-top:14px">Podaci o mjestu dolaze iz OpenStreetMap-a. Ako znaš tačno stanje, možeš ga ispraviti direktno, a ispravku će vidjeti svi: <a href="${osm}" target="_blank" rel="noopener">otvori mjesto na OpenStreetMap-u</a>.</p>`:""}<button class="btn l" style="margin-top:12px" onclick="closeModal()">Zatvori</button>`)}
+function exportData(){const b=BlizuLib.exportBackup({plans:PL,trips:TR,fav:FAV,fil:FIL,mode}),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(b)],{type:"application/json"}));a.download="blizu-podaci-"+tdy()+".json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+function importData(inp){const f=inp.files&&inp.files[0];inp.value="";if(!f)return;if(f.size>2097152)return alert("Fajl nije ispravan Blizu izvoz.");
+ f.text().then(t=>{const r=BlizuLib.parseBackup(t,{MODES,CATS});if(!r.ok)return alert("Fajl nije ispravan Blizu izvoz.");
+  const m=BlizuLib.mergeBackup({plans:PL,trips:TR,fav:FAV},r.data);PL=m.plans;TR=m.trips;FAV=m.fav;store("plans",PL);store("trips",TR);store("fav",FAV);if(cur=="prof")drawProf();
+  alert("Uvezeno: "+m.added.plans+" planova, "+m.added.trips+" putovanja, "+m.added.fav+" favorita.")}).catch(()=>alert("Fajl nije ispravan Blizu izvoz."))}
 function wipeData(){if(!confirm("Obrisati sve što Blizu čuva na ovom uređaju (planove, putovanja, favorite, postavke i privremene podatke)?"))return;PL=[];FAV={};TR=[];IMGC={};
  try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(/^(plans|trips|fav|fil|imgc|last|mode|geo_ok)$|^(pd_|ch_)/.test(k))localStorage.removeItem(k)})}catch(e){}drawProf()}
 function gps(){askGeo(gps0)}
@@ -251,11 +258,8 @@ function gps0(){navigator.geolocation?.getCurrentPosition(p=>{const i=$("#fa");i
 async function resolve(i){const v=i.value.trim();if(!v)throw Error("Unesi polazište i odredište.");if(i._o&&i._o.name=="Moja lokacija"&&v==_t("Moja lokacija"))return i._o;if(i._s&&i._s[v])return i._s[v];const r=await geo(v);if(!r[0])throw Error("Ne mogu pronaći: "+v);return r[0]}
 
 // ---------- rute ----------
-function dk(a,b){return 6371*Math.hypot((b[1]-a[1])*R*Math.cos((a[0]+b[0])*R/2),(b[0]-a[0])*R)}
 async function route(pts){const p=mode=="car"?"car":mode;const u=`https://routing.openstreetmap.de/routed-${p}/route/v1/driving/${pts.map(x=>x[1].toFixed(5)+","+x[0].toFixed(5)).join(";")}?overview=full&geometries=geojson&steps=true`;const r=await fetch(u);if(!r.ok)throw Error("Servis za rute trenutno ne radi");const j=await r.json();if(!j.routes?.length)throw Error("Ruta između ove dvije tačke nije pronađena");const o=j.routes[0];return{line:o.geometry.coordinates.map(c=>[c[1],c[0]]),dur:o.duration,dist:o.distance,legs:o.legs.map(l=>l.duration),steps:o.legs.flatMap(l=>l.steps||[]).filter((x,i)=>i==0||x.maneuver.type!="depart")}}
 const cls=t=>t.tourism=="viewpoint"?"vid":t.historic?"ist":/^(museum|gallery)$/.test(t.tourism)||/^(theatre|arts_centre)$/.test(t.amenity)||t.tourism=="attraction"?"kul":t.natural||/^(beach_resort|park|marina)$/.test(t.leisure)?"pri":/^(restaurant|cafe)$/.test(t.amenity)?"hrana":null;
-const fmt=m=>{m=Math.round(m);return m>=60?Math.floor(m/60)+"h "+String(m%60).padStart(2,"0")+"min":m+" min"};
-const hhmm=m=>{m=Math.round(m)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")};
 
 const OVP=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter"];
 const QF={
@@ -468,21 +472,10 @@ function delPlan(k){PL=PL.filter(p=>p.k!=k);store("plans",PL);drawSaved()}
 async function loadPlan(k,tid){CT=tid||null;const p=PL.find(x=>x.k==k);if(!p)return;S.pk=p.k;A=p.A;B=p.B;mode=p.mode;extra=p.extra;$("#t0").value=p.t0;$("#d0").value=p.d0||tdy();cm=new Map();p.stops.forEach(s=>cm.set(s.id,s));sel=new Set(p.stops.map(s=>s.id));opts=[...p.stops];dest=[];
  try{base=await route([[A.lat,A.lon],[B.lat,B.lon]])}catch(e){return alert(navigator.onLine?"Ruta se trenutno ne može učitati. Pokušaj ponovo.":"Nema internetske veze. Ruta se može učitati samo uz internet.")}
  go("res");initMap();await refresh(1);go("pl")}
-function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Jezik</h3><div class="lang" id="lng"></div><h3 style="margin-top:20px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><button class="btn l" style="margin-top:12px" onclick="wipeData()">Obriši sačuvane podatke</button><a class="btn l" style="margin-top:12px" href="privatnost.html" target="_blank" rel="noopener">Politika privatnosti</a><a class="btn l" style="margin-top:12px" href="uslovi.html" target="_blank" rel="noopener">Uslovi korištenja</a><button class="btn l" style="margin-top:12px" onclick="go('partner')">Za lokalne partnere</button>`;
+function drawProf(){$("#prc").innerHTML=`<h3 style="margin-top:4px">Jezik</h3><div class="lang" id="lng"></div><h3 style="margin-top:20px">Podrazumijevani prevoz</h3><div class="chips" id="pm"></div><p style="color:var(--mu);margin-top:20px">${PL.length} sačuvanih planova · ${Object.keys(FAV).length} favorita. Podaci ostaju samo na ovom uređaju.</p><p style="color:var(--mu);margin-top:12px">Izvoz čuva planove, putovanja i favorite u fajl, a uvoz ih spaja s onim što već imaš.</p><button class="btn l" style="margin-top:8px" onclick="exportData()">Izvezi podatke</button><button class="btn l" style="margin-top:8px" onclick="$('#imp').click()">Uvezi podatke</button><input id="imp" type="file" accept=".json,application/json" hidden onchange="importData(this)"><button class="btn l" style="margin-top:12px" onclick="wipeData()">Obriši sačuvane podatke</button><a class="btn l" style="margin-top:12px" href="privatnost.html" target="_blank" rel="noopener">Politika privatnosti</a><a class="btn l" style="margin-top:12px" href="uslovi.html" target="_blank" rel="noopener">Uslovi korištenja</a><button class="btn l" style="margin-top:12px" onclick="go('partner')">Za lokalne partnere</button>`;
  I18N.ui($("#lng"));chips($("#pm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>{mode=k;try{localStorage.setItem("mode",k)}catch(e){}chips($("#cm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>mode=k)})}
 // ---------- navigacija ----------
 let N=null,nmap,nlay,nme;
-const fkm=k=>k<.05?"sada":k<1?Math.round(k*100)*10+" m":k.toFixed(1)+" km";
-function mtxt(s,last){const m=s.maneuver||{},t=m.type,d=m.modifier||"",nm=s.name?" – "+s.name:"";
- const dr={left:"lijevo",right:"desno","slight left":"blago lijevo","slight right":"blago desno","sharp left":"oštro lijevo","sharp right":"oštro desno",straight:"pravo"}[d]||"";
- const ar={left:"turn-left",right:"turn-right","slight left":"arrow-up-left","slight right":"arrow-up-right","sharp left":"turn-left","sharp right":"turn-right",straight:"arrow-up",uturn:"uturn"}[d]||"arrow-up";
- if(t=="arrive")return["flag",last?"Stižete na odredište":"Stižete na stanicu"];
- if(/roundabout|rotary/.test(t))return["roundabout","U kružnom toku izađite na "+(m.exit?m.exit+". izlazu":"sljedećem izlazu")+nm];
- if(d=="uturn")return["uturn","Okrenite se"];
- if(t=="fork")return[ar,"Na račvanju držite se "+(dr||"pravo")+nm];
- if(t=="merge")return[ar,"Uključite se"+(dr?" "+dr:"")+nm];
- if(d=="straight"||t=="continue"||!dr)return["arrow-up","Nastavite pravo"+nm];
- return[ar,"Skrenite "+dr+nm]}
 function nidx(line,c){let b=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(c,line[i]);if(x<b){b=x;bi=i}}return[bi,b]}
 function setSteps(r){N.r=r;N.cum=[0];for(let i=1;i<r.line.length;i++)N.cum[i]=N.cum[i-1]+dk(r.line[i-1],r.line[i]);N.D=N.cum.at(-1)||.001;N.i=0;
  N.si=r.steps.map(s=>nidx(r.line,[s.maneuver.location[1],s.maneuver.location[0]])[0]);N.ti=N.st.map(s=>nidx(r.line,s.p)[0]);
@@ -517,16 +510,8 @@ function onPos(p){if(!N)return;const c=[p.coords.latitude,p.coords.longitude];$(
 $("#t0").addEventListener("change",()=>{if(rt&&S.st)tl()});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 
-const b64e=s=>{let r="";new TextEncoder().encode(s).forEach(x=>r+=String.fromCharCode(x));return btoa(r).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")},
-b64d=s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";const r=atob(s),b=new Uint8Array(r.length);for(let i=0;i<r.length;i++)b[i]=r.charCodeAt(i);return new TextDecoder().decode(b)};
 function shareUrl(){const q=x=>[x.name,+(+x.lat).toFixed(5),+(+x.lon).toFixed(5)],d={v:1,a:q(A),b:q(B),m:mode,e:extra,t:$("#t0").value,d:$("#d0").value,s:S.st.map(s=>[s.id,s.t.name||"",s.c,+s.p[0].toFixed(5),+s.p[1].toFixed(5),s.v,s.est,+s.f.toFixed(3),+s.d.toFixed(2),s.t.cuisine||"",s.t.opening_hours||"",FL(s)])};return location.origin+location.pathname+"#p="+b64e(JSON.stringify(d))}
-function readShared(){const m=/^#p=([\w-]+)$/.exec(location.hash);if(!m)return null;
- try{const j=JSON.parse(b64d(m[1])),num=(x,a,b)=>typeof x=="number"&&Number.isFinite(x)&&x>=a&&x<=b,str=(x,n)=>typeof x=="string"?x.slice(0,n):"",
- pt=x=>{if(!Array.isArray(x)||!num(x[1],-90,90)||!num(x[2],-180,180))throw 0;return{name:str(x[0],80)||"Lokacija",lat:x[1],lon:x[2]}};
- if(j.v!==1||!MODES[j.m]||!Array.isArray(j.s)||j.s.length>12||!/^\d{1,2}:\d{2}$/.test(j.t))return null;
- const stops=j.s.map(x=>{if(!Array.isArray(x)||!/^(?:[nwr]\d{1,15}|p\d{1,3})$/.test(x[0])||!CATS[x[2]]||!num(x[3],-90,90)||!num(x[4],-180,180)||!num(x[5],0,720)||!num(x[6],0,720)||!num(x[7],0,1)||!num(x[8],0,500))throw 0;
-  const t={name:str(x[1],100)};if(x[9])t.cuisine=str(x[9],80);if(x[10])t.opening_hours=str(x[10],200);if(num(x[11],0,63))t.fl=x[11];return{id:x[0],t,c:x[2],p:[x[3],x[4]],v:x[5],est:x[6],f:x[7],d:x[8]}});
- return{A:pt(j.a),B:pt(j.b),mode:j.m,extra:num(j.e,0,1440)?j.e:extra,t0:j.t,d0:/^\d{4}-\d{2}-\d{2}$/.test(j.d)?j.d:"",stops}}catch(e){return null}}
+function readShared(){return BlizuLib.parseShared(location.hash,{MODES,CATS,extra})}
 async function loadShared(p){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}
  try{S.pk=null;CT=null;A=p.A;B=p.B;mode=p.mode;extra=p.extra;$("#t0").value=p.t0;$("#d0").value=p.d0&&p.d0>=tdy()?p.d0:tdy();cm=new Map();p.stops.forEach(s=>cm.set(s.id,s));sel=new Set(p.stops.map(s=>s.id));opts=[...p.stops];dest=[];base=await route([[A.lat,A.lon],[B.lat,B.lon]]);go("res");initMap();await refresh(1);go("pl")}
  catch(e){show("home");alert(navigator.onLine?"Podijeljeni plan se trenutno ne može učitati. Pokušaj ponovo.":"Nema internetske veze. Plan se može učitati samo uz internet.")}}
@@ -541,17 +526,6 @@ function printPlan(){if(!S.st||!rt)return;const st=S.st,t0=$("#t0").value.split(
  $("#prt").innerHTML=`<h1>${esc(A.name)} → ${esc(B.name)}</h1><div class="pm">${MN[mode]} · ${S.km.toFixed(0)} km · ${st.length} stanica · ukupno ${fmt(S.tot)}${$("#wx")?.textContent?"<br>"+esc($("#wx").textContent):""}</div><table>${h}</table><div class="ft">Vremena su procjena. Radno vrijeme provjeri prije dolaska. Podaci: OpenStreetMap.<br><a href="${esc(shareUrl())}">Otvori ovaj plan u aplikaciji Blizu</a>${gm?` · <a href="${esc(gm)}">Ruta u Google Maps</a>`:""}</div>`;
  I18N.flush();window.print()}
 
-const OD=["Mo","Tu","We","Th","Fr","Sa","Su"],DAYS="(?:Mo|Tu|We|Th|Fr|Sa|Su)",
-OHR=new RegExp("^((?:"+DAYS+"(?:-"+DAYS+")?)(?:,"+DAYS+"(?:-"+DAYS+")?)*\\s+)?(off|closed|\\d{1,2}:\\d{2}-\\d{1,2}:\\d{2}(?:\\s*,\\s*\\d{1,2}:\\d{2}-\\d{1,2}:\\d{2})*)$","i");
-function ohCheck(oh,a,dur,di){oh=String(oh).trim();if(oh=="24/7")return{s:"ok"};
- di=di??(new Date().getDay()+6)%7;a%=1440;const dm=x=>{x=x.split(":");return+x[0]*60+ +x[1]};let hit=null;
- for(const part of oh.split(";")){const r=part.trim();if(!r)continue;const m=OHR.exec(r);if(!m)return null;let on=true;
-  if(m[1]){on=false;for(const g of m[1].trim().split(",")){const [x,y]=g.split("-"),i=OD.indexOf(x),j=y?OD.indexOf(y):i;if(i<0||j<0)return null;if(i<=j?di>=i&&di<=j:di>=i||di<=j)on=true}}
-  if(on)hit=m[2]}
- if(hit==null||/^(off|closed)$/i.test(hit))return{s:"closed"};
- let nxt=null;for(const iv of hit.split(",")){const [x,y]=iv.trim().split("-"),st=dm(x);let en=dm(y);if(en<=st)en+=1440;
-  if(st<=a&&a<en)return en<a+dur?{s:"soon",end:en}:{s:"ok"};if(st>a&&(nxt==null||st<nxt))nxt=st}
- return{s:"closed",open:nxt}}
 let WX=null;
 async function loadWx(){const dd=$("#d0").value||tdy(),k=A.lat.toFixed(2)+","+A.lon.toFixed(2)+","+dd;if(WX&&WX.k==k&&(WX.h||Date.now()-WX.at<6e4))return;WX={k,h:null,at:Date.now()};
  try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${A.lat}&longitude=${A.lon}&hourly=temperature_2m,precipitation_probability,weathercode&start_date=${dd}&end_date=${dd}&timezone=auto`);if(!r.ok)throw 0;const hr=(await r.json()).hourly;

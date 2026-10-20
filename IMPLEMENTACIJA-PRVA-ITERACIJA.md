@@ -166,3 +166,15 @@ Dodato u `index.html`:
 - Provjera porijekla (`Origin`) spriječava druge sajtove u browseru, ali je ne-browser klijent može lažirati. Stvarna zaštita su ograničenje broja zahtjeva, potpisane fotografije i dnevna granica.
 - Brojanje po IP adresi: korisnici iza istog mobilnog operatera dijele adresu, pa su granice namjerno velikodušne.
 - Aplikacija na 429 pada na rezervne puteve (npr. direktan Overpass) ili prikazuje opštu grešku; poseban tekst za 429 još nije dodan.
+
+## Jedanaesta iteracija — kvalitet koda (tačka 6 audita)
+
+- **`lib/blizu-lib.js`**: čista logika izdvojena iz `index.html` (radno vrijeme `ohCheck`, `fmt`/`hhmm`/`fkm`/`dk`, upute `mtxt`, dijeljeni link `parseShared`, izvoz/uvoz). Ponašanje je isto, ali se sada može testirati u Node-u.
+- **Testovi** (`node --test`, bez paketa; 34 testa): radno vrijeme, formatiranje, dijeljeni link (uključujući zlonamjerne), izvoz/uvoz, prevod (uključujući provjeru da su svi statični tekstovi prevedeni), Worker (porijeklo, ograničenja, refresh, potpisi, granice) i „dimni” test cijele skripte iz `index.html` uz lažni DOM. CI: `.github/workflows/test.yml`.
+- **Automatski keš**: `tools/stamp-sw.mjs` postavlja ime keša na otisak sadržaja ljuske aplikacije; `stamp-sw.yml` ga sam upisuje pri svakoj izmjeni. Nema više ručnog „blizu-vN”. `sw.js` sada kešira `img/icon.svg` i `lib/blizu-lib.js`.
+- **Izvoz/uvoz podataka** u Profilu (planovi, putovanja, favoriti kao JSON). Uvoz provjerava svako polje, odbacuje nepoznata i opasna (npr. `javascript:` adrese slika) i spaja s postojećim podacima.
+- **`ODRZAVANJE.md`**: struktura projekta, kako se dodaje tekst/logika, i koje stare kopije u korijenu treba obrisati (`git rm …`).
+
+### Nije urađeno
+- Ostatak `index.html` (~95 KB) je i dalje jedna skripta s `onclick` atributima; dalje razdvajanje (planer, mapa, ekrani) traži testiranje u pravom pregledniku.
+- Praćenje grešaka (npr. Sentry) nije dodato jer šalje podatke trećoj strani; ako ga želiš, treba ažurirati i politiku privatnosti.

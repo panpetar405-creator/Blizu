@@ -1,5 +1,5 @@
-const C = "blizu-v19", T = "blizu-tiles-v1", MAXT = 800;
-const SHELL = ["./", "index.html", "config.js", "curated.js", "manifest.json", "icon.svg", "privatnost.html", "uslovi.html", "i18n.js"];
+const C = "blizu-2bd245e5", T = "blizu-tiles-v1", MAXT = 800;
+const SHELL = ["./", "index.html", "config.js", "curated.js", "manifest.json", "img/icon.svg", "privatnost.html", "uslovi.html", "i18n.js", "lib/blizu-lib.js"];
 const CDN = /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\//;
 const TILE = /^https:\/\/(tile\.openstreetmap\.org|api\.maptiler\.com)\//;
 

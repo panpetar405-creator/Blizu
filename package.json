@@ -1,0 +1,10 @@
+{
+  "name": "blizu",
+  "private": true,
+  "description": "Blizu — planer zaustavljanja na putu (statična PWA + Cloudflare Worker)",
+  "scripts": {
+    "test": "node --test",
+    "stamp": "node tools/stamp-sw.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
