@@ -629,7 +629,8 @@ function printTrip(){const t=TR.find(x=>x.id==CT);if(!t)return;const ps=tripPlan
 {const d=$("#d0");if(d){d.value=tdy();d.min=tdy()}}
 const SH=readShared();
 const LAST=ld("last",null);I18N.ui($("#lang"));show("home");
-if(SH)loadShared(SH);else if(LAST&&LAST.stops&&Date.now()-LAST.k<432e5){(async()=>{try{A=LAST.A;B=LAST.B;mode=LAST.mode;extra=LAST.extra;$("#t0").value=LAST.t0;if(LAST.d0)$("#d0").value=LAST.d0;cm=new Map();LAST.stops.forEach(x=>cm.set(x.id,x));sel=new Set(LAST.stops.map(x=>x.id));opts=[...LAST.stops];dest=[];base=await route([[A.lat,A.lon],[B.lat,B.lon]]);go("res");initMap();await refresh(1);go("pl")}catch(e){show("home");store("last",LAST)}})()}
+if(SH)loadShared(SH);else try{localStorage.removeItem("last")}catch(e){}
+let _hid=0;document.addEventListener("visibilitychange",()=>{if(document.hidden)_hid=Date.now();else if(_hid&&Date.now()-_hid>3e4&&!N){_hid=0;location.reload()}});
 addEventListener("pageshow",e=>{if(e.persisted)show(cur)});
 </script><div id="prt"></div><div id="mdl" class="mdl" hidden role="dialog" aria-modal="true"><div></div></div><div id="off">Nema interneta – prikazani su sačuvani podaci</div><script>(function(){var o=document.getElementById("off");function u(){o.style.display=navigator.onLine?"none":"block"}addEventListener("online",u);addEventListener("offline",u);u()})()</script><div id="ptr" aria-hidden="true">&#8635;</div><script>(function(){var h=document.getElementById("home"),p=document.getElementById("ptr"),y0=null,d=0,T=80;if(!h||!p)return;
 function ok(){return h.classList.contains("on")&&h.scrollTop<=0}
