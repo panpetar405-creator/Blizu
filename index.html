@@ -20,7 +20,8 @@ input{font:inherit;color:inherit}
 #home.on{display:flex}
 .lang{display:flex;gap:6px;margin-top:12px}.lang button{border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:5px 11px;font:600 12px system-ui;cursor:pointer}.lang button.on{background:#fff;color:#16221d;border-color:#fff}.s:not(#home) .lang button{border-color:var(--bd);background:#fff;color:var(--tx)}.s:not(#home) .lang button.on{background:var(--g);border-color:var(--g);color:#fff}
 .logo{font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px}.logo .i{width:24px;height:24px;color:#ff6b6b}
-#home h1{font-size:30px;line-height:1.2;margin-top:28px}
+#home h1{font-size:34px;line-height:1.1;margin-top:28px;text-shadow:0 2px 14px #0007}
+#home .hsub{font-size:16px;line-height:1.45;margin-top:12px;max-width:34ch;opacity:.95;text-shadow:0 1px 8px #0008}
 .cta{display:flex;align-items:center;gap:12px;width:100%;background:#fff;color:var(--tx);border-radius:18px;padding:16px;text-align:left}
 .cta b{display:block;font-size:17px}.cta small{color:var(--mu)}.cta span:first-child{display:flex;color:var(--g)}.cta span:first-child .i{width:32px;height:32px;stroke-width:1.75}.cta span:last-child{margin-left:auto;display:flex;color:var(--mu)}.cta span:last-child .i{width:22px;height:22px}
 .top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 12px) 14px 10px;font-weight:700;font-size:17px}
@@ -162,7 +163,8 @@ a.inf{color:var(--mu);text-decoration:none}
 
 <section class="s on" id="home">
  <div><div class="logo"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg> Blizu</div><div class="lang" id="lang"></div>
- <h1>Putujem od A do B.<br>Pronađi mi šta vrijedi doživjeti usput.</h1></div>
+ <h1>Ne propusti<br>ono između.</h1>
+ <p class="hsub">Otkrij skrivene dragulje, lokalne ukuse i mjesta vrijedna zaustavljanja — sve na tvojoj ruti.</p></div>
  <button class="cta" onclick="go('form')"><span><svg class="i" aria-hidden="true"><use href="#i-compass"/></svg></span><span><b>Planiraj put</b><small>Otkrij najbolje stanice na svojoj ruti</small></span><span><svg class="i" aria-hidden="true"><use href="#i-chevron-right"/></svg></span></button>
 </section>
 

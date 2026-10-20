@@ -26,6 +26,9 @@
 
   /* ---------- rječnik ---------- */
   // početni ekran i forma
+  a("Ne propusti", "Don't miss", "Verpasse nicht", "Не пропусти");
+  a("ono između.", "what's in between.", "das Dazwischen.", "то, что между.");
+  a("Otkrij skrivene dragulje, lokalne ukuse i mjesta vrijedna zaustavljanja — sve na tvojoj ruti.", "Discover hidden gems, local flavours and places worth stopping for — all along your route.", "Entdecke versteckte Juwelen, lokale Geschmäcker und Orte, die einen Halt wert sind – alles auf deiner Route.", "Открой скрытые жемчужины, местные вкусы и места, достойные остановки — всё на твоём маршруте.");
   a("Putujem od A do B.", "I'm travelling from A to B.", "Ich reise von A nach B.", "Я еду из пункта А в пункт Б.");
   a("Pronađi mi šta vrijedi doživjeti usput.", "Find me what's worth experiencing along the way.", "Finde, was sich unterwegs zu erleben lohnt.", "Найди, что стоит увидеть по дороге.");
   a("Planiraj put", "Plan a trip", "Reise planen", "Спланировать поездку");
