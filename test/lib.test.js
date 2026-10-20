@@ -166,3 +166,99 @@ test("mergeBackup: postojeće ima prednost, uvezeno se dodaje, najviše 40 plano
   const many = { plans: Array.from({ length: 60 }, (_, i) => mkPlan(1000 + i)), trips: [], fav: {} };
   assert.equal(L.mergeBackup({ plans: [], trips: [], fav: {} }, many).plans.length, 40);
 });
+
+/* ---------- zalazak sunca ---------- */
+const hm = (m) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+
+test("ceOffset: ljetno/zimsko računanje vremena (CET/CEST)", () => {
+  assert.equal(L.ceOffset("2026-01-15"), 60);
+  assert.equal(L.ceOffset("2026-07-15"), 120);
+  assert.equal(L.ceOffset("2026-03-28"), 60);  // dan prije posljednje nedjelje marta
+  assert.equal(L.ceOffset("2026-03-29"), 120); // posljednja nedjelja marta 2026.
+  assert.equal(L.ceOffset("2026-10-24"), 120);
+  assert.equal(L.ceOffset("2026-10-25"), 60);  // posljednja nedjelja oktobra 2026. (uveče je već zimsko)
+  assert.equal(L.ceOffset("nije datum"), null);
+});
+
+test("sunTimes: Kotor — razumne vrijednosti kroz godinu", () => {
+  const dayLen = (d) => { const t = L.sunTimes(42.43, 18.77, d); return (t.set - t.rise) / 60; };
+  assert.ok(Math.abs(dayLen("2026-03-20") - 12.1) < 0.25, "ravnodnevica");
+  assert.ok(Math.abs(dayLen("2026-06-21") - 15.25) < 0.3, "ljetna dugodnevica");
+  assert.ok(Math.abs(dayLen("2026-12-21") - 9.1) < 0.3, "zimska kratkodnevica");
+  const jun = L.sunTimes(42.43, 18.77, "2026-06-21"), dec = L.sunTimes(42.43, 18.77, "2026-12-21");
+  assert.match(hm(jun.set), /^20:[0-4]\d$/); // ljetni zalazak oko 20:25
+  assert.match(hm(dec.set), /^16:[0-3]\d$/); // zimski zalazak oko 16:15
+  assert.ok(jun.rise < jun.set && dec.rise < dec.set);
+});
+
+test("sunTimes: istočnije mjesto ima raniji zalazak; izvan regije i loš datum → null", () => {
+  const west = L.sunTimes(42.4, 13.5, "2026-06-21").set, east = L.sunTimes(42.4, 23.5, "2026-06-21").set;
+  assert.ok(west - east > 30, "10° dužine ≈ 40 min razlike");
+  assert.equal(L.sunTimes(48.85, 2.35, "2026-06-21"), null); // Pariz: van regije
+  assert.equal(L.sunTimes(42, 18, "x"), null);
+});
+
+test("sunWarn: poslije zalaska i zalazak usred posjete", () => {
+  const set = L.sunTimes(42.4, 18.7, "2026-06-21").set;
+  const stop = (v) => ({ p: [42.4, 18.7], v });
+  assert.equal(L.sunWarn(stop(30), set - 120, "2026-06-21"), null);
+  assert.deepEqual(L.sunWarn(stop(30), set - 10, "2026-06-21"), { k: "during", t: set });
+  assert.deepEqual(L.sunWarn(stop(30), set + 5, "2026-06-21"), { k: "after", t: set });
+  assert.deepEqual(L.sunWarn(stop(30), 1500, "2026-06-21"), { k: "after", t: set }); // sljedeći dan
+  assert.equal(L.sunWarn({ p: [10, 10], v: 30 }, 1300, "2026-06-21"), null); // van regije
+});
+
+/* ---------- Plan B ---------- */
+const cand = (id, c, f, est, oh, v = 30) => ({ id, c, f, est, v, t: { name: id, ...(oh ? { opening_hours: oh } : {}) } });
+const OUTF = (c) => c === "vid" || c === "pri";
+const base = (over = {}) => ({ sel: new Set(["a"]), arr: 600, di: 1, reason: "closed", avoidOut: false, out: OUTF, sunset: null, ...over });
+
+test("altFor: preskače izabrane, zatvorene i one koje uskoro zatvaraju", () => {
+  const stop = cand("a", "hrana", 0.5, 8, "Mo-Su 18:00-23:00");
+  const cs = [stop, cand("b", "hrana", 0.5, 8, "Mo-Su 08:00-20:00"), cand("c", "hrana", 0.5, 5, "Mo-Su 18:00-23:00"), cand("d", "hrana", 0.5, 5, "Mo-Su 08:00-10:15")];
+  const r = L.altFor(stop, cs, base());
+  assert.deepEqual(r.map((x) => x.id), ["b"]);
+  assert.equal(r[0].open, true);
+});
+
+test("altFor: ocjena — ista kategorija, blizina na putu, manje dodatnog vremena", () => {
+  const stop = cand("a", "hrana", 0.5, 8, "Mo-Su 18:00-23:00");
+  const cs = [cand("far", "hrana", 0.9, 8, "24/7"), cand("near", "hrana", 0.52, 8, "24/7"), cand("othercat", "kul", 0.5, 8, "24/7"), cand("slow", "hrana", 0.5, 40, "24/7")];
+  const r = L.altFor(stop, cs, base()).map((x) => x.id);
+  assert.deepEqual(r, ["near", "othercat", "slow"]); // druga kategorija (+15) je bolja od 32 min dodatno (+22), a daleko na putu ispada iz prva tri
+  assert.equal(L.altFor(stop, cs, base({ reason: "rain" })).findIndex((x) => x.id === "othercat") < 2, true); // pri kiši je druga kategorija manja kazna (+5)
+});
+
+test("altFor: nepotvrđeno radno vrijeme je dozvoljeno, ali rangirano niže", () => {
+  const stop = cand("a", "hrana", 0.5, 8, "Mo-Su 18:00-23:00");
+  const r = L.altFor(stop, [cand("unk", "hrana", 0.5, 8, null), cand("ok", "hrana", 0.5, 8, "24/7")], base());
+  assert.deepEqual(r.map((x) => [x.id, x.open]), [["ok", true], ["unk", false]]);
+});
+
+test("altFor: za kišu i zalazak isključuje stanice na otvorenom", () => {
+  const stop = cand("a", "vid", 0.5, 8, null);
+  const cs = [cand("v", "vid", 0.5, 2, "24/7"), cand("m", "kul", 0.5, 20, "24/7")];
+  for (const reason of ["rain", "sunset"]) {
+    const r = L.altFor(stop, cs, base({ reason, avoidOut: true }));
+    assert.deepEqual(r.map((x) => x.id), ["m"]);
+    assert.equal(r[0].indoor, true);
+  }
+  // otvoreno mjesto se ne preporučuje ako bi se zalazak desio usred posjete
+  assert.deepEqual(L.altFor(stop, cs, base({ reason: "any", sunset: 610 })).map((x) => x.id), ["m"]);
+});
+
+test("altFor: najviše 3 prijedloga, a bez kandidata prazan niz", () => {
+  const stop = cand("a", "hrana", 0.5, 8, null);
+  const cs = Array.from({ length: 10 }, (_, i) => cand("x" + i, "hrana", 0.5 + i / 100, 5, "24/7"));
+  assert.equal(L.altFor(stop, cs, base()).length, 3);
+  assert.deepEqual(L.altFor(stop, [], base()), []);
+});
+
+/* ---------- trajekt ---------- */
+test("ferryInfo: broji prelaze i trajanje iz OSRM koraka", () => {
+  assert.equal(L.ferryInfo([{ mode: "driving", duration: 600 }]), null);
+  assert.equal(L.ferryInfo([]), null);
+  assert.equal(L.ferryInfo(undefined), null);
+  assert.deepEqual(L.ferryInfo([{ mode: "driving", duration: 100 }, { mode: "ferry", duration: 600 }, { mode: "ferry", duration: 300 }, { mode: "driving", duration: 50 }]), { n: 1, min: 15 });
+  assert.deepEqual(L.ferryInfo([{ mode: "ferry", duration: 300 }, { mode: "driving", duration: 5 }, { mode: "ferry", duration: 420 }]), { n: 2, min: 12 });
+});

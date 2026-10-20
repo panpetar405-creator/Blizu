@@ -62,3 +62,50 @@ test("dijeljeni link: readShared čita ispravan link, a loš ignoriše", () => {
 test("nijedan <script> u index.html nema sintaksnu grešku", () => {
   for (const s of scripts) assert.doesNotThrow(() => new vm.Script(s));
 });
+
+/* ---------- Plan B u aplikaciji ---------- */
+function withUi(ctx, d0) {
+  let modalHtml = "";
+  const mdl = { firstElementChild: { set innerHTML(v) { modalHtml = v; } }, set hidden(v) {}, set onclick(v) {} };
+  ctx.document = { querySelector: (s) => (s === "#d0" ? { value: d0 } : s === "#mdl" ? mdl : stub()), createElement: () => stub(), body: stub(), documentElement: stub(), addEventListener() {}, querySelectorAll: () => [] };
+  return () => modalHtml;
+}
+const S1 = (over) => ({ id: "n1", t: { name: "Plaža", opening_hours: "Mo-Su 08:00-22:00" }, c: "pri", p: [42.4, 18.7], v: 40, est: 5, d: 0.2, f: 0.5, ...over });
+
+test("warn: zalazak sunca za stanicu na otvorenom + dugme Plan B", () => {
+  const ctx = makeCtx(); new vm.Script(main).runInContext(ctx, { timeout: 4000 }); withUi(ctx, "2026-06-21");
+  const out = vm.runInContext(`warn(${JSON.stringify(S1())},1290)`, ctx); // 21:30, poslije zalaska
+  assert.match(out, /Dolazak nakon zalaska sunca \(20:\d\d\)/);
+  assert.match(out, /planB\('n1',1290\)/);
+  const noWarn = vm.runInContext(`warn(${JSON.stringify(S1())},600)`, ctx);
+  assert.equal(noWarn, ""); // 10:00: otvoreno, nema kiše, prije zalaska
+});
+
+test("warn: stanica u zatvorenom ne dobija upozorenje o zalasku sunca", () => {
+  const ctx = makeCtx(); new vm.Script(main).runInContext(ctx, { timeout: 4000 }); withUi(ctx, "2026-06-21");
+  assert.doesNotMatch(vm.runInContext(`warn(${JSON.stringify(S1({ c: "kul", t: { name: "Muzej" } }))},1290)`, ctx), /zalaska/);
+});
+
+test("planB: nudi otvorene zamjene i izostavlja izabrane", () => {
+  const ctx = makeCtx(); new vm.Script(main).runInContext(ctx, { timeout: 4000 });
+  const html = withUi(ctx, "2026-06-21");
+  const closed = S1({ id: "n1", c: "hrana", t: { name: "Konoba", opening_hours: "Mo-Su 18:00-23:00" } });
+  const good = S1({ id: "n2", c: "hrana", t: { name: "Pekara", opening_hours: "Mo-Su 06:00-20:00" }, est: 4 });
+  const shut = S1({ id: "n3", c: "hrana", t: { name: "Zatvoreno", opening_hours: "Mo-Su 18:00-23:00" } });
+  vm.runInContext(`S.st=[${JSON.stringify(closed)}];opts=[${[closed, good, shut].map((x) => JSON.stringify(x)).join(",")}];cm=new Map(opts.map(o=>[o.id,o]));sel=new Set(["n1"])`, ctx);
+  vm.runInContext(`planB("n1",600)`, ctx);
+  const out = html();
+  assert.match(out, /Plan B: Konoba/);
+  assert.match(out, /Pekara/);
+  assert.doesNotMatch(out, /Zatvoreno<\/b>/);
+  assert.match(out, /swapStop\('n1','n2'\)/);
+  assert.match(out, /Otvoreno u to vrijeme/);
+});
+
+test("planB: bez zamjena prikazuje poruku", () => {
+  const ctx = makeCtx(); new vm.Script(main).runInContext(ctx, { timeout: 4000 });
+  const html = withUi(ctx, "2026-06-21");
+  const only = S1({ id: "n1", c: "hrana", t: { name: "Konoba", opening_hours: "Mo-Su 18:00-23:00" } });
+  vm.runInContext(`S.st=[${JSON.stringify(only)}];opts=[${JSON.stringify(only)}];cm=new Map(opts.map(o=>[o.id,o]));sel=new Set(["n1"]);planB("n1",600)`, ctx);
+  assert.match(html(), /Nema boljih zamjena u blizini/);
+});
