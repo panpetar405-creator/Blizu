@@ -141,3 +141,28 @@ Dodato u `index.html`:
 - `privatnost.html`, `uslovi.html` i SEO stranice (`grad/*`) su samo na srpskom. Pravne tekstove treba prevoditi uz pravnu provjeru.
 - Nazivi mjesta, opisi i vrste kuhinje dolaze iz OpenStreetMap-a i ostaju kakvi jesu.
 - Prevod je pisao AI; prije objave neka ga pregleda izvorni govornik za njemački i ruski.
+
+## Deseta iteracija — sigurnost API-ja (tačka 5 audita)
+
+**Šta je u Workeru (`worker.js`)**
+- **Provjera porijekla svuda**, i na `/api/places` (ranije otvoren svima). `ALLOWED_ORIGINS` (zarezom odvojeni `https://` izvori) dodaje domene bez izmjene koda, pa prelazak na vlastiti domen ne vraća 403.
+- **Ograničenje broja zahtjeva po IP adresi** (po minuti): places 90, geocode 60, photo 90, walk 30, enrich 30, refresh 5. Odgovor je `429` sa `Retry-After`. Koristi Cloudflare *Rate Limiting* binding ako postoji (`RL` opšti, `RL_STRICT` za enrich/walk/refresh), a inače približan brojač u memoriji.
+- **`/api/refresh` samo POST**, poređenje tajne bez curenja kroz vrijeme izvršavanja, i vlastito ograničenje od 5 pokušaja u minuti (zaštita od pogađanja). Poziv: `curl -X POST -H "Authorization: Bearer $REFRESH_TOKEN" "https://…workers.dev/api/refresh?city=kotor"`.
+- **Potpisane fotografije**: `/api/enrich` vraća referencu fotografije s potpisom (HMAC), a `/api/photo` prima samo potpisane. Bez toga je ovo bio otvoren proxy za Google fotografije na tvoj račun. Provjera `Referer`-a sada poredi tačan izvor (prije je `startsWith` propuštao i `https://panpetar405-creator.github.io.evil.example`).
+- **Dnevna gornja granica Google poziva** (`GOOGLE_DAILY_CAP`, opciono): zasebno za podatke o mjestu i za fotografije. Kad se dostigne, vraća se 503 umjesto računa. Svaki Google poziv upisuje jedan KV zapis, pa uračunaj kvotu upisa.
+- **`LIVE_BBOX`** (opciono, `jug,zapad,sjever,istok`): uživo Overpass samo unutar tog pravougaonika (npr. `40,13,47,24` za zapadni Balkan). Zatvara mogućnost da neko istim zahtjevima puni KV nasumičnim lokacijama.
+- Tehničke poruke grešaka se više ne šalju klijentu (osim uz `DEBUG=1`). Greške imaju `Cache-Control: no-store` i `X-Content-Type-Options: nosniff`.
+- Strukturirani logovi (`rate_limited`, `refresh_denied`, `photo_bad_sig`, `google_cap_hit`, `enrich_failed`) vidljivi u *Workers → Logs* ili `wrangler tail`; nad njima se mogu postaviti Cloudflare obavještenja.
+- **`/api/health`** za uptime monitor (npr. UptimeRobot), bez KV poziva.
+
+**Šta ti podešavaš (Cloudflare i Google)**
+1. *Rate Limiting*: dodaj binding tipa `ratelimit`, npr. u `wrangler.toml`: `[[ratelimits]] name = "RL" namespace_id = "1001" simple = { limit = 90, period = 60 }` i `[[ratelimits]] name = "RL_STRICT" namespace_id = "1002" simple = { limit = 30, period = 60 }`. Period može biti samo 10 ili 60 sekundi. Brojanje je po Cloudflare lokaciji i približno (dobro za odvraćanje zloupotrebe, ne za strogu kvotu). Ako Worker uređuješ samo u dashboardu, a opcija za binding ne postoji, radi ugrađeni brojač u memoriji.
+2. *Settings → Variables*: po potrebi `ALLOWED_ORIGINS`, `GOOGLE_DAILY_CAP` (npr. `1500`), `LIVE_BBOX`. Za `PHOTO_SIGN_KEY` postavi zasebnu dugu tajnu (inače se koristi `REFRESH_TOKEN`). `REFRESH_TOKEN` neka ima bar 32 nasumična znaka.
+3. **Google ključ** (Cloud Console): ograniči ga samo na *Places API (New)*; postavi dnevne kvote i *budget alert* (npr. na 50% i 100% mjesečnog iznosa). Ograničenje po HTTP referreru/IP adresi ne radi jer Worker nema stalnu IP adresu.
+4. **Vlastiti domen za Worker** se jako preporučuje. Cache API (koji Worker koristi za keširanje fotografija) **ne radi na `*.workers.dev`**, pa se na workers.dev svaka fotografija ponovo traži od Googlea (naplaćuje se). Na vlastitom domenu keš radi bez izmjena koda. Zatim stavi novi domen u `BLIZU_API` i, ako se mijenja domen aplikacije, u `ALLOWED_ORIGINS`.
+5. Ako se cijene ili kvote promijene, provjeri ih u Google Cloud dokumentaciji; ovdje ih nisam navodio.
+
+**Poznata ograničenja**
+- Provjera porijekla (`Origin`) spriječava druge sajtove u browseru, ali je ne-browser klijent može lažirati. Stvarna zaštita su ograničenje broja zahtjeva, potpisane fotografije i dnevna granica.
+- Brojanje po IP adresi: korisnici iza istog mobilnog operatera dijele adresu, pa su granice namjerno velikodušne.
+- Aplikacija na 429 pada na rezervne puteve (npr. direktan Overpass) ili prikazuje opštu grešku; poseban tekst za 429 još nije dodan.

@@ -2,6 +2,13 @@
 // Dnevno povlači podatke iz OpenStreetMap-a (cron), čuva ih u KV i služi aplikaciji.
 // Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN, secret GOOGLE_KEY (Places API New).
 // Opciono: secret ORS_KEY (OpenRouteService) za pešačke rute; bez njega se koristi javni OSRM foot server.
+// Sigurnost (sve opciono, vidi IMPLEMENTACIJA-PRVA-ITERACIJA.md):
+//   ALLOWED_ORIGINS  dodatni dozvoljeni izvori, odvojeni zarezom (npr. "https://blizu.me,https://www.blizu.me")
+//   RL, RL_STRICT    Cloudflare "Rate Limiting" bindinzi (opšti i strogi); bez njih radi približno ograničenje u memoriji
+//   GOOGLE_DAILY_CAP najveći broj Google poziva dnevno (zasebno za podatke o mjestu i za fotografije); traži KV upise
+//   PHOTO_SIGN_KEY   tajna za potpis fotografija (ako nije postavljena, koristi se REFRESH_TOKEN)
+//   LIVE_BBOX        "jug,zapad,sjever,istok": uživo Overpass samo unutar ovog pravougaonika
+//   DEBUG            "1" vraća tehničke poruke grešaka klijentu (samo za razvoj)
 
 const CITIES = {
   tivat: [42.4364, 18.6961],
@@ -14,6 +21,62 @@ const CRON_CITY = { "0 3 * * *": "tivat", "10 3 * * *": "kotor", "20 3 * * *": "
 const MIN_R = 250, MAX_R = 25000; // dozvoljeni radijus upita (m); klijent ga ograničava na isto
 const COVER_M = 15000; // radijus oko centra grada koji se unapred povlači
 const ORIGINS = ["https://panpetar405-creator.github.io"];
+let ALLOW = ORIGINS; // dopunjava se iz env.ALLOWED_ORIGINS na početku svakog zahtjeva
+function initEnv(env) {
+  const extra = String(env.ALLOWED_ORIGINS || "").split(",").map((x) => x.trim().replace(/\/+$/, "")).filter((x) => /^(https:\/\/[a-z0-9.-]+|http:\/\/localhost)(:\d+)?$/i.test(x));
+  ALLOW = [...new Set([...ORIGINS, ...extra])];
+}
+const okOrigin = (req) => ALLOW.includes(req.headers.get("Origin"));
+const log = (evt, d = {}) => { try { console.log(JSON.stringify({ evt, ...d })); } catch (e) {} };
+const dbg = (env, m) => (env.DEBUG === "1" && m ? { m } : {});
+function safeEq(a, b) { // poređenje tajni bez curenja kroz vrijeme izvršavanja
+  a = String(a); b = String(b);
+  let d = a.length ^ b.length;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return d === 0;
+}
+
+// ---------- ograničenje broja zahtjeva ----------
+// Sa Cloudflare Rate Limiting bindingom (RL / RL_STRICT) ili, bez njega, približnim brojačem u memoriji izolata.
+// (Cache API ne radi na *.workers.dev, a KV bi trošio dnevnu kvotu upisa, pa se ne koriste za brojanje.)
+const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, refresh: 5 }; // zahtjeva po IP adresi u minuti
+const STRICT = new Set(["walk", "enrich", "refresh"]);
+const MEM = new Map();
+async function limited(env, req, bucket) {
+  const ip = req.headers.get("CF-Connecting-IP") || "unknown";
+  try {
+    const rl = STRICT.has(bucket) ? env.RL_STRICT || env.RL : env.RL;
+    if (rl && typeof rl.limit === "function") return !(await rl.limit({ key: bucket + ":" + ip })).success;
+    const now = Date.now(), k = bucket + ":" + ip, e = MEM.get(k);
+    if (MEM.size > 5000) { for (const [kk, v] of MEM) if (now - v.t > 60000) MEM.delete(kk); if (MEM.size > 20000) MEM.clear(); }
+    if (!e || now - e.t > 60000) { MEM.set(k, { t: now, n: 1 }); return false; }
+    return ++e.n > LIMITS[bucket];
+  } catch (e) { return false; } // ograničavač nikad ne smije srušiti API
+}
+const tooMany = (req, bucket) => { log("rate_limited", { bucket }); return json({ error: "rate_limited" }, req, 429, { "Retry-After": "30" }); };
+
+// Dnevna gornja granica Google poziva (opciono; štiti od neočekivanog računa). Nije atomično, pa je približna.
+async function capOk(env, kind) {
+  const cap = parseInt(env.GOOGLE_DAILY_CAP, 10);
+  if (!cap) return true;
+  const key = `cap:${kind}:${new Date().toISOString().slice(0, 10)}`;
+  try {
+    const n = parseInt((await env.PLACES.get(key)) || "0", 10);
+    if (n >= cap) { log("google_cap_hit", { kind, cap }); return false; }
+    await env.PLACES.put(key, String(n + 1), { expirationTtl: 172800 });
+  } catch (e) {}
+  return true;
+}
+
+// Potpis fotografije: /api/photo ne smije biti otvoren proxy za proizvoljne Google fotografije na naš račun.
+async function photoSig(env, ref) {
+  const k = env.PHOTO_SIGN_KEY || env.REFRESH_TOKEN;
+  if (!k) return "";
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(k), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sg = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("photo:" + ref)));
+  let b = ""; for (const x of sg.slice(0, 12)) b += String.fromCharCode(x);
+  return btoa(b).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 const OVP = [
   "https://overpass-api.de/api/interpreter",
   "https://overpass.private.coffee/api/interpreter",
@@ -53,10 +116,12 @@ function slim(el) {
 }
 function cors(req) {
   const o = req.headers.get("Origin");
-  return { "Access-Control-Allow-Origin": ORIGINS.includes(o) ? o : ORIGINS[0], Vary: "Origin" };
+  return { "Access-Control-Allow-Origin": ALLOW.includes(o) ? o : ALLOW[0], Vary: "Origin" };
 }
 function json(obj, req, status = 200, extra = {}) {
-  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...cors(req), ...extra } });
+  const h = { "Content-Type": "application/json", "X-Content-Type-Options": "nosniff", ...cors(req) };
+  if (status >= 400) h["Cache-Control"] = "no-store";
+  return new Response(JSON.stringify(obj), { status, headers: { ...h, ...extra } });
 }
 function query(A, cats, limit) {
   return "[out:json][timeout:60];(" + cats.map((k) => QF[k].replace(/@/g, A)).join("") + ");out center tags " + limit + ";";
@@ -123,6 +188,7 @@ async function enrich(env, name, lat, lng, hl) {
   const key = `g4:${name.toLowerCase().slice(0, 60)}:${lat.toFixed(4)}:${lng.toFixed(4)}` + (hl === "sr-Latn" ? "" : ":" + hl);
   const hit = await env.PLACES.get(key, "json");
   if (hit) return hit;
+  if (!(await capOk(env, "enrich"))) throw { g: 429, m: "dnevna granica Google poziva" };
   // locationRestriction (pravougaonik ~450 x 650 m) garantuje da dobijemo mjesto sa te lokacije, a ne istoimeno mjesto negdje drugo
   const r = await fetch("https://places.googleapis.com/v1/places:searchText", {
     method: "POST",
@@ -217,56 +283,75 @@ async function geocode(env, q, hl) {
 
 export default {
   async fetch(req, env) {
+    initEnv(env);
     const url = new URL(req.url);
     if (req.method === "OPTIONS") {
-      return new Response(null, { headers: { ...cors(req), "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400" } });
+      return new Response(null, { headers: { ...cors(req), "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400" } });
     }
+    if (req.method !== "GET" && req.method !== "POST") return json({ error: "method" }, req, 405, { Allow: "GET, POST, OPTIONS" });
+    if (url.pathname === "/api/health") return json({ ok: true }, req, 200, { "Cache-Control": "no-store" });
     if (url.pathname === "/api/refresh") {
+      if (req.method !== "POST") return json({ error: "method" }, req, 405, { Allow: "POST" });
+      if (await limited(env, req, "refresh")) return tooMany(req, "refresh");
       const city = url.searchParams.get("city");
       // Tajna se prima kroz Authorization zaglavlje, nikada kroz URL koji može završiti u logovima.
       const auth = req.headers.get("Authorization") || "";
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-      if (!env.REFRESH_TOKEN || !token || token !== env.REFRESH_TOKEN) return json({ error: "forbidden" }, req, 403);
+      if (!env.REFRESH_TOKEN || !token || !safeEq(token, env.REFRESH_TOKEN)) { log("refresh_denied"); return json({ error: "forbidden" }, req, 403); }
       if (!CITIES[city]) return json({ error: "city?", cities: Object.keys(CITIES) }, req, 400);
       return json({ city, result: await refreshCity(env, city) }, req);
     }
     if (url.pathname === "/api/enrich") {
-      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden", m: "origin" }, req, 403);
-      if (!env.GOOGLE_KEY) return json({ error: "forbidden", m: "GOOGLE_KEY nije postavljen u Workeru" }, req, 403);
+      if (!okOrigin(req)) return json({ error: "forbidden", ...dbg(env, "origin") }, req, 403);
+      if (!env.GOOGLE_KEY) return json({ error: "forbidden", ...dbg(env, "GOOGLE_KEY nije postavljen u Workeru") }, req, 403);
+      if (await limited(env, req, "enrich")) return tooMany(req, "enrich");
       const name = (url.searchParams.get("name") || "").slice(0, 80);
       const la = parseFloat(url.searchParams.get("lat")), ln = parseFloat(url.searchParams.get("lng"));
       if (!name || !isFinite(la) || !isFinite(ln)) return json({ error: "bad params" }, req, 400);
-      try { return json(await enrich(env, name, la, ln, url.searchParams.get("hl")), req); } catch (e) { return json({ error: "upstream", g: e && e.g, m: (e && e.m) || "" }, req, 502); }
+      try {
+        const out = await enrich(env, name, la, ln, url.searchParams.get("hl"));
+        if (out && out.photo) { const sg = await photoSig(env, out.photo); if (sg) return json({ ...out, photo: out.photo + "~" + sg }, req); }
+        return json(out, req);
+      } catch (e) { log("enrich_failed", { g: e && e.g }); return json({ error: "upstream", g: e && e.g, ...dbg(env, e && e.m) }, req, e && e.g === 429 ? 503 : 502); }
     }
     if (url.pathname === "/api/geocode") {
-      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
+      if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
+      if (await limited(env, req, "geocode")) return tooMany(req, "geocode");
       const q = (url.searchParams.get("q") || "").trim().slice(0, 120);
       if (q.length < 3) return json({ results: [] }, req);
       try { return json({ results: await geocode(env, q, url.searchParams.get("hl")) }, req, 200, { "Cache-Control": "public, max-age=86400" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/walk") {
-      if (!ORIGINS.includes(req.headers.get("Origin"))) return json({ error: "forbidden" }, req, 403);
+      if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
+      if (await limited(env, req, "walk")) return tooMany(req, "walk");
       const pts = (url.searchParams.get("pts") || "").split(";").slice(0, 16).map((t) => t.split(",").map(Number));
       const okp = (p) => p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 && p.every(Number.isFinite);
       if (pts.length < 2 || pts.length > 15 || !pts.every(okp) || pts.some((p, i) => i && km(pts[i - 1], p) > 30)) return json({ error: "bad params" }, req, 400);
       try { return json({ legs: await walkLegs(env, pts) }, req, 200, { "Cache-Control": "public, max-age=3600" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/photo") {
-      const ref = url.searchParams.get("ref") || "";
+      const [ref, sg] = (url.searchParams.get("ref") || "").split("~");
       const rf = req.headers.get("Referer") || "";
-      if (!env.GOOGLE_KEY || !/^places\/[\w-]+\/photos\/[\w-]+$/.test(ref) || !ORIGINS.some((o) => rf.startsWith(o))) return new Response("forbidden", { status: 403 });
+      let ro = ""; try { ro = new URL(rf).origin; } catch (e) {}
+      if (!env.GOOGLE_KEY || !/^places\/[\w-]+\/photos\/[\w-]+$/.test(ref) || !ALLOW.includes(ro)) return new Response("forbidden", { status: 403 });
+      if (await limited(env, req, "photo")) return tooMany(req, "photo");
+      const want = await photoSig(env, ref);
+      if (want && !(sg && safeEq(sg, want))) { log("photo_bad_sig"); return new Response("forbidden", { status: 403 }); }
       const ck = new Request(url.origin + "/api/photo?ref=" + encodeURIComponent(ref));
       let res = await caches.default.match(ck);
       if (!res) {
+        if (!(await capOk(env, "photo"))) return new Response("busy", { status: 503 });
         const g = await fetch(`https://places.googleapis.com/v1/${ref}/media?maxWidthPx=800&key=${env.GOOGLE_KEY}`);
-        if (!g.ok) return new Response("upstream", { status: 502 });
-        res = new Response(g.body, { headers: { "Content-Type": g.headers.get("Content-Type") || "image/jpeg", "Cache-Control": "public, max-age=86400" } });
+        if (!g.ok) { log("photo_upstream", { g: g.status }); return new Response("upstream", { status: 502 }); }
+        res = new Response(g.body, { headers: { "Content-Type": g.headers.get("Content-Type") || "image/jpeg", "Cache-Control": "public, max-age=604800", "X-Content-Type-Options": "nosniff" } });
         await caches.default.put(ck, res.clone());
       }
       return res;
     }
     if (url.pathname !== "/api/places") return json({ name: "BLIZU API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
 
+    if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
+    if (await limited(env, req, "places")) return tooMany(req, "places");
     const lat = parseFloat(url.searchParams.get("lat")), lng = parseFloat(url.searchParams.get("lng"));
     const rawR = parseInt(url.searchParams.get("r") || "5000", 10);
     const r = Math.max(MIN_R, Math.min(Number.isFinite(rawR) ? rawR : 5000, MAX_R));
@@ -287,6 +372,8 @@ export default {
         if (out.length || t) return json({ elements: out, source: "kv", updated: t }, req, 200, { "Cache-Control": "public, max-age=300" });
       }
     }
+    const bb = String(env.LIVE_BBOX || "").split(",").map(Number);
+    if (bb.length === 4 && bb.every(Number.isFinite) && !(lat >= bb[0] && lat <= bb[2] && lng >= bb[1] && lng <= bb[3])) return json({ error: "out_of_area" }, req, 422);
     // 2) ostalo: uživo sa Overpass-a, uz keš od 6 h u KV
     // zaokruži na mrežu od ~1 km i radijus na 1 km: bliski korisnici dijele isti keš (važi za bilo koju lokaciju u svijetu)
     const sl = Math.round(lat * 100) / 100, sg = Math.round(lng * 100) / 100, sr = Math.min(25000, Math.ceil((r + 800) / 1000) * 1000);

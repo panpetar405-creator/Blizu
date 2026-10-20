@@ -416,7 +416,8 @@ function opn(id,stay){const o=getP(id),t=o.t,inr=cm.has(id),ph0=t.phone||t["cont
  enrich(id,o);wdImg(id,o);if(!stay)go("det")}
 // ---------- Google podaci (ocjena, radno vrijeme, fotografija) samo za mjesto koje korisnik otvori ----------
 const EN={};
-let IMGC=ld("imgc",{});const IMGMISS=new Set();
+let IMGC=ld("imgc",{});for(const k in IMGC)if(/\/api\/photo\?ref=/.test(IMGC[k].u||"")&&!/~/.test(IMGC[k].u))delete IMGC[k]; // stari nepotpisani linkovi na fotografije više ne važe
+const IMGMISS=new Set();
 function imgSave(id,u,by){IMGC[id]={u,by:by||""};const ks=Object.keys(IMGC);if(ks.length>300)ks.slice(0,ks.length-300).forEach(k=>delete IMGC[k]);store("imgc",IMGC)}
 async function loadCardImgs(){
  const all=[...(S.st||[]),...opts,...dest],seen=new Set(),L=[];
