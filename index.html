@@ -20,6 +20,19 @@ input{font:inherit;color:inherit}
 #home.on{display:flex}
 .lang{display:flex;gap:6px;margin-top:12px}.lang button{border:1px solid rgba(255,255,255,.55);background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:5px 11px;font:600 12px system-ui;cursor:pointer}.lang button.on{background:#fff;color:#16221d;border-color:#fff}.s:not(#home) .lang button{border-color:var(--bd);background:#fff;color:var(--tx)}.s:not(#home) .lang button.on{background:var(--g);border-color:var(--g);color:#fff}
 .logo{font-weight:700;font-size:20px;display:flex;align-items:center;gap:8px}.logo .i{width:24px;height:24px;color:#ff6b6b}
+.pkv{width:100%;text-align:left;font-weight:600;font-size:16px;padding:4px 0;color:var(--tx)}
+#pks .pkh{background:var(--g);color:#fff;border-radius:16px;text-align:center;font-size:44px;font-weight:700;letter-spacing:2px;padding:12px;margin-bottom:14px}
+#pks .pkl{font-size:12px;color:var(--mu);font-weight:600;margin:12px 0 6px}
+#pks .pkg{display:grid;gap:8px;grid-template-columns:repeat(6,1fr)}
+#pks .pkg button,#pks .pkd button{border:1px solid var(--bd);background:#fff;border-radius:12px;padding:10px 0;font-weight:600;color:var(--tx)}
+#pks .pkg button.on,#pks .pkd button.on{background:var(--g);border-color:var(--g);color:#fff}
+#pks .pka{display:flex;gap:10px;margin-top:16px}#pks .pka .btn{margin-top:0}
+#pks .pkm{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}#pks .pkm b{font-size:18px;text-transform:capitalize}
+#pks .pkm button{width:40px;height:40px;border-radius:50%;background:var(--bg);font-size:20px;color:var(--tx)}#pks .pkm button:disabled{opacity:.3}
+#pks .pkd{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+#pks .pkd small{color:var(--mu);font-weight:600;padding:6px 0;text-transform:capitalize}
+#pks .pkd button{border:0;border-radius:50%;aspect-ratio:1;padding:0;font-size:15px}
+#pks .pkd button.td{box-shadow:inset 0 0 0 2px var(--g)}#pks .pkd button.on.td{box-shadow:none}#pks .pkd button:disabled{opacity:.28}
 #ptr{position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:50%;width:40px;height:40px;margin-left:-20px;border-radius:50%;background:#fff;color:#16221d;box-shadow:0 2px 10px #0003;display:flex;align-items:center;justify-content:center;font-size:20px;z-index:9998;opacity:0;pointer-events:none;transform:translateY(-70px)}#ptr.go{animation:ptrs .8s linear infinite}@keyframes ptrs{to{rotate:360deg}}
 #home h1{font-size:34px;line-height:1.1;margin-top:28px;text-shadow:0 2px 14px #0007}
 #home .hsub{font-size:16px;line-height:1.45;margin-top:12px;max-width:34ch;opacity:.95;text-shadow:0 1px 8px #0008}
@@ -177,8 +190,8 @@ a.inf{color:var(--mu);text-decoration:none}
   <div class="f"><span style="color:#d6455a"><svg class="i" aria-hidden="true"><use href="#i-map-pin"/></svg></span><div><label for="fb">Odredište</label><input id="fb" list="lb" placeholder="npr. Mostar" autocomplete="off"></div></div>
   <datalist id="la"></datalist><datalist id="lb"></datalist>
   <h3>Prevoz</h3><div class="chips" id="cm"></div>
-  <h3>Datum putovanja</h3><div class="f" style="width:190px"><input type="date" id="d0"></div>
-  <h3>Polazak</h3><div class="f" style="width:140px"><input type="time" id="t0" value="08:00"></div>
+  <h3>Datum putovanja</h3><div class="f" style="width:230px"><button type="button" class="pkv" id="d0b"></button><input type="hidden" id="d0"></div>
+  <h3>Polazak</h3><div class="f" style="width:140px"><button type="button" class="pkv" id="t0b"></button><input type="hidden" id="t0" value="08:00"></div>
   <h3>Koliko dodatnog vremena imaš po stanici?</h3><div class="chips" id="ce"></div>
   <h3>Šta želiš da doživiš?</h3><div class="chips cat" id="ci"></div>
   <h3>Filteri (opciono)</h3><div class="chips" id="cf"></div><p class="gsrc" style="margin-top:8px">Filteri koriste oznake iz OpenStreetMap. Mjesta bez oznake mogu biti u redu, ali ih ne možemo potvrditi.</p>
@@ -638,4 +651,34 @@ h.addEventListener("touchstart",function(e){y0=ok()&&e.touches.length===1?e.touc
 h.addEventListener("touchmove",function(e){if(y0==null)return;d=e.touches[0].clientY-y0;if(d<=0||!ok()){d=0;p.style.opacity=0;return}
 var k=Math.min(d*.5,T+20);p.style.opacity=Math.min(k/T,1);p.style.transform="translateY("+(k-70+30)+"px) rotate("+d*3+"deg)"},{passive:true});
 function end(){if(y0==null)return;y0=null;if(d*.5>=T){p.classList.add("go");p.style.opacity=1;p.style.transform="translateY(30px)";setTimeout(function(){location.reload()},250)}else{p.style.opacity=0;p.style.transform="translateY(-70px)"}d=0}
-h.addEventListener("touchend",end,{passive:true});h.addEventListener("touchcancel",end,{passive:true})})()</script></body></html>
+h.addEventListener("touchend",end,{passive:true});h.addEventListener("touchcancel",end,{passive:true})})()</script><div class="mdl" id="pks" hidden><div id="pkc"></div></div><script>(function(){
+var q=function(x){return document.querySelector(x)},d0=q("#d0"),t0=q("#t0"),db=q("#d0b"),tb=q("#t0b"),sh=q("#pks"),bx=q("#pkc");
+if(!d0||!t0||!db||!tb||!sh||!bx)return;
+var VD=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value"),S={};
+function p2(n){return(n<10?"0":"")+n}function iso(y,m,d){return y+"-"+p2(m+1)+"-"+p2(d)}
+function td(){var n=new Date();return iso(n.getFullYear(),n.getMonth(),n.getDate())}
+function loc(){try{return I18N.loc()}catch(e){return"sr-Latn"}}
+function sync(){var v=VD.get.call(d0),x=v&&new Date(v+"T12:00:00");db.textContent=x&&!isNaN(x)?x.toLocaleDateString(loc(),{weekday:"short",day:"numeric",month:"long"}):"Odaberi datum";tb.textContent=VD.get.call(t0)||"08:00"}
+[d0,t0].forEach(function(el){Object.defineProperty(el,"value",{get:function(){return VD.get.call(el)},set:function(v){VD.set.call(el,v);sync()},configurable:true})});
+function open(){sh.hidden=false}function close(){sh.hidden=true}
+function drawT(){var h='<div class="pkh">'+p2(S.H)+":"+p2(S.M)+'</div><div class="pkl">Sat</div><div class="pkg">',i;
+for(i=0;i<24;i++)h+='<button type="button" data-h="'+i+'"'+(i===S.H?' class="on"':"")+">"+p2(i)+"</button>";
+h+='</div><div class="pkl">Minute</div><div class="pkg">';
+for(i=0;i<60;i+=5)h+='<button type="button" data-m="'+i+'"'+(i===S.M?' class="on"':"")+">"+p2(i)+"</button>";
+bx.innerHTML=h+'</div><div class="pka"><button type="button" class="btn l" data-x="c">Otkaži</button><button type="button" class="btn" data-x="ok">Postavi</button></div>'}
+function drawD(){var y=S.y,m=S.m,t=td(),sel=VD.get.call(d0),f=new Date(y,m,1),n=new Date(y,m+1,0).getDate(),lead=(f.getDay()+6)%7,tm=new Date(),cur=y===tm.getFullYear()&&m===tm.getMonth(),i,h;
+h='<div class="pkm"><button type="button" data-n="-1"'+(cur?" disabled":"")+' aria-label="Prethodni mjesec">&#8249;</button><b>'+f.toLocaleDateString(loc(),{month:"long",year:"numeric"})+'</b><button type="button" data-n="1" aria-label="Sljedeći mjesec">&#8250;</button></div><div class="pkd">';
+for(i=0;i<7;i++)h+="<small>"+new Date(2024,0,1+i).toLocaleDateString(loc(),{weekday:"short"})+"</small>";
+for(i=0;i<lead;i++)h+="<span></span>";
+for(i=1;i<=n;i++){var k=iso(y,m,i);h+='<button type="button" data-d="'+k+'"'+(k<t?" disabled":"")+' class="'+(k===sel?"on ":"")+(k===t?"td":"")+'">'+i+"</button>"}
+bx.innerHTML=h+'</div><div class="pka"><button type="button" class="btn l" data-x="c">Otkaži</button></div>'}
+db.addEventListener("click",function(){var v=VD.get.call(d0)||td(),x=new Date(v+"T12:00:00");S={k:"d",y:x.getFullYear(),m:x.getMonth()};drawD();open()});
+tb.addEventListener("click",function(){var v=(VD.get.call(t0)||"08:00").split(":");S={k:"t",H:+v[0]||0,M:+v[1]||0};drawT();open()});
+sh.addEventListener("click",function(e){var b=e.target.closest("button");if(e.target===sh)return close();if(!b)return;
+if(b.dataset.x==="c")return close();
+if(b.dataset.x==="ok"){var v=p2(S.H)+":"+p2(S.M);t0.value=v;t0.dispatchEvent(new Event("change",{bubbles:true}));close();return}
+if(b.dataset.h!=null){S.H=+b.dataset.h;return drawT()}if(b.dataset.m!=null){S.M=+b.dataset.m;return drawT()}
+if(b.dataset.n!=null){var d=new Date(S.y,S.m+ +b.dataset.n,1);S.y=d.getFullYear();S.m=d.getMonth();return drawD()}
+if(b.dataset.d){d0.value=b.dataset.d;d0.dispatchEvent(new Event("change",{bubbles:true}));close()}});
+document.addEventListener("click",function(e){if(e.target.closest&&e.target.closest("#lang"))setTimeout(sync,60)});
+sync()})()</script></body></html>

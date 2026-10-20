@@ -153,6 +153,11 @@
   a("Ukloni iz plana", "Remove from plan", "Aus dem Plan entfernen", "Убрать из плана");
   a("Ukloni iz favorita", "Remove from favourites", "Aus Favoriten entfernen", "Убрать из избранного");
   a("Favorit", "Favourite", "Favorit", "Избранное");
+  a("Odaberi datum", "Pick a date", "Datum wählen", "Выберите дату");
+  a("Sat", "Hour", "Stunde", "Часы");
+  a("Minute", "Minutes", "Minuten", "Минуты");
+  a("Otkaži", "Cancel", "Abbrechen", "Отмена");
+  a("Postavi", "Set", "Festlegen", "Готово");
   a("Obriši", "Delete", "Löschen", "Удалить");
   a("Navigacija do stanice", "Navigate to this stop", "Navigation zum Stopp", "Навигация до остановки");
   a("Web stranica", "Website", "Webseite", "Сайт");
