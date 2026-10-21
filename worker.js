@@ -82,6 +82,8 @@ const OVP = [
   "https://overpass.private.coffee/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
   "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+  "https://lz4.overpass-api.de/api/interpreter",
+  "https://overpass.openstreetmap.fr/api/interpreter",
 ];
 const OVP_TIMEOUT_MS = 20000; // koliko čekamo jedan Overpass server prije nego pređemo na sljedeći
 const NEAR_FALLBACK_KM = 35; // ako uživo ne uspije, koristimo snimljene podatke najbližeg grada u ovom krugu
@@ -126,7 +128,8 @@ function json(obj, req, status = 200, extra = {}) {
 function query(A, cats, limit) {
   return "[out:json][timeout:60];(" + cats.map((k) => QF[k].replace(/@/g, A)).join("") + ");out center tags " + limit + ";";
 }
-let LAST_OVP = ""; // zadnji razlog neuspjeha Overpass poziva (vraća se u odgovoru 502 radi dijagnostike)
+let LAST_OVP = "";
+function addWhy(s) { if (!LAST_OVP.includes(s) && LAST_OVP.length < 150) LAST_OVP += (LAST_OVP ? ", " : "") + s; } // zadnji razlog neuspjeha Overpass poziva (vraća se u odgovoru 502 radi dijagnostike)
 async function ovpOne(u, q, ms, signal) {
   const ac = new AbortController();
   const tm = setTimeout(() => ac.abort(), ms);
@@ -135,13 +138,13 @@ async function ovpOne(u, q, ms, signal) {
   try {
     // Overpass serveri traže prepoznatljiv User-Agent; bez njega ih dio odbija zahtjeve iz Workera
     const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Blizu/1.0 (+https://github.com/panpetar405-creator/Blizu)", Accept: "application/json" }, signal: ac.signal });
-    if (!r.ok) { LAST_OVP = host + " " + r.status; return null; }
+    if (!r.ok) { addWhy(host + " " + r.status); return null; }
     const j = await r.json();
     // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
-    if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length) { LAST_OVP = host + " remark"; return null; }
+    if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length) { addWhy(host + " remark"); return null; }
     return (j.elements || []).map(slim);
   } catch (e) {
-    if (!(signal && signal.aborted)) LAST_OVP = host + " " + (e && e.name === "AbortError" ? "timeout" : "net");
+    if (!(signal && signal.aborted)) addWhy(host + " " + (e && e.name === "AbortError" ? "timeout" : "net"));
     return null;
   } finally {
     clearTimeout(tm);
@@ -163,6 +166,7 @@ function dseg(p, a, b) {
   const x = ax + t * dx - px, y = ay + t * dy - py; return Math.sqrt(x * x + y * y);
 }
 async function alongFetch(cfg, pts) {
+  LAST_OVP = "";
   const rad = cfg.r / 1000, pad = rad / 111 + 0.002;
   const lats = pts.map((p) => p[0]), lons = pts.map((p) => p[1]);
   const ext = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lons) - Math.min(...lons));
