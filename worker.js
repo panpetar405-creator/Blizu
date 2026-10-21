@@ -126,18 +126,22 @@ function json(obj, req, status = 200, extra = {}) {
 function query(A, cats, limit) {
   return "[out:json][timeout:60];(" + cats.map((k) => QF[k].replace(/@/g, A)).join("") + ");out center tags " + limit + ";";
 }
+let LAST_OVP = ""; // zadnji razlog neuspjeha Overpass poziva (vraća se u odgovoru 502 radi dijagnostike)
 async function ovpOne(u, q, ms, signal) {
   const ac = new AbortController();
   const tm = setTimeout(() => ac.abort(), ms);
   if (signal) signal.addEventListener("abort", () => ac.abort());
+  const host = u.replace(/^https:\/\//, "").split("/")[0].slice(0, 14);
   try {
-    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded" }, signal: ac.signal });
-    if (!r.ok) return null;
+    // Overpass serveri traže prepoznatljiv User-Agent; bez njega ih dio odbija zahtjeve iz Workera
+    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Blizu/1.0 (+https://github.com/panpetar405-creator/Blizu)", Accept: "application/json" }, signal: ac.signal });
+    if (!r.ok) { LAST_OVP = host + " " + r.status; return null; }
     const j = await r.json();
     // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
-    if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length) return null;
+    if (j.remark && /error|timed out|out of memory/i.test(j.remark) && !(j.elements || []).length) { LAST_OVP = host + " remark"; return null; }
     return (j.elements || []).map(slim);
   } catch (e) {
+    if (!(signal && signal.aborted)) LAST_OVP = host + " " + (e && e.name === "AbortError" ? "timeout" : "net");
     return null;
   } finally {
     clearTimeout(tm);
@@ -148,9 +152,41 @@ async function ovpOne(u, q, ms, signal) {
 // ---------- slojevi duž rute: benzinske pumpe i naplatne rampe ----------
 // Klijent šalje pojednostavljenu liniju rute; Overpass traži samo objekte u uskom pojasu oko nje.
 const ALONG = {
-  fuel: { q: (a) => `nwr["amenity"="fuel"]${a};`, r: 1500, limit: 400, ttl: 21600 },
+  fuel: { q: (a) => `nwr["amenity"="fuel"]${a};`, r: 1500, limit: 600, ttl: 21600 },
   toll: { q: (a) => `nwr["barrier"="toll_booth"]${a};nwr["highway"="toll_gantry"]${a};`, r: 400, limit: 300, ttl: 43200 },
 };
+// Ruta se siječe na dijelove; za svaki se traži običan okvir (brzo), pa se zadrže samo objekti uz samu rutu.
+function dseg(p, a, b) {
+  const k = Math.cos((p[0] * Math.PI) / 180) * 111.2, px = p[1] * k, py = p[0] * 111.2, ax = a[1] * k, ay = a[0] * 111.2;
+  const dx = b[1] * k - ax, dy = b[0] * 111.2 - ay, L = dx * dx + dy * dy;
+  let t = L ? ((px - ax) * dx + (py - ay) * dy) / L : 0; t = Math.max(0, Math.min(1, t));
+  const x = ax + t * dx - px, y = ay + t * dy - py; return Math.sqrt(x * x + y * y);
+}
+async function alongFetch(cfg, pts) {
+  const rad = cfg.r / 1000, pad = rad / 111 + 0.002;
+  const lats = pts.map((p) => p[0]), lons = pts.map((p) => p[1]);
+  const ext = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lons) - Math.min(...lons));
+  const span = Math.max(0.3, ext / 6), ch = [];
+  let cur = [pts[0]];
+  const rng = (c, i) => { const v = c.map((p) => p[i]); return Math.max(...v) - Math.min(...v); };
+  for (let i = 1; i < pts.length; i++) { cur.push(pts[i]); if (rng(cur, 0) > span || rng(cur, 1) > span) { ch.push(cur); cur = [pts[i]]; } }
+  if (cur.length > 1 || !ch.length) ch.push(cur);
+  const res = new Array(ch.length); let nx = 0;
+  const one = async (i) => {
+    const c = ch[i], la = c.map((p) => p[0]), lo = c.map((p) => p[1]);
+    const bb = "(" + [Math.min(...la) - pad, Math.min(...lo) - pad, Math.max(...la) + pad, Math.max(...lo) + pad].map((x) => x.toFixed(5)).join(",") + ")";
+    res[i] = await overpass(`[out:json][timeout:25];(${cfg.q(bb)});out center tags ${cfg.limit};`, true);
+  };
+  await Promise.all([0, 1].map(async () => { while (nx < ch.length) await one(nx++); }));
+  const out = [], seen = new Set();
+  for (const els of res) for (const el of els) {
+    const k = el.type + el.id, p = pos(el);
+    if (seen.has(k) || !p) continue;
+    let near = false; for (let i = 1; i < pts.length && !near; i++) near = dseg(p, pts[i - 1], pts[i]) <= rad;
+    if (near) { seen.add(k); out.push(el); }
+  }
+  return out;
+}
 function alongHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
 async function overpass(q, par) {
   for (let round = 0; round < 2; round++) {
@@ -349,13 +385,13 @@ export default {
       if (len > 1800) return json({ error: "bad params" }, req, 400);
       const flat = pts.map((p) => p[0].toFixed(4) + "," + p[1].toFixed(4)).join(",");
       const key = `along:${b.t}:${alongHash(flat)}`;
-      const hit = await env.PLACES.get(key, "json");
+      let hit = null; try { hit = await env.PLACES.get(key, "json"); } catch (e) { /* KV nedostupan: nastavi bez keša */ }
       if (hit) return json({ elements: hit, source: "cache" }, req, 200, { "Cache-Control": "public, max-age=600" });
       try {
-        const els = await overpass(`[out:json][timeout:40];(${cfg.q(`(around:${cfg.r},${flat})`)});out center tags ${cfg.limit};`, true);
-        await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: cfg.ttl });
+        const els = await alongFetch(cfg, pts);
+        try { await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: cfg.ttl }); } catch (e) { /* keš nije obavezan */ }
         return json({ elements: els, source: "live" }, req, 200, { "Cache-Control": "public, max-age=600" });
-      } catch (e) { return json({ error: "upstream" }, req, 502); }
+      } catch (e) { log("along_upstream", { why: LAST_OVP }); return json({ error: "upstream", why: LAST_OVP || String(e && e.message) }, req, 502); }
     }
     if (url.pathname === "/api/photo") {
       const [ref, sg] = (url.searchParams.get("ref") || "").split("~");
