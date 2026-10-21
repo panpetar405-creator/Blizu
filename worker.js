@@ -177,7 +177,7 @@ async function alongFetch(cfg, pts) {
     const bb = "(" + [Math.min(...la) - pad, Math.min(...lo) - pad, Math.max(...la) + pad, Math.max(...lo) + pad].map((x) => x.toFixed(5)).join(",") + ")";
     res[i] = await overpass(`[out:json][timeout:25];(${cfg.q(bb)});out center tags ${cfg.limit};`, true);
   };
-  await Promise.all([0, 1].map(async () => { while (nx < ch.length) await one(nx++); }));
+  await Promise.all([0, 1, 2, 3].map(async () => { while (nx < ch.length) await one(nx++); }));
   const out = [], seen = new Set();
   for (const els of res) for (const el of els) {
     const k = el.type + el.id, p = pos(el);
