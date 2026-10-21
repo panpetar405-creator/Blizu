@@ -124,8 +124,8 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .thr .tb{width:58px;height:58px;border-radius:50%;padding:0;flex:none;display:block}.thr .tb .ph{width:58px;height:58px;border-radius:50%;box-shadow:0 1px 4px #0003}.thr .tb.on .ph{box-shadow:0 0 0 2.5px #fff,0 0 0 4.5px var(--g)}
 .thr .all{margin-left:auto;color:var(--g);font-weight:700;font-size:15.5px;padding:8px 2px}
 .sts{display:flex;border-top:1px solid var(--bd);padding-top:14px}
-.sts>div{flex:1;display:flex;gap:10px;align-items:center}.sts>div+div{border-left:1px solid var(--bd);padding-left:14px}
-.sts .i{width:28px;height:28px;stroke-width:1.9;color:var(--tx)}.sts b{display:block;font-size:19px;line-height:1.15;letter-spacing:-.2px}.sts small{color:var(--mu);font-size:12.5px;line-height:1.2;display:block}
+.sts>div{flex:1 1 0;min-width:0;display:flex;gap:8px;align-items:center}.sts>div+div{border-left:1px solid var(--bd);padding-left:10px}
+.sts .i{flex:none;width:26px;height:26px;stroke-width:1.9;color:var(--tx)}.sts b{display:block;overflow-wrap:anywhere;font-size:18px;line-height:1.15;letter-spacing:-.2px}.sts small{color:var(--mu);font-size:12.5px;line-height:1.2;display:block}
 .pbtn{position:relative;display:flex;align-items:center;justify-content:center;width:100%;margin-top:16px;padding:17px 52px;border-radius:18px;background:var(--g);color:#fff;font-weight:700;font-size:18px;box-shadow:0 4px 14px #B4472A40}.pbtn .i{position:absolute;right:22px;width:22px;height:22px;stroke-width:2.4}
 .mk{width:38px;height:38px;border-radius:50%;border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005}.mk .i{width:19px;height:19px;stroke-width:2.1;--do:0}
 .rd{width:12px;height:12px;border-radius:50%;background:#1b2a47;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}
@@ -153,15 +153,15 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .sc .add{position:absolute;right:12px;top:12px;width:34px;height:34px}
 
 /* ===== Kartica mjesta ===== */
-#det .hero .ph{height:320px;font-size:80px}
+#det .hero .ph{height:clamp(150px,22dvh,200px);font-size:60px}
 #det .hero .rb{background:#00000040;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:none;color:#fff;width:44px;height:44px}
 #det .hero .rb .i{width:24px;height:24px;stroke-width:2.2}#det .hero .rb.fav{color:#ff6b81}
 #det .hero .rb.r{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;filter:drop-shadow(0 1px 3px #0006)}
 #detc .pad.dp{margin-top:-28px;border-radius:28px 28px 0 0;padding:24px 20px 120px;box-shadow:0 -6px 20px #0000001a}
 .dp h2{font-size:27px;letter-spacing:-.4px;line-height:1.2}
 .dp .tag{font-size:15px;font-weight:600;padding:7px 14px;border-radius:18px;margin:12px 0 0}
-.ds{display:flex;margin:20px 0 18px}.ds>div{flex:1;display:flex;gap:9px;align-items:center;padding:0 10px}.ds>div:first-child{padding-left:0}.ds>div+div{border-left:1px solid var(--bd)}
-.ds .i{width:26px;height:26px;stroke-width:1.9}.ds b{display:block;font-size:19px;line-height:1.15;white-space:nowrap}.ds small{color:var(--mu);font-size:12.5px;line-height:1.2;display:block}
+.ds{display:flex;margin:20px 0 18px}.ds>div{flex:1 1 auto;min-width:0;display:flex;gap:8px;align-items:center;padding:0 9px}.ds>div:first-child{padding-left:0}.ds>div+div{border-left:1px solid var(--bd)}
+.ds .i{flex:none;width:24px;height:24px;stroke-width:1.9}@media(max-width:400px){.ds .i{display:none}.ds>div{padding:0 8px}}.ds b{display:block;font-size:17px;line-height:1.15;white-space:nowrap}.ds small{color:var(--mu);font-size:12.5px;line-height:1.2;display:block}
 .dp .desc{font-size:16.5px;line-height:1.55}
 .dp .inf{display:flex;gap:10px;align-items:flex-start;margin-top:12px;color:var(--mu);font-size:14.5px;line-height:1.4}.dp .inf .i{margin-top:1px}
 .dp .nav{margin-top:14px;border:1px solid var(--bd);background:#fff;color:var(--g)}
