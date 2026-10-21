@@ -3,8 +3,8 @@
  "short_name": "Blizu",
  "start_url": "./",
  "display": "standalone",
- "background_color": "#082b36",
- "theme_color": "#082b36",
+ "background_color": "#FBF8F2",
+ "theme_color": "#23262B",
  "lang": "sr",
  "icons": [
   {
