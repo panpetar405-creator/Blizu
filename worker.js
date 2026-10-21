@@ -177,7 +177,7 @@ async function alongFetch(cfg, pts) {
     const bb = "(" + [Math.min(...la) - pad, Math.min(...lo) - pad, Math.max(...la) + pad, Math.max(...lo) + pad].map((x) => x.toFixed(5)).join(",") + ")";
     res[i] = await overpass(`[out:json][timeout:25];(${cfg.q(bb)});out center tags ${cfg.limit};`, true);
   };
-  await Promise.all([0, 1, 2, 3].map(async () => { while (nx < ch.length) await one(nx++); }));
+  await Promise.all([0, 1].map(async () => { while (nx < ch.length) await one(nx++); }));
   const out = [], seen = new Set();
   for (const els of res) for (const el of els) {
     const k = el.type + el.id, p = pos(el);
@@ -194,7 +194,7 @@ async function overpass(q, par) {
       const stop = new AbortController();
       const res = await new Promise((resolve) => {
         let n = OVP.length;
-        OVP.forEach((u) => ovpOne(u, q, 12000, stop.signal).then((v) => { if (v) resolve(v); else if (--n === 0) resolve(null); }));
+        OVP.forEach((u, i) => sleep(i * 1500).then(() => (stop.signal.aborted ? null : ovpOne(u, q, 12000, stop.signal))).then((v) => { if (v) resolve(v); else if (--n === 0) resolve(null); }));
       });
       stop.abort();
       if (res) return res;
