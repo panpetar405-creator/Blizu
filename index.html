@@ -403,7 +403,7 @@ function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).a
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
-function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,90],paddingBottomRight:[40,h]})}
+function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,90],paddingBottomRight:[118,h]})}
 function locate(){if(!navigator.geolocation)return fitRoute();askGeo(()=>navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],13),()=>fitRoute(),{timeout:6000}),fitRoute)}
 async function refresh(fit){
  const st=[...sel].map(i=>cm.get(i)).filter(Boolean).sort((a,b)=>a.f-b.f);S.st=st;
