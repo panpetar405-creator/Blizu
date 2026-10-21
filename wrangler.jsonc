@@ -1,0 +1,21 @@
+{
+  // Ime MORA biti isto kao ime Workera u Cloudflare-u (blizu-api), inače se napravi novi Worker.
+  "name": "blizu-api",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-01",
+
+  // Ne briši varijable koje si ručno upisao u Cloudflare-u (ALLOWED_ORIGINS, DEBUG, LIVE_BBOX...).
+  // Tajne (GOOGLE_KEY, REFRESH_TOKEN, ORS_KEY) se ionako ne diraju.
+  "keep_vars": true,
+
+  // KV namespace koji je sada vezan kao PLACES.
+  // ID nađi u Cloudflare-u: Storage & Databases -> KV -> tvoj namespace -> ID.
+  "kv_namespaces": [
+    { "binding": "PLACES", "id": "8e83b290de934524aac0b6bb1a60a423" }
+  ],
+
+  // Isti rasporedi kao u CRON_CITY u worker.js
+  "triggers": {
+    "crons": ["0 3 * * *", "10 3 * * *", "20 3 * * *", "30 3 * * *"]
+  }
+}
