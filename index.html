@@ -416,7 +416,7 @@ async function refresh(fit){
  const pin=(c,n)=>ic(`<div class="pin"><svg viewBox="0 0 36 46"><path d="M18 45C18 45 3 29 3 17a15 15 0 0 1 30 0c0 12-15 28-15 28z" fill="${c}" stroke="#fff" stroke-width="2.5"/><circle cx="18" cy="17" r="5.5" fill="#fff"/></svg><span>${esc(n)}</span></div>`,[36,46],[18,45]);
  opts.filter(o=>!sel.has(o.id)).forEach(o=>L.marker(o.p,{icon:ic('<div class="dot o"></div>',[12,12])}).on("click",()=>opn(o.id)).addTo(layer));
  st.forEach(s=>{const q=nearest(s.p),k=CATS[s.c].c;L.polyline([q,s.p],{color:k,weight:2.5,opacity:.8,dashArray:"2 5",lineCap:"round"}).addTo(layer);L.marker(q,{icon:ic('<div class="rd"></div>',[12,12]),interactive:false}).addTo(layer)});
- L.marker([A.lat,A.lon],{icon:pin("#0b7a55",A.name),zIndexOffset:900}).addTo(layer);L.marker([B.lat,B.lon],{icon:pin("#e0414f",B.name),zIndexOffset:900}).addTo(layer);
+ L.marker([A.lat,A.lon],{icon:pin("#5E6B3A",A.name),zIndexOffset:900}).addTo(layer);L.marker([B.lat,B.lon],{icon:pin("#B4472A",B.name),zIndexOffset:900}).addTo(layer);
  st.forEach(s=>L.marker(s.p,{icon:ic(`<div class="mk" style="background:${CATS[s.c].c}">${CATS[s.c].ic}</div>`,[38,38]),zIndexOffset:600}).on("click",()=>opn(s.id)).addTo(layer));
  if(st.length){const mx=st.reduce((a,b)=>b.est>a.est?b:a),cl=mx.p[1]>(A.lon+B.lon)/2?"l":"r";L.marker(mx.p,{icon:ic(`<div class="co ${cl}"><b>+${mx.est} min</b><small>(dodatno za ovu stanicu)</small></div>`,[0,0],[0,0]),interactive:false,zIndexOffset:1000}).addTo(layer)}
  const vis=st.reduce((a,s)=>a+s.v,0),tot=rt.dur/60+vis,km=rt.dist/1000;S.vis=vis;S.tot=tot;S.km=km;
@@ -541,7 +541,7 @@ let N=null,nmap,nlay,nme;
 function nidx(line,c){let b=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(c,line[i]);if(x<b){b=x;bi=i}}return[bi,b]}
 function setSteps(r){N.r=r;N.cum=[0];for(let i=1;i<r.line.length;i++)N.cum[i]=N.cum[i-1]+dk(r.line[i-1],r.line[i]);N.D=N.cum.at(-1)||.001;N.i=0;
  N.si=r.steps.map(s=>nidx(r.line,[s.maneuver.location[1],s.maneuver.location[0]])[0]);N.ti=N.st.map(s=>nidx(r.line,s.p)[0]);
- const ic=(h)=>L.divIcon({html:h,className:"",iconSize:[26,26],iconAnchor:[13,13]});nlay.clearLayers();L.polyline(r.line,{color:"#0b7a55",weight:7}).addTo(nlay);
+ const ic=(h)=>L.divIcon({html:h,className:"",iconSize:[26,26],iconAnchor:[13,13]});nlay.clearLayers();L.polyline(r.line,{color:"#24506B",weight:7}).addTo(nlay);
  N.st.forEach((s,i)=>L.marker(s.p,{icon:ic(`<div class="dot" style="background:${CATS[s.c].c}">${i+1}</div>`)}).addTo(nlay));L.marker([B.lat,B.lon],{icon:ic('<div class="dot" style="background:#B4472A">B</div>')}).addTo(nlay)}
 function startNav(){askGeo(startNav0)}
 async function startNav0(){
