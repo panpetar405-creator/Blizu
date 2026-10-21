@@ -395,7 +395,10 @@ async function plan(){
    names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,v:CATS[c].v,sc:nt-est/extra*1.2-meal(c,t,s0+sk/D*base.dur/60)+fbonus(t)})}
   dest.forEach(x=>cm.set(x.id,x));const all=[...cm.values()].filter(x=>!x.dst).sort((a,b)=>b.sc-a.sc);
   if(!all.length&&!dest.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
-  const pick=[],cc={};for(const c of all){if(pick.length>=4)break;if((cc[c.c]||0)>=2||pick.some(p=>Math.abs(p.f-c.f)<.08))continue;pick.push(c);cc[c.c]=(cc[c.c]||0)+1}
+  // stanice se ravnomjerno rasporede duž puta: ruta se podijeli na jednake dionice i iz svake se uzme najbolje mjesto (razmak ≥ ~70% širine dionice)
+  const pick=[],cc={},lo=Math.min(.4,buf/D),hi=Math.max(.6,1-buf*.6/D),K=Math.min(4,Math.max(2,Math.round(D/22))),W=(hi-lo)/K;
+  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W,c=all.find(x=>x.f>=a&&x.f<b&&(cc[x.c]||0)<2&&pick.every(p=>Math.abs(p.f-x.f)>=W*.7));if(c){pick.push(c);cc[c.c]=(cc[c.c]||0)+1}}
+  if(!pick.length&&all.length)pick.push(all[0]);
   sel=new Set(pick.map(c=>c.id));opts=[...new Set([...pick,...all.slice(0,14)])].sort((a,b)=>b.sc-a.sc);
   go("res");initMap();
   await refresh(1);
