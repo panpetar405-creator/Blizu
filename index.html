@@ -763,11 +763,35 @@ function build(kind,els){var g=L.layerGroup(),seen=[],M=MS[kind];
   L.marker(p,{icon:L.divIcon({html:h,className:"",iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:-100})
    .bindPopup('<div class="lpp"><b>'+esc(nm||T(M.n))+"</b>"+sub.map(function(x){return"<small>"+x+"</small>"}).join("")+"</div>").addTo(g)});
  return g}
+async function viaWorker(kind,s){
+ var r=await fetch((window.BLIZU_API||"")+"/api/along",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({t:kind,pts:s}),signal:AbortSignal.timeout(15000)});
+ if(!r.ok)throw new Error("http "+r.status);var j=await r.json();if(!j||!Array.isArray(j.elements))throw new Error("bad response");return j.elements}
+function dseg(p,a,b){var k=Math.cos(p[0]*Math.PI/180)*111.2,px=p[1]*k,py=p[0]*111.2,ax=a[1]*k,ay=a[0]*111.2,dx=b[1]*k-ax,dy=b[0]*111.2-ay,L=dx*dx+dy*dy,t=L?((px-ax)*dx+(py-ay)*dy)/L:0;t=Math.max(0,Math.min(1,t));var x=ax+t*dx-px,y=ay+t*dy-py;return Math.sqrt(x*x+y*y)}
+function nearRt(p,s,r){for(var i=1;i<s.length;i++)if(dseg(p,s[i-1],s[i])<=r)return true;return false}
+// rezerva: ruta se siječe na kratke dijelove, svaki se traži običnim okvirom (brzo), pa se filtrira po udaljenosti od rute
+async function direct(kind,s){
+ var rad=kind==="toll"?.4:1.5,pad=rad/111+.002,lats=s.map(function(p){return p[0]}),lons=s.map(function(p){return p[1]});
+ var span=Math.max(.3,(Math.max(Math.max.apply(0,lats)-Math.min.apply(0,lats),Math.max.apply(0,lons)-Math.min.apply(0,lons)))/10),ch=[],cur=[s[0]];
+ for(var i=1;i<s.length;i++){cur.push(s[i]);var la=cur.map(function(p){return p[0]}),lo=cur.map(function(p){return p[1]});
+  if(Math.max.apply(0,la)-Math.min.apply(0,la)>span||Math.max.apply(0,lo)-Math.min.apply(0,lo)>span){ch.push(cur);cur=[s[i]]}}
+ if(cur.length>1)ch.push(cur);if(!ch.length)ch.push(s);
+ var res=new Array(ch.length),nx=0;
+ async function one(i){var c=ch[i],la=c.map(function(p){return p[0]}),lo=c.map(function(p){return p[1]}),
+   bb="("+[Math.min.apply(0,la)-pad,Math.min.apply(0,lo)-pad,Math.max.apply(0,la)+pad,Math.max.apply(0,lo)+pad].map(function(x){return x.toFixed(5)}).join(",")+")",
+   q="[out:json][timeout:25];("+(kind==="fuel"?'nwr["amenity"="fuel"]'+bb+";":'nwr["barrier"="toll_booth"]'+bb+';nwr["highway"="toll_gantry"]'+bb+";")+");out center tags 300;",
+   o=OVP.slice(i%OVP.length).concat(OVP.slice(0,i%OVP.length));
+  var e=await first(o.slice(0,2).map(function(u){return ovp(u,q,14000)}));
+  if(!e)e=await first(o.slice(2).concat(o.slice(0,2)).map(function(u){return ovp(u,q,16000)}));
+  if(!e)throw new Error("overpass");res[i]=e}
+ await Promise.all([0,1,2].map(async function(){while(nx<ch.length){var i=nx++;await one(i)}}));
+ var out=[],seen={};res.forEach(function(e){e.forEach(function(el){var k=el.type+el.id,p=pos(el);if(seen[k]||!p||!nearRt(p,s,rad))return;seen[k]=1;out.push(el)})});return out}
 async function load(kind){var c=LY[kind],tol=c.tol,pts=rt.line.map(function(p){return[p[0],p[1]]}),s=simp(pts,tol);
  while(s.length>600){tol*=1.5;s=simp(pts,tol)}
  s=s.map(function(p){return[+p[0].toFixed(4),+p[1].toFixed(4)]});
- var r=await fetch((window.BLIZU_API||"")+"/api/along",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({t:kind,pts:s}),signal:AbortSignal.timeout(40000)});
- if(!r.ok)throw new Error("http "+r.status);var j=await r.json();return build(kind,j.elements||[])}
+ var els;
+ try{els=await viaWorker(kind,s)}catch(e){console.warn("Worker /api/along:",e&&e.message);
+  if(window.BLIZU_PUBLIC_OVERPASS===false)throw e;els=await direct(kind,s)}
+ return build(kind,els)}
 async function tg(kind){var c=LY[kind];if(c.busy)return;
  if(c.on){c.on=0;if(c.g)map.removeLayer(c.g);c.b.classList.remove("on");return}
  if(typeof rt==="undefined"||!rt||!rt.line||rt.line.length<2)return;
