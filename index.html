@@ -783,14 +783,15 @@ async function direct(kind,s){
   var e=await first(o.slice(0,2).map(function(u){return ovp(u,q,14000)}));
   if(!e)e=await first(o.slice(2).concat(o.slice(0,2)).map(function(u){return ovp(u,q,16000)}));
   if(!e)throw new Error("overpass");res[i]=e}
- await Promise.all([0,1,2].map(async function(){while(nx<ch.length){var i=nx++;await one(i)}}));
+ await Promise.all([0,1].map(async function(){while(nx<ch.length){var i=nx++;await one(i)}}));
  var out=[],seen={};res.forEach(function(e){e.forEach(function(el){var k=el.type+el.id,p=pos(el);if(seen[k]||!p||!nearRt(p,s,rad))return;seen[k]=1;out.push(el)})});return out}
 async function load(kind){var c=LY[kind],tol=c.tol,pts=rt.line.map(function(p){return[p[0],p[1]]}),s=simp(pts,tol);
  while(s.length>600){tol*=1.5;s=simp(pts,tol)}
  s=s.map(function(p){return[+p[0].toFixed(4),+p[1].toFixed(4)]});
  var els;
  try{els=await viaWorker(kind,s)}catch(e){console.warn("Worker /api/along:",e&&e.message);
-  if(window.BLIZU_PUBLIC_OVERPASS===false)throw e;els=await direct(kind,s)}
+  if(window.BLIZU_PUBLIC_OVERPASS===false)throw e;
+  try{els=await direct(kind,s)}catch(e2){throw new Error("W:"+(e&&e.message||e)+" D:"+(e2&&e2.message||e2))}}
  return build(kind,els)}
 async function tg(kind){var c=LY[kind];if(c.busy)return;
  if(c.on){c.on=0;if(c.g)map.removeLayer(c.g);c.b.classList.remove("on");return}
@@ -798,7 +799,7 @@ async function tg(kind){var c=LY[kind];if(c.busy)return;
  c.busy=1;c.b.classList.add("busy");
  try{var key=rk();if(!c.g||c.k!==key){c.g=await load(kind);c.k=key}
   c.g.addTo(map);c.on=1;c.b.classList.add("on");if(!c.g.getLayers().length)note(T(MS[kind].e))}
- catch(e){note(T(ER))}
+ catch(e){console.warn(e);note(T(ER)+" ["+String(e&&e.message||e).slice(0,60)+"]")}
  finally{c.busy=0;c.b.classList.remove("busy")}}
 window.lyrReset=function(){["fuel","toll"].forEach(function(k){var c=LY[k];if(c.g&&map)map.removeLayer(c.g);c.g=null;c.k="";c.on=0;c.b.classList.remove("on")});nt.hidden=true};
 LY.fuel.b.addEventListener("click",function(){tg("fuel")});LY.toll.b.addEventListener("click",function(){tg("toll")})
