@@ -158,6 +158,8 @@
   a("Minute", "Minutes", "Minuten", "Минуты");
   a("Otkaži", "Cancel", "Abbrechen", "Отмена");
   a("Postavi", "Set", "Festlegen", "Готово");
+  a("Sačuvaj i podijeli", "Save & share", "Speichern & teilen", "Сохранить и поделиться");
+  a("Na putu", "On the road", "Unterwegs", "В пути");
   a("Obriši", "Delete", "Löschen", "Удалить");
   a("Navigacija do stanice", "Navigate to this stop", "Navigation zum Stopp", "Навигация до остановки");
   a("Web stranica", "Website", "Webseite", "Сайт");
