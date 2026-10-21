@@ -427,14 +427,22 @@
     return n === "de" || n === "ru" ? n : "en";
   }
   function setLang(l) { lang = LANGS[l] ? l : "sr"; L = lang === "sr" ? -1 : { en: 0, de: 1, ru: 2 }[lang]; }
+  var NAMES = { sr: "Srpski", en: "English", de: "Deutsch", ru: "\u0420\u0443\u0441\u0441\u043a\u0438\u0439" };
   function ui(el) {
     if (!el) return;
-    el.innerHTML = Object.keys(LANGS).map(function (k) { return '<button type="button" data-l="' + k + '"' + (k === lang ? ' class="on" aria-pressed="true"' : ' aria-pressed="false"') + ">" + LANGS[k] + "</button>"; }).join("");
-    el.onclick = function (e) {
-      var b = e.target.closest && e.target.closest("button"); if (!b || b.dataset.l === lang) return;
+    var items = Object.keys(LANGS).map(function (k) { return '<button type="button" role="option" data-l="' + k + '"' + (k === lang ? ' class="on" aria-selected="true"' : ' aria-selected="false"') + "><b>" + LANGS[k] + "</b> " + NAMES[k] + "</button>"; }).join("");
+    el.innerHTML = '<button type="button" class="lg-cur" aria-haspopup="listbox" aria-expanded="false"><svg class="i" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9S9.4 5.7 12 3z"/></svg>' + LANGS[lang] + '<svg class="i lg-ch" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><div class="lg-menu" role="listbox" hidden>' + items + "</div>";
+    var cur = el.querySelector(".lg-cur"), menu = el.querySelector(".lg-menu");
+    function close() { menu.hidden = true; cur.setAttribute("aria-expanded", "false"); el.classList.remove("open"); }
+    cur.onclick = function (e) { e.stopPropagation(); var o = menu.hidden; menu.hidden = !o; cur.setAttribute("aria-expanded", o ? "true" : "false"); el.classList.toggle("open", o); };
+    menu.onclick = function (e) {
+      var b = e.target.closest && e.target.closest("button"); if (!b) return;
+      if (b.dataset.l === lang) { close(); return; }
       try { localStorage.setItem("lang", b.dataset.l); } catch (x) {}
       location.reload();
     };
+    el.onclick = function (e) { e.stopPropagation(); };
+    document.addEventListener("click", close);
   }
 
   setLang(typeof document === "undefined" ? "sr" : detect());
