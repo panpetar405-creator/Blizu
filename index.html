@@ -143,8 +143,8 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .rd{width:12px;height:12px;border-radius:50%;background:#1b2a47;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}
 .pin{position:relative;width:36px;height:46px;filter:drop-shadow(0 2px 3px #0004)}.pin svg{width:36px;height:46px;display:block}
 .pin span{position:absolute;left:44px;top:2px;background:#fff;border-radius:14px;padding:5px 14px;font:700 17px/1.2 system-ui,sans-serif;color:var(--tx);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 6px #0003}
-.co{position:absolute;bottom:34px;background:#fff;border-radius:14px;padding:9px 16px 8px;box-shadow:0 2px 10px #0003;white-space:nowrap;line-height:1.2}
-.co b{font-size:17px;display:block}.co small{font-size:11.5px;color:var(--mu)}
+.co{position:absolute;bottom:34px;background:#fff;border-radius:12px;padding:4px 10px;box-shadow:0 2px 10px #0003;white-space:nowrap;line-height:1.2}
+.co b{font-size:13px;display:block}.co small{display:none}
 .co::after{content:"";position:absolute;bottom:-7px;width:14px;height:14px;background:#fff;transform:rotate(45deg);border-radius:2px}
 .co.l{right:-8px}.co.l::after{right:26px}.co.r{left:-8px}.co.r::after{left:26px}
 .leaflet-control-attribution{font-size:9px;background:#ffffff99!important;margin-bottom:0}
@@ -756,15 +756,22 @@ function simp(pts,tol){var n=pts.length;if(n<3)return pts;var keep=new Uint8Arra
 function rk(){var l=rt.line;return l.length+":"+l[0]+":"+l[l.length-1]}
 function pos(el){return el.lat!=null?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null}
 function dist(a,b){var dy=(a[0]-b[0])*111.2,dx=(a[1]-b[1])*111.2*Math.cos(a[0]*Math.PI/180);return Math.sqrt(dx*dx+dy*dy)}
-function build(kind,els){var g=L.layerGroup(),seen=[],M=MS[kind];
+function build(kind,els){var g=L.layerGroup(),seen=[],ms=[],M=MS[kind];
  els.forEach(function(el){var p=pos(el);if(!p)return;
   if(seen.some(function(q){return dist(q,p)<(kind==="toll"?.35:.03)}))return;seen.push(p);
   var t=el.tags||{},nm=t.name||t.brand||t.operator||"",sub=[];
   if(kind==="fuel"){if(t.operator&&t.operator!==nm)sub.push(esc(t.operator));if(t.opening_hours)sub.push(esc(ohTxt(t.opening_hours)))}
   else{sub.push(esc(T(M.n)));sub.push(esc(T(M.i)))}
   var h='<div class="lm'+(kind==="toll"?" t":"")+'">'+I(kind)+"</div>";
-  L.marker(p,{icon:L.divIcon({html:h,className:"",iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:-100})
-   .bindPopup('<div class="lpp"><b>'+esc(nm||T(M.n))+"</b>"+sub.map(function(x){return"<small>"+x+"</small>"}).join("")+"</div>").addTo(g)});
+  var mk=L.marker(p,{icon:L.divIcon({html:h,className:"",iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:-100})
+   .bindPopup('<div class="lpp"><b>'+esc(nm||T(M.n))+"</b>"+sub.map(function(x){return"<small>"+x+"</small>"}).join("")+"</div>").addTo(g);ms.push(mk)});
+ // razrjeđivanje: na manjem zumu prikazuje se samo po jedna oznaka na svakih ~56 px (i ne preko izabranih stanica); zumiranjem se pojavljuju ostale
+ function dec(){var m=g._dm;if(!m)return;var gap=56,kept=[],stp=[];
+  try{(S.st||[]).forEach(function(s){stp.push(m.latLngToLayerPoint(s.p))});[A,B].forEach(function(x){if(x)stp.push(m.latLngToLayerPoint([x.lat,x.lon]))})}catch(e){}
+  ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<46})&&!kept.some(function(z){return z.distanceTo(q)<gap});
+   if(ok)kept.push(q);if(ok&&!m.hasLayer(k))m.addLayer(k);else if(!ok&&m.hasLayer(k))m.removeLayer(k)})}
+ g.onAdd=function(m){L.LayerGroup.prototype.onAdd.call(this,m);this._dm=m;m.on("zoomend moveend",dec);dec()};
+ g.onRemove=function(m){m.off("zoomend moveend",dec);this._dm=null;L.LayerGroup.prototype.onRemove.call(this,m)};
  return g}
 async function viaWorker(kind,s){
  var r=await fetch((window.BLIZU_API||"")+"/api/along",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({t:kind,pts:s}),signal:AbortSignal.timeout(45000)});
