@@ -8,6 +8,9 @@
   // Tajne (GOOGLE_KEY, REFRESH_TOKEN, ORS_KEY) se ionako ne diraju.
   "keep_vars": true,
 
+  // Ostavi uključene logove (kao sada u Cloudflare-u)
+  "observability": { "enabled": true },
+
   // KV namespace koji je sada vezan kao PLACES.
   // ID nađi u Cloudflare-u: Storage & Databases -> KV -> tvoj namespace -> ID.
   "kv_namespaces": [
