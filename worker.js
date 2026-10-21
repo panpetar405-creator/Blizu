@@ -39,8 +39,8 @@ function safeEq(a, b) { // poređenje tajni bez curenja kroz vrijeme izvršavanj
 // ---------- ograničenje broja zahtjeva ----------
 // Sa Cloudflare Rate Limiting bindingom (RL / RL_STRICT) ili, bez njega, približnim brojačem u memoriji izolata.
 // (Cache API ne radi na *.workers.dev, a KV bi trošio dnevnu kvotu upisa, pa se ne koriste za brojanje.)
-const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, refresh: 5 }; // zahtjeva po IP adresi u minuti
-const STRICT = new Set(["walk", "enrich", "refresh"]);
+const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, along: 20, refresh: 5 }; // zahtjeva po IP adresi u minuti
+const STRICT = new Set(["walk", "enrich", "along", "refresh"]);
 const MEM = new Map();
 async function limited(env, req, bucket) {
   const ip = req.headers.get("CF-Connecting-IP") || "unknown";
@@ -96,7 +96,7 @@ const QF = {
 };
 const CATS = Object.keys(QF);
 const KEEP = ["name", "name:sr", "name:en", "amenity", "tourism", "historic", "natural", "leisure", "cuisine", "opening_hours", "phone", "contact:phone", "brand", "operator", "description", "image", "wikimedia_commons", "wikidata", "website", "check_date", "survey:date",
-  "diet:vegetarian", "diet:vegan", "wheelchair", "dog", "pets_allowed", "fee", "kids_area", "highchair", "changing_table"];
+  "barrier", "highway", "charge", "diet:vegetarian", "diet:vegan", "wheelchair", "dog", "pets_allowed", "fee", "kids_area", "highchair", "changing_table"];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function km(a, b) {
@@ -145,6 +145,13 @@ async function ovpOne(u, q, ms, signal) {
 }
 // par=true: svi serveri uporedo, prvi odgovor pobjeđuje (za žive upite korisnika).
 // par=false: redom, nježnije prema javnim serverima (za cron osvježavanje).
+// ---------- slojevi duž rute: benzinske pumpe i naplatne rampe ----------
+// Klijent šalje pojednostavljenu liniju rute; Overpass traži samo objekte u uskom pojasu oko nje.
+const ALONG = {
+  fuel: { q: (a) => `nwr["amenity"="fuel"]${a};`, r: 1500, limit: 400, ttl: 21600 },
+  toll: { q: (a) => `nwr["barrier"="toll_booth"]${a};nwr["highway"="toll_gantry"]${a};`, r: 400, limit: 300, ttl: 43200 },
+};
+function alongHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
 async function overpass(q, par) {
   for (let round = 0; round < 2; round++) {
     if (par) {
@@ -328,6 +335,27 @@ export default {
       const okp = (p) => p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 && p.every(Number.isFinite);
       if (pts.length < 2 || pts.length > 15 || !pts.every(okp) || pts.some((p, i) => i && km(pts[i - 1], p) > 30)) return json({ error: "bad params" }, req, 400);
       try { return json({ legs: await walkLegs(env, pts) }, req, 200, { "Cache-Control": "public, max-age=3600" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
+    }
+    if (url.pathname === "/api/along") {
+      if (req.method !== "POST") return json({ error: "method" }, req, 405, { Allow: "POST, OPTIONS" });
+      if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
+      if (await limited(env, req, "along")) return tooMany(req, "along");
+      let b = null;
+      try { b = await req.json(); } catch (e) { /* loš JSON */ }
+      const cfg = b && ALONG[b.t], pts = b && b.pts;
+      const okp = (p) => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite) && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180;
+      if (!cfg || !Array.isArray(pts) || pts.length < 2 || pts.length > 700 || !pts.every(okp)) return json({ error: "bad params" }, req, 400);
+      let len = 0; for (let i = 1; i < pts.length; i++) len += km(pts[i - 1], pts[i]);
+      if (len > 1800) return json({ error: "bad params" }, req, 400);
+      const flat = pts.map((p) => p[0].toFixed(4) + "," + p[1].toFixed(4)).join(",");
+      const key = `along:${b.t}:${alongHash(flat)}`;
+      const hit = await env.PLACES.get(key, "json");
+      if (hit) return json({ elements: hit, source: "cache" }, req, 200, { "Cache-Control": "public, max-age=600" });
+      try {
+        const els = await overpass(`[out:json][timeout:40];(${cfg.q(`(around:${cfg.r},${flat})`)});out center tags ${cfg.limit};`, true);
+        await env.PLACES.put(key, JSON.stringify(els), { expirationTtl: cfg.ttl });
+        return json({ elements: els, source: "live" }, req, 200, { "Cache-Control": "public, max-age=600" });
+      } catch (e) { return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/photo") {
       const [ref, sg] = (url.searchParams.get("ref") || "").split("~");
