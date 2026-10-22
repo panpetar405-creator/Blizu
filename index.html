@@ -394,12 +394,20 @@ async function plan(){
    const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
    let d=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(p,line[i]);if(x<d){d=x;bi=i}}if(d>reach)continue;const sk=cum[bi];if(sk<buf||D-sk<buf*.9||dk(p,[A.lat,A.lon])<buf*.8||dk(p,[B.lat,B.lon])<buf*.9)continue;
    const est=Math.max(2,Math.round(2*d*1.35/spd*60)),nt=(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
-   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,v:CATS[c].v,sc:nt-est/extra*prio-meal(c,t,s0+sk/D*base.dur/60)+fbonus(t)})}
+   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,arr:s0+sk/D*base.dur/60,v:CATS[c].v,sc:nt-est/extra*prio-meal(c,t,s0+sk/D*base.dur/60)+fbonus(t)})}
   dest.forEach(x=>cm.set(x.id,x));const all=[...cm.values()].filter(x=>!x.dst).sort((a,b)=>b.sc-a.sc);
   if(!all.length&&!dest.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
   // stanice se ravnomjerno rasporede duž puta: ruta se podijeli na jednake dionice i iz svake se uzme najbolje mjesto (razmak ≥ ~70% širine dionice)
-  const pick=[],cc={},lo=Math.min(.4,buf/D),hi=Math.max(.6,1-buf*.9/D),K=Math.min(4,Math.max(2,Math.round(D/22))),W=(hi-lo)/K;
-  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W,c=all.find(x=>x.f>=a&&x.f<b&&(cc[x.c]||0)<2&&pick.every(p=>Math.abs(p.f-x.f)>=W*.7));if(c){pick.push(c);cc[c.c]=(cc[c.c]||0)+1}}
+  const lo=Math.min(.4,buf/D),hi=Math.max(.6,1-buf*.9/D),K=Math.min(4,Math.max(2,Math.round(D/22))),W=(hi-lo)/K;
+  // kvalitet: ocjene i radno vrijeme (Google, preko Workera) za 3 najbolja kandidata po dionici; traje najviše ~6,5 s, a ako podaci ne stignu, ostaje osnovna ocjena
+  const opMin=(tx,m)=>{if(/24\s*(h|sat|hours)|otvoreno 24|open 24/i.test(tx))return true;if(/am|pm/i.test(tx))return null;const r=[...tx.matchAll(/(\d{1,2})[:.](\d{2})/g)].map(x=>+x[1]*60+ +x[2]);if(r.length<2)return null;m=((m%1440)+1440)%1440;for(let i=0;i+1<r.length;i+=2){let x=r[i],y=r[i+1];if(y<=x)y+=1440;if((m>=x&&m<=y)||(m+1440>=x&&m+1440<=y))return true}return false};
+  const rankG=(o,e)=>{if(e.rating&&e.n){const bz=(e.n*e.rating+50*4.2)/(e.n+50);o.sc+=(bz-4.2)*5;o.g={r:e.rating,n:e.n}}
+   if(e.hours&&e.hours.length==7){const d0=$("#d0").value,dt=d0?new Date(d0+"T12:00"):new Date(),tx=e.hours[(dt.getDay()+6)%7]||"";if(/closed|zatvoren|затвор/i.test(tx)){o.sc-=50;o.closed=1}else if(opMin(tx,o.arr)===false)o.sc-=6}};
+  if(API){btn.textContent="Provjeravam ocjene…";const cand=[];for(let i=0;i<K;i++){const a=lo+i*W,b=a+W;cand.push(...all.filter(x=>x.f>=a&&x.f<b).slice(0,3))}
+   let q=0;const work=async()=>{while(q<cand.length){const o=cand[q++];try{let e=EN[o.id];if(e===undefined){const r=await fetch(`${API}/api/enrich?hl=${I18N.hl()}&name=${encodeURIComponent(o.t.name)}&lat=${o.p[0]}&lng=${o.p[1]}`,{signal:AbortSignal.timeout(5000)});if(!r.ok){if(r.status==403||r.status==429)q=1e9;continue}const j=await r.json();EN[o.id]=e=j.none?false:j}if(e)rankG(o,e)}catch(z){}}};
+   await Promise.race([Promise.all([work(),work(),work(),work()]),new Promise(r=>setTimeout(r,6500))]);all.sort((a,b)=>b.sc-a.sc)}
+  const pick=[],cc={};
+  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W,c=all.find(x=>!x.closed&&x.f>=a&&x.f<b&&(cc[x.c]||0)<2&&pick.every(p=>Math.abs(p.f-x.f)>=W*.7));if(c){pick.push(c);cc[c.c]=(cc[c.c]||0)+1}}
   if(!pick.length&&all.length)pick.push(all[0]);
   sel=new Set(pick.map(c=>c.id));opts=[...new Set([...pick,...all.slice(0,14)])].sort((a,b)=>b.sc-a.sc);
   go("res");initMap();
@@ -465,7 +473,7 @@ function ph0src(c){const t=c.t,w=t.wikimedia_commons;if(/^https?:/.test(t.image|
  if(w&&/^File:/.test(w))return`<div class="gsrc">Fotografija: <a href="https://commons.wikimedia.org/wiki/${encodeURI(w.replace(/ /g,"_"))}" target="_blank" rel="noopener">Wikimedia Commons</a> (autor i licenca su na stranici fajla)</div>`;
  const m=IMGC[c.id];if(m&&m.u)return`<div class="gsrc">Fotografija: Wikimedia Commons${m.by?" · "+esc(m.by):""}</div>`;return""}
 const chip=c=>`<span class="tag" style="background:${CATS[c].bg};color:${CATS[c].c}">${CATS[c].ic} ${CATS[c].n}</span>`;
-function card(o,n){const m=o.dst?`<span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od centra</span>`:`<span>${I("clock")}${o.est} min dodatno</span><span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od rute</span>`;
+function card(o,n){const m=o.dst?`<span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od centra</span>`:`${o.g?`<span>★ ${o.g.r.toFixed(1)}</span>`:""}<span>${I("clock")}${o.est} min dodatno</span><span>${I("clock")}${fmt(o.v)} posjeta</span><span>${I("map-pin")}${o.d.toFixed(1)} km od rute</span>`;
  return`<div class="card sc"><div class="pic">${ph(o)}${n?`<span class="rk">${n}</span>`:""}</div><button class="b" onclick="opn('${o.id}')"><div class="n">${esc(o.t.name)}</div>${chip(o.c)}${isPromo(o.id)?'<span class="pbd">Promovisano</span>':""}${fbHtml(o)?`<div>${fbHtml(o)}</div>`:""}<div class="m">${m}</div></button>${I("chevron-right","chev")}<button class="add ${sel.has(o.id)?"on":""}" onclick="tog('${o.id}')" aria-label="${sel.has(o.id)?"Ukloni iz plana":"Dodaj u plan"}">${I(sel.has(o.id)?"check":"plus")}</button></div>`}
 async function tog(id){const y=document.scrollingElement.scrollTop;sel.has(id)?sel.delete(id):sel.add(id);await refresh();if(cur=="det")opn(id,1);scrollTo(0,y)}
 const _CY={а:"a",б:"b",в:"v",г:"g",д:"d",ђ:"đ",е:"e",ж:"ž",з:"z",и:"i",ј:"j",к:"k",л:"l",љ:"lj",м:"m",н:"n",њ:"nj",о:"o",п:"p",р:"r",с:"s",т:"t",ћ:"ć",у:"u",ф:"f",х:"h",ц:"c",ч:"č",џ:"dž",ш:"š"};
