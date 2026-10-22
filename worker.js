@@ -1,4 +1,4 @@
-// BLIZU API – Cloudflare Worker
+// MESTIGO API – Cloudflare Worker
 // Dnevno povlači podatke iz OpenStreetMap-a (cron), čuva ih u KV i služi aplikaciji.
 // Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN, secret GOOGLE_KEY (Places API New).
 // Opciono: secret ORS_KEY (OpenRouteService) za pešačke rute; bez njega se koristi javni OSRM foot server.
@@ -416,7 +416,7 @@ export default {
       }
       return res;
     }
-    if (url.pathname !== "/api/places") return json({ name: "BLIZU API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
+    if (url.pathname !== "/api/places") return json({ name: "MESTIGO API", usage: "/api/places?lat=&lng=&r=&cat=" }, req);
 
     if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
     if (await limited(env, req, "places")) return tooMany(req, "places");
