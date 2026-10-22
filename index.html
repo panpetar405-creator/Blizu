@@ -142,7 +142,7 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .mk{width:38px;height:38px;border-radius:50%;border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005}.mk .i{width:19px;height:19px;stroke-width:2.1;--do:0}
 .rd{width:12px;height:12px;border-radius:50%;background:#1b2a47;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}
 .pin{position:relative;width:36px;height:46px;filter:drop-shadow(0 2px 3px #0004)}.pin svg{width:36px;height:46px;display:block}
-.pin span{position:absolute;left:44px;top:2px;background:#fff;border-radius:14px;padding:5px 14px;font:700 17px/1.2 system-ui,sans-serif;color:var(--tx);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 6px #0003}
+.pin span{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);background:#fff;border-radius:12px;padding:4px 12px;font:700 15px/1.2 system-ui,sans-serif;color:var(--tx);white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 6px #0003}
 .co{position:absolute;bottom:34px;background:#fff;border-radius:12px;padding:4px 10px;box-shadow:0 2px 10px #0003;white-space:nowrap;line-height:1.2}
 .co b{font-size:13px;display:block}.co small{display:none}
 .co::after{content:"";position:absolute;bottom:-7px;width:14px;height:14px;background:#fff;transform:rotate(45deg);border-radius:2px}
@@ -766,10 +766,10 @@ function build(kind,els){var g=L.layerGroup(),seen=[],ms=[],M=MS[kind];
   var h='<div class="lm'+(kind==="toll"?" t":"")+'">'+I(kind)+"</div>";
   var mk=L.marker(p,{icon:L.divIcon({html:h,className:"",iconSize:[28,28],iconAnchor:[14,14]}),zIndexOffset:-100})
    .bindPopup('<div class="lpp"><b>'+esc(nm||T(M.n))+"</b>"+sub.map(function(x){return"<small>"+x+"</small>"}).join("")+"</div>").addTo(g);ms.push(mk)});
- // razrjeđivanje: na manjem zumu prikazuje se samo po jedna oznaka na svakih ~56 px (i ne preko izabranih stanica); zumiranjem se pojavljuju ostale
- function dec(){var m=g._dm;if(!m)return;var gap=56,kept=[],stp=[];
-  try{(S.st||[]).forEach(function(s){stp.push(m.latLngToLayerPoint(s.p))});[A,B].forEach(function(x){if(x)stp.push(m.latLngToLayerPoint([x.lat,x.lon]))})}catch(e){}
-  ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<46})&&!kept.some(function(z){return z.distanceTo(q)<gap});
+ // razrjeđivanje: na manjem zumu prikazuje se samo po jedna oznaka na svakih ~56 px (i ne preko izabranih stanica i pinova); zumiranjem se pojavljuju ostale
+ function dec(){var m=g._dm;if(!m)return;var gap=38,kept=[],stp=[];
+  try{(S.st||[]).forEach(function(s){stp.push(m.latLngToLayerPoint(s.p))});[A,B].forEach(function(x){if(x){var pp=m.latLngToLayerPoint([x.lat,x.lon]);stp.push(pp);stp.push(pp.subtract([0,22]))}})}catch(e){}
+  ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<30})&&!kept.some(function(z){return z.distanceTo(q)<gap});
    if(ok)kept.push(q);if(ok&&!m.hasLayer(k))m.addLayer(k);else if(!ok&&m.hasLayer(k))m.removeLayer(k)});g._vis=kept.length}
  g.onAdd=function(m){L.LayerGroup.prototype.onAdd.call(this,m);this._dm=m;m.on("zoomend moveend",dec);dec()};
  g.onRemove=function(m){m.off("zoomend moveend",dec);this._dm=null;L.LayerGroup.prototype.onRemove.call(this,m)};
