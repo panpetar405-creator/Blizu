@@ -430,7 +430,7 @@ async function refresh(fit){
  opts.filter(o=>!sel.has(o.id)).forEach(o=>L.marker(o.p,{icon:ic('<div class="dot o"></div>',[12,12])}).on("click",()=>opn(o.id)).addTo(layer));
  st.forEach(s=>{const q=nearest(s.p),k=CATS[s.c].c;L.polyline([q,s.p],{color:k,weight:2.5,opacity:.8,dashArray:"2 5",lineCap:"round"}).addTo(layer);L.marker(q,{icon:ic('<div class="rd"></div>',[12,12]),interactive:false}).addTo(layer)});
  L.marker([A.lat,A.lon],{icon:pin("#5E6B3A",A.name),zIndexOffset:900}).addTo(layer);L.marker([B.lat,B.lon],{icon:pin("#B4472A",B.name),zIndexOffset:900}).addTo(layer);
- st.forEach(s=>L.marker(s.p,{icon:ic(`<div class="mk" style="background:${CATS[s.c].c}">${CATS[s.c].ic}</div>`,[38,38]),zIndexOffset:600}).on("click",()=>opn(s.id)).addTo(layer));
+ st.forEach(s=>L.marker(s.p,{icon:ic(`<div class="mk" style="background:${CATS[s.c].c}">${CATS[s.c].ic}</div>`,[38,38]),zIndexOffset:1000}).on("click",()=>opn(s.id)).addTo(layer));
  const vis=st.reduce((a,s)=>a+s.v,0),tot=rt.dur/60+vis,km=rt.dist/1000;S.vis=vis;S.tot=tot;S.km=km;
  $("#pn").innerHTML=`<button class="sh1" onclick="go('pl')"><h2>Preporučeni plan</h2>${I("chevron-right")}</button>
  <div class="sh2">${st.length} stanica<i>•</i>${fmt(Math.max(0,tot-base.dur/60))} dodatno<i>•</i>${km.toFixed(0)} km</div>
@@ -769,7 +769,7 @@ function build(kind,els){var g=L.layerGroup(),seen=[],ms=[],M=MS[kind];
  // razrjeđivanje: na manjem zumu prikazuje se samo po jedna oznaka na svakih ~56 px (i ne preko izabranih stanica i pinova); zumiranjem se pojavljuju ostale
  function dec(){var m=g._dm;if(!m)return;var gap=32,kept=[],stp=[];
   try{(S.st||[]).forEach(function(s){stp.push(m.latLngToLayerPoint(s.p))});[A,B].forEach(function(x){if(x){var pp=m.latLngToLayerPoint([x.lat,x.lon]);stp.push(pp);stp.push(pp.subtract([0,22]))}})}catch(e){}
-  ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<30})&&!kept.some(function(z){return z.distanceTo(q)<gap});
+  ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<24})&&!kept.some(function(z){return z.distanceTo(q)<gap});
    if(ok)kept.push(q);if(ok&&!m.hasLayer(k))m.addLayer(k);else if(!ok&&m.hasLayer(k))m.removeLayer(k)});g._vis=kept.length}
  g.onAdd=function(m){L.LayerGroup.prototype.onAdd.call(this,m);this._dm=m;m.on("zoomend moveend",dec);dec()};
  g.onRemove=function(m){m.off("zoomend moveend",dec);this._dm=null;L.LayerGroup.prototype.onRemove.call(this,m)};
