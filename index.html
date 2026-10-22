@@ -38,11 +38,11 @@ input{font:inherit;color:inherit}
 #pks .pkd button.td{box-shadow:inset 0 0 0 2px var(--g)}#pks .pkd button.on.td{box-shadow:none}#pks .pkd button:disabled{opacity:.28}
 .f{position:relative}.sg{position:absolute;left:-1px;right:-1px;top:calc(100% + 6px);background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 24px #0002;z-index:60;overflow:hidden}.sg[hidden]{display:none}
 .sg button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;padding:10px 14px;min-height:52px;border-bottom:1px solid var(--bd)}.sg button:last-child{border:0}.sg button:active{background:var(--bg)}.sg b{font-size:16px;font-weight:600}.sg small{color:var(--mu);font-size:13px}
-.lyr{position:absolute;z-index:650;right:14px;top:calc(env(safe-area-inset-top) + 76px);display:flex;flex-direction:column;gap:10px}
+.lyr{position:absolute;z-index:650;right:20px;bottom:calc(100% + 82px);display:flex;flex-direction:column;gap:10px}
 .lyr button{width:46px;height:46px;border-radius:50%;background:#fff;color:var(--sea);box-shadow:0 2px 10px #0003;display:flex;align-items:center;justify-content:center;transition:transform .12s}.lyr button:active{transform:scale(.94)}
 .lyr button .i{width:22px;height:22px}.lyr button.on{background:var(--sea);color:#fff}.lyr button.ltl.on{background:#B7800F}.lyr button.busy{opacity:.55;pointer-events:none}
 .lm{width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid var(--sea);color:var(--sea);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px #0004}.lm .i{width:15px;height:15px}.lm.t{border-color:#B7800F;color:#B7800F}
-.lyn{position:absolute;z-index:660;right:70px;top:calc(env(safe-area-inset-top) + 80px);max-width:min(70%,260px);background:#23262Bf0;color:#fff;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.35}.lyn[hidden]{display:none}
+.lyn{position:absolute;z-index:660;right:76px;bottom:calc(100% + 86px);max-width:min(70%,260px);background:#23262Bf0;color:#fff;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.35}.lyn[hidden]{display:none}
 .lpp b{display:block;font-size:14px}.lpp small{display:block;color:#6b6358;font-size:12px;line-height:1.35;margin-top:2px}
 .ah{margin:24px 0 10px}
 .row{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;background:#fff;border:1px solid var(--bd);border-radius:16px;color:var(--tx);font-weight:600;font-size:15.5px;text-align:left;text-decoration:none;margin:0 0 8px;transition:transform .12s,background .12s}.row:active{transform:scale(.985);background:var(--bg)}
@@ -229,8 +229,8 @@ a.inf{color:var(--mu);text-decoration:none}
 <section class="s" id="res">
  <div id="map"></div>
  <div class="rh"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>Rezultat pretrage</div>
- <div class="lyr"><button type="button" id="lyf"><svg class="i" aria-hidden="true"><use href="#i-fuel"/></svg></button><button type="button" id="lyt" class="ltl"><svg class="i" aria-hidden="true"><use href="#i-toll"/></svg></button></div><div class="lyn" id="lyn" hidden></div>
- <div class="sheet"><button class="loc" onclick="locate()" aria-label="Moja lokacija"><svg class="i" aria-hidden="true"><use href="#i-locate"/></svg></button><div id="pn"></div></div>
+ 
+ <div class="sheet"><div class="lyr"><button type="button" id="lyf"><svg class="i" aria-hidden="true"><use href="#i-fuel"/></svg></button><button type="button" id="lyt" class="ltl"><svg class="i" aria-hidden="true"><use href="#i-toll"/></svg></button></div><div class="lyn" id="lyn" hidden></div><button class="loc" onclick="locate()" aria-label="Moja lokacija"><svg class="i" aria-hidden="true"><use href="#i-locate"/></svg></button><div id="pn"></div></div>
 </section>
 <section class="s" id="sel"><div class="top"><button onclick="back()" aria-label="Nazad"><svg class="i" aria-hidden="true"><use href="#i-arrow-left"/></svg></button>Gotov izbor stanica</div><div class="pad" id="selc"></div><div class="fix"><button class="btn" onclick="go('pl')">Pogledaj plan <svg class="i" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div></section>
 <section class="s" id="det"><div id="detc"></div></section>
