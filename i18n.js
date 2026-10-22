@@ -107,7 +107,7 @@
   a("Plan putovanja", "Trip plan", "Reiseplan", "План поездки");
   // obavještenje o lokaciji i prijava greške
   a("Koristimo tvoju lokaciju", "We use your location", "Wir verwenden deinen Standort", "Мы используем ваше местоположение");
-  a("Lokacija se koristi samo kad je ti tražiš: za polazište, mapu i praćenje puta. Blizu nema korisničke naloge i ne povezuje tvoj položaj s tobom.", "Your location is used only when you ask for it: for the starting point, the map and live tracking. Blizu has no user accounts and does not link your position to you.", "Dein Standort wird nur verwendet, wenn du ihn anforderst: für den Startpunkt, die Karte und die Live-Verfolgung. Blizu hat keine Benutzerkonten und verknüpft deinen Standort nicht mit dir.", "Ваше местоположение используется только по вашему запросу: для начальной точки, карты и отслеживания в пути. В Blizu нет аккаунтов, и мы не связываем ваше положение с вами.");
+  a("Lokacija se koristi samo kad je ti tražiš: za polazište, mapu i praćenje puta. Mestigo nema korisničke naloge i ne povezuje tvoj položaj s tobom.", "Your location is used only when you ask for it: for the starting point, the map and live tracking. Mestigo has no user accounts and does not link your position to you.", "Dein Standort wird nur verwendet, wenn du ihn anforderst: für den Startpunkt, die Karte und die Live-Verfolgung. Mestigo hat keine Benutzerkonten und verknüpft deinen Standort nicht mit dir.", "Ваше местоположение используется только по вашему запросу: для начальной точки, карты и отслеживания в пути. В Mestigo нет аккаунтов, и мы не связываем ваше положение с вами.");
   a("Da bismo našli rutu, mjesta i prognozu, koordinate se šalju vanjskim servisima. Detalji su u", "To find the route, places and forecast, coordinates are sent to external services. Details are in the", "Um Route, Orte und Wetter zu finden, werden Koordinaten an externe Dienste gesendet. Details findest du in der", "Чтобы найти маршрут, места и прогноз, координаты передаются внешним сервисам. Подробности — в");
   a("politici privatnosti", "privacy policy", "Datenschutzerklärung", "политике конфиденциальности");
   a("Politika privatnosti", "Privacy policy", "Datenschutzerklärung", "Политика конфиденциальности");
@@ -124,7 +124,7 @@
   a("Prijava e-mailom još nije podešena.", "Reporting by email isn't set up yet.", "Die Meldung per E-Mail ist noch nicht eingerichtet.", "Отправка жалоб по e-mail пока не настроена.");
   a("Podaci o mjestu dolaze iz OpenStreetMap-a. Ako znaš tačno stanje, možeš ga ispraviti direktno, a ispravku će vidjeti svi:", "Place data comes from OpenStreetMap. If you know the correct information, you can fix it directly, and everyone will see the fix:", "Die Ortsdaten stammen aus OpenStreetMap. Wenn du den richtigen Stand kennst, kannst du ihn direkt korrigieren, und alle sehen die Korrektur:", "Данные о месте берутся из OpenStreetMap. Если вы знаете, как правильно, можете исправить их напрямую — исправление увидят все:");
   a("otvori mjesto na OpenStreetMap-u", "open the place on OpenStreetMap", "Ort auf OpenStreetMap öffnen", "открыть место на OpenStreetMap");
-  a("Obrisati sve što Blizu čuva na ovom uređaju (planove, putovanja, favorite, postavke i privremene podatke)?", "Delete everything Blizu stores on this device (plans, trips, favourites, settings and temporary data)?", "Alles löschen, was Blizu auf diesem Gerät speichert (Pläne, Reisen, Favoriten, Einstellungen und temporäre Daten)?", "Удалить всё, что Blizu хранит на этом устройстве (планы, поездки, избранное, настройки и временные данные)?");
+  a("Obrisati sve što Mestigo čuva na ovom uređaju (planove, putovanja, favorite, postavke i privremene podatke)?", "Delete everything Mestigo stores on this device (plans, trips, favourites, settings and temporary data)?", "Alles löschen, was Mestigo auf diesem Gerät speichert (Pläne, Reisen, Favoriten, Einstellungen und temporäre Daten)?", "Удалить всё, что Mestigo хранит на этом устройстве (планы, поездки, избранное, настройки и временные данные)?");
   // plan i rezultat
   a("Početak putovanja", "Start of trip", "Reisebeginn", "Начало поездки");
   a("Cilj putovanja", "Destination", "Reiseziel", "Конец поездки");
@@ -166,8 +166,8 @@
   a("Web stranica", "Website", "Webseite", "Сайт");
   a("Rezervacija i recenzije", "Reservations and reviews", "Reservierung und Bewertungen", "Бронирование и отзывы");
   a("Ulaznice za ovo mjesto", "Tickets for this place", "Tickets für diesen Ort", "Билеты в это место");
-  a("Partnerski link: Blizu može dobiti proviziju.", "Partner link: Blizu may earn a commission.", "Partnerlink: Blizu kann eine Provision erhalten.", "Партнёрская ссылка: Blizu может получить комиссию.");
-  a("Neki su linkovi partnerski: Blizu može dobiti proviziju, a tvoja cijena ostaje ista.", "Some links are partner links: Blizu may earn a commission, and your price stays the same.", "Einige Links sind Partnerlinks: Blizu kann eine Provision erhalten, dein Preis bleibt gleich.", "Некоторые ссылки партнёрские: Blizu может получить комиссию, а ваша цена не изменится.");
+  a("Partnerski link: Mestigo može dobiti proviziju.", "Partner link: Mestigo may earn a commission.", "Partnerlink: Mestigo kann eine Provision erhalten.", "Партнёрская ссылка: Mestigo может получить комиссию.");
+  a("Neki su linkovi partnerski: Mestigo može dobiti proviziju, a tvoja cijena ostaje ista.", "Some links are partner links: Mestigo may earn a commission, and your price stays the same.", "Einige Links sind Partnerlinks: Mestigo kann eine Provision erhalten, dein Preis bleibt gleich.", "Некоторые ссылки партнёрские: Mestigo может получить комиссию, а ваша цена не изменится.");
   a("Promovisano", "Promoted", "Beworben", "Реклама");
   a("promovisano", "promoted", "beworben", "реклама");
   a("Promovisano · lokalni partneri", "Promoted · local partners", "Beworben · lokale Partner", "Реклама · местные партнёры");
@@ -212,7 +212,7 @@
   a("Zatvoreno u to vrijeme", "Closed at that time", "Zu dieser Zeit geschlossen", "В это время закрыто");
   // ispis
   a("Vremena su procjena. Radno vrijeme provjeri prije dolaska. Podaci: OpenStreetMap.", "Times are estimates. Check opening hours before you go. Data: OpenStreetMap.", "Zeiten sind Schätzungen. Prüfe die Öffnungszeiten vor der Ankunft. Daten: OpenStreetMap.", "Время приблизительное. Проверьте часы работы перед посещением. Данные: OpenStreetMap.");
-  a("Otvori ovaj plan u aplikaciji Blizu", "Open this plan in the Blizu app", "Diesen Plan in der Blizu-App öffnen", "Открыть этот план в приложении Blizu");
+  a("Otvori ovaj plan u aplikaciji Mestigo", "Open this plan in the Mestigo app", "Diesen Plan in der Mestigo-App öffnen", "Открыть этот план в приложении Mestigo");
   a("Ruta u Google Maps", "Route in Google Maps", "Route in Google Maps", "Маршрут в Google Maps");
   // partneri
   a("Imaš restoran, smještaj ili iskustvo uz rutu?", "Do you have a restaurant, accommodation or experience along the route?", "Hast du ein Restaurant, eine Unterkunft oder ein Erlebnis an der Route?", "У вас есть ресторан, жильё или впечатления вдоль маршрута?");
@@ -244,7 +244,7 @@
   a("Izvezi podatke", "Export data", "Daten exportieren", "Экспортировать данные");
   a("Uvezi podatke", "Import data", "Daten importieren", "Импортировать данные");
   a("Izvoz čuva planove, putovanja i favorite u fajl, a uvoz ih spaja s onim što već imaš.", "Export saves your plans, trips and favourites to a file, and import merges them with what you already have.", "Der Export speichert deine Pläne, Reisen und Favoriten in einer Datei, der Import führt sie mit deinen vorhandenen Daten zusammen.", "Экспорт сохраняет ваши планы, поездки и избранное в файл, а импорт объединяет их с уже имеющимися данными.");
-  a("Fajl nije ispravan Blizu izvoz.", "This file is not a valid Blizu export.", "Diese Datei ist kein gültiger Blizu-Export.", "Этот файл не является корректным экспортом Blizu.");
+  a("Fajl nije ispravan Mestigo izvoz.", "This file is not a valid Mestigo export.", "Diese Datei ist kein gültiger Mestigo-Export.", "Этот файл не является корректным экспортом Mestigo.");
   a("Lokacija", "Location", "Standort", "Место");
   a("Izaberi putovanje ili napravi novo.", "Choose a trip or create a new one.", "Wähle eine Reise oder erstelle eine neue.", "Выберите поездку или создайте новую.");
   a("Naziv novog putovanja", "New trip name", "Name der neuen Reise", "Название новой поездки");

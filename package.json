@@ -1,7 +1,7 @@
 {
   "name": "blizu",
   "private": true,
-  "description": "Blizu — planer zaustavljanja na putu (statična PWA + Cloudflare Worker)",
+  "description": "Mestigo — planer zaustavljanja na putu (statična PWA + Cloudflare Worker)",
   "scripts": {
     "test": "node --test",
     "stamp": "node tools/stamp-sw.mjs"

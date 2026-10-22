@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Blizu — generator SEO stranica (faza 1): gradovi + situacije.
+ * Mestigo — generator SEO stranica (faza 1): gradovi + situacije.
  *
  * Upotreba (iz korijena repozitorijuma, Node 18+):
  *   node tools/build-seo.mjs              # koristi keš ako postoji, inače povlači podatke sa Overpass-a
@@ -72,7 +72,7 @@ const QS = 'nwr@[amenity~"^(restaurant|cafe|bar|pub|ice_cream|theatre|cinema|art
 async function fetchOverpass(c) {
   const A = `(around:${c.r},${c.lat},${c.lng})`;
   const q = `[out:json][timeout:60];(${QS.replace(/@/g, A)});out center tags 800;`;
-  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'BlizuSEO/1.0 (+https://github.com/panpetar405-creator/Blizu)' }, signal: AbortSignal.timeout(75000) })
+  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'MestigoSEO/1.0 (+https://github.com/panpetar405-creator/Blizu)' }, signal: AbortSignal.timeout(75000) })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${new URL(u).host}: HTTP ${r.status}`)))).then((j) => (j.elements?.length ? j.elements : Promise.reject(new Error(`${new URL(u).host}: prazan odgovor`))))
     .catch((e) => Promise.reject(e.name === 'TimeoutError' ? new Error(`${new URL(u).host}: istekao rok`) : e));
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -191,12 +191,12 @@ footer{max-width:760px;margin:30px auto;padding:0 18px 30px;font-size:13px;color
 function shell({ title, desc, url, body, ld }) {
   return `<!doctype html>
 <html lang="sr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)} | Blizu</title><meta name="description" content="${esc(desc)}">
+<title>${esc(title)} | Mestigo</title><meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${url}"><meta name="robots" content="index,follow,max-image-preview:large">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Blizu"><meta property="og:locale" content="sr_ME"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${BASE}img/og-image.jpg">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Mestigo"><meta property="og:locale" content="sr_ME"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${BASE}img/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#082b36"><link rel="icon" href="${BASE}icons/icon-round-192.png">
 <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script><style>${CSS}</style></head>
-<body><header><a href="${BASE}">Bli<span>zu</span></a></header><main>${body}</main>
+<body><header><a href="${BASE}">Mesti<span>go</span></a></header><main>${body}</main>
 <footer>Podaci o mjestima: © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap doprinosioci</a>. Radno vrijeme i dostupnost mogu se razlikovati — provjeri prije polaska.</footer></body></html>`;
 }
 const crumbs = (items) => ({ '@type': 'BreadcrumbList', itemListElement: items.map((x, i) => ({ '@type': 'ListItem', position: i + 1, name: x[0], item: x[1] })) });
@@ -205,10 +205,10 @@ const itemList = (ps) => ({ '@type': 'ItemList', itemListElement: ps.map((p, i) 
 const placeLi = (p) => `<li><strong>${esc(p.name)}</strong> <small>· ${esc(p.label)}${p.d < 1 ? ` · ${Math.round(p.d * 1000 / 10) * 10} m od centra` : ` · ${p.d.toFixed(1).replace('.', ',')} km od centra`}</small>${p.note ? `<span class="note">${esc(p.note)}</span>` : ''}${p.tip ? `<span class="note">Savjet: ${esc(p.tip)}</span>` : ''} <a href="${mapsUrl(p)}" rel="noopener">karta</a></li>`;
 
 function cityPage(c, places) {
-  const url = `${BASE}grad/${c.slug}/`, bc = [['Blizu', BASE], ['Gradovi', BASE + 'grad/'], [c.name, url]];
+  const url = `${BASE}grad/${c.slug}/`, bc = [['Mestigo', BASE], ['Gradovi', BASE + 'grad/'], [c.name, url]];
   const sections = Object.entries(CATS).map(([k, t]) => [k, t, places.filter((p) => p.cat === k).slice(0, 6)]).filter((s) => s[2].length >= 2);
   const body = `${bcHtml(bc)}<h1>Šta raditi u ${esc(c.loc)}</h1><p class="lead">${esc(c.intro)}</p>
-<a class="cta" href="${BASE}">Napravi plan u aplikaciji Blizu</a>
+<a class="cta" href="${BASE}">Napravi plan u aplikaciji Mestigo</a>
 <h2>Planovi za ${esc(c.name)}</h2><div class="chips">${SITUATIONS.map((s) => `<a href="${BASE}grad/${c.slug}/${s.slug}/">${esc(s.h1(c))}</a>`).join('')}</div>
 ${sections.map(([k, t, ps]) => `<h2>${t} u ${esc(c.loc)}</h2><ul class="places">${ps.map(placeLi).join('')}</ul>`).join('\n')}`;
   const all = sections.flatMap((s) => s[2]);
@@ -217,16 +217,16 @@ ${sections.map(([k, t, ps]) => `<h2>${t} u ${esc(c.loc)}</h2><ul class="places">
     ld: { '@context': 'https://schema.org', '@graph': [crumbs(bc), itemList(all.slice(0, 20))] } });
 }
 function situationPage(c, s, plan) {
-  const url = `${BASE}grad/${c.slug}/${s.slug}/`, bc = [['Blizu', BASE], ['Gradovi', BASE + 'grad/'], [c.name, `${BASE}grad/${c.slug}/`], [s.h1(c), url]];
+  const url = `${BASE}grad/${c.slug}/${s.slug}/`, bc = [['Mestigo', BASE], ['Gradovi', BASE + 'grad/'], [c.name, `${BASE}grad/${c.slug}/`], [s.h1(c), url]];
   const body = `${bcHtml(bc)}<h1>${esc(s.h1(c))}</h1><p class="lead">${esc(s.lead(c))}</p>
 <ol class="plan">${plan.map((st) => `<li><span class="t">${st.time}</span> · <strong>${esc(st.label)}</strong> <span class="w">(oko ${st.mins} min${st.walk ? `, ${st.walk} min hoda od prethodne stanice` : ''})</span><br><strong>${esc(st.p.name)}</strong> <small>· ${esc(st.p.label)}</small>${st.p.note ? `<span class="note">${esc(st.p.note)}</span>` : ''}${st.p.tip ? `<span class="note">Savjet: ${esc(st.p.tip)}</span>` : ''} <a href="${mapsUrl(st.p)}" rel="noopener">karta</a></li>`).join('')}</ol>
-<a class="cta" href="${BASE}">Prilagodi plan svom vremenu u Blizu</a>
+<a class="cta" href="${BASE}">Prilagodi plan svom vremenu u Mestigo</a>
 <h2>Ostali planovi za ${esc(c.name)}</h2><div class="chips"><a href="${BASE}grad/${c.slug}/">Sve o ${esc(c.loc)}</a>${SITUATIONS.filter((x) => x !== s).map((x) => `<a href="${BASE}grad/${c.slug}/${x.slug}/">${esc(x.h1(c))}</a>`).join('')}</div>`;
   return shell({ title: s.title(c), url, desc: `${s.lead(c)} ${plan.length} stanice sa vremenima i pješačkim udaljenostima.`.slice(0, 300), body,
     ld: { '@context': 'https://schema.org', '@graph': [crumbs(bc), itemList(plan.map((x) => x.p))] } });
 }
 function hubPage(cities) {
-  const url = BASE + 'grad/', bc = [['Blizu', BASE], ['Gradovi', url]];
+  const url = BASE + 'grad/', bc = [['Mestigo', BASE], ['Gradovi', url]];
   const body = `${bcHtml(bc)}<h1>Šta raditi u gradovima Crne Gore</h1><p class="lead">Izaberi grad i dobij gotove planove: kafa, šetnja, posjeta, ručak, večera i večernji izlazak.</p>
 <ul class="places">${cities.map((c) => `<li><a href="${BASE}grad/${c.slug}/"><strong>${esc(c.name)}</strong></a> — ${SITUATIONS.map((s) => `<a href="${BASE}grad/${c.slug}/${s.slug}/">${esc(s.h1(c))}</a>`).join(' · ')}</li>`).join('')}</ul>`;
   return shell({ title: 'Šta raditi u gradovima Crne Gore', url, desc: 'Gotovi planovi za dan u Kotoru, Budvi i Herceg Novom: kafa, šetnja, posjete, ručak, večera i izlazak.', body,

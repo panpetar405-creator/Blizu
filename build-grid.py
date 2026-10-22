@@ -25,7 +25,7 @@ CYR = re.compile("[\u0400-\u04FF]")
 
 
 def keep(t):
-    """Da li je objekat mjesto koje Blizu prikazuje (isto što i upiti u aplikaciji)."""
+    """Da li je objekat mjesto koje Mestigo prikazuje (isto što i upiti u aplikaciji)."""
     if not t.get("name"):
         return False
     if any(k.startswith(("disused", "abandoned", "was:", "demolished", "razed")) for k in t):

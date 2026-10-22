@@ -137,7 +137,7 @@ async function ovpOne(u, q, ms, signal) {
   const host = u.replace(/^https:\/\//, "").split("/")[0].slice(0, 14);
   try {
     // Overpass serveri traže prepoznatljiv User-Agent; bez njega ih dio odbija zahtjeve iz Workera
-    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Blizu/1.0 (+https://github.com/panpetar405-creator/Blizu)", Accept: "application/json" }, signal: ac.signal });
+    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mestigo/1.0 (+https://github.com/panpetar405-creator/Blizu)", Accept: "application/json" }, signal: ac.signal });
     if (!r.ok) { addWhy(host + " " + r.status); return null; }
     const j = await r.json();
     // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
@@ -292,7 +292,7 @@ async function walkLegs(env, pts) {
     const d = (await r.json()).distances;
     legs = d.map((row, i) => row[i]);
   } else {
-    const r = await fetch("https://routing.openstreetmap.de/routed-foot/route/v1/foot/" + pts.map((p) => p[1].toFixed(5) + "," + p[0].toFixed(5)).join(";") + "?overview=false", { headers: { "User-Agent": "Blizu/1.0 (walking legs)" } });
+    const r = await fetch("https://routing.openstreetmap.de/routed-foot/route/v1/foot/" + pts.map((p) => p[1].toFixed(5) + "," + p[0].toFixed(5)).join(";") + "?overview=false", { headers: { "User-Agent": "Mestigo/1.0 (walking legs)" } });
     if (!r.ok) throw new Error("osrm");
     const j = await r.json();
     if (j.code !== "Ok" || !j.routes || !j.routes[0]) throw new Error("osrm");
@@ -316,7 +316,7 @@ async function geocode(env, q, hl) {
   const u = new URL(base);
   u.searchParams.set("q", q); u.searchParams.set("limit", "5"); u.searchParams.set("lang", lg);
   u.searchParams.set("lat", "43.5"); u.searchParams.set("lon", "19.0"); // blaga prednost Balkanu
-  const r = await fetch(u.toString(), { headers: { "User-Agent": "Blizu/1.0 (geocoding via worker)" } });
+  const r = await fetch(u.toString(), { headers: { "User-Agent": "Mestigo/1.0 (geocoding via worker)" } });
   if (!r.ok) throw new Error("geocoder");
   const out = [];
   for (const f of (await r.json()).features || []) {
