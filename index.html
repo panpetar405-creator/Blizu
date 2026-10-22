@@ -3,9 +3,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Blizu – put od A do B</title>
 <meta name="description" content="Putuješ od A do B? Pronađi šta vrijedi doživjeti usput: hrana, vidikovci, priroda, kultura i istorija.">
+<meta property="og:type" content="website"><meta property="og:title" content="Blizu – put od A do B"><meta property="og:description" content="Otkrij više na putu: hrana, vidikovci, priroda, kultura i istorija usput.">
+<meta property="og:image" content="https://panpetar405-creator.github.io/Blizu/img/og-image.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#23262B">
 <link rel="manifest" href="manifest.json"><link rel="icon" href="img/icon.svg">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin><link rel="preload" as="image" href="img/hero.jpg">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin><link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin><link rel="preload" as="image" href="img/hero.jpg?v=2">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"></noscript>
 <style>
 :root{--tb:64px;--g:#B4472A;--tx:#23262B;--mu:#706a60;--bd:#E4DCCB;--bg:#F4EEE3;--pa:#FBF8F2;--am:#F2B33D;--ol:#5E6B3A;--sea:#1F3A4D}
@@ -17,7 +19,7 @@ input{font:inherit;color:inherit}
 .top button,.rb,.add,.f button,#nb button{display:inline-flex;align-items:center;justify-content:center}
 .s{display:none;min-height:100vh;min-height:100dvh}.s.on{display:block}
 #home{background:var(--pa);color:var(--tx);padding:0 0 calc(var(--tb) + env(safe-area-inset-bottom) + 20px);flex-direction:column;justify-content:flex-start}
-#home .hh{position:relative;flex:1;min-height:280px;padding:calc(env(safe-area-inset-top) + 22px) 20px 0;color:#fff;background:linear-gradient(#000a,#0000 42%),url(img/hero.jpg) center 38%/cover #372d2f}
+#home .hh{position:relative;flex:1;min-height:280px;padding:calc(env(safe-area-inset-top) + 22px) 20px 0;color:#fff;background:linear-gradient(#000a,#0000 42%),url(img/hero.jpg?v=2) center 38%/cover #372d2f}
 #home .hs{position:relative;flex:none;display:flex;flex-direction:column;margin-top:-26px;padding:16px 18px 2px;background:var(--pa);border-radius:26px 26px 0 0;box-shadow:0 -8px 24px #0003}
 #home .logo,#home .lang{text-shadow:0 1px 8px #0006}
 #home.on{display:flex}
@@ -113,7 +115,7 @@ h3{font-size:15px;margin:20px 0 8px}
 body.tb .pad{padding-bottom:90px}
 #home.on,#fin.on{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
-#fin{background:linear-gradient(#0003,#000b),url(img/hero.jpg) center/cover;color:#fff;padding:24px 20px;flex-direction:column;justify-content:flex-end;gap:10px}#fin.on{display:flex}#fin h1{font-size:30px;line-height:1.2}
+#fin{background:linear-gradient(#0003,#000b),url(img/hero.jpg?v=2) center/cover;color:#fff;padding:24px 20px;flex-direction:column;justify-content:flex-end;gap:10px}#fin.on{display:flex}#fin h1{font-size:30px;line-height:1.2}
 #nav{position:relative;height:100dvh;overflow:hidden}#nmap{position:absolute;inset:0;z-index:0}
 #nb{position:absolute;z-index:10;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 12px);background:#23262B;color:#fff;border-radius:16px;padding:12px 14px;display:flex;gap:12px;align-items:center}
 #nb span{width:44px;display:flex;justify-content:center}#nb span .i{width:34px;height:34px}#nb div{flex:1}#nb b{font-size:19px}#nb small{opacity:.8}#nb button{color:#fff;font-size:20px}
