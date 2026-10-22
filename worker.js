@@ -387,7 +387,7 @@ export default {
       if (!cfg || !Array.isArray(pts) || pts.length < 2 || pts.length > 700 || !pts.every(okp)) return json({ error: "bad params" }, req, 400);
       let len = 0; for (let i = 1; i < pts.length; i++) len += km(pts[i - 1], pts[i]);
       if (len > 1800) return json({ error: "bad params" }, req, 400);
-      const flat = pts.map((p) => p[0].toFixed(4) + "," + p[1].toFixed(4)).join(",");
+      const flat = pts.map((p) => p[0].toFixed(2) + "," + p[1].toFixed(2)).join(","); // grublji ključ keša (~1 km): ista ruta se ne traži ponovo
       const key = `along:${b.t}:${alongHash(flat)}`;
       let hit = null; try { hit = await env.PLACES.get(key, "json"); } catch (e) { /* KV nedostupan: nastavi bez keša */ }
       if (hit) return json({ elements: hit, source: "cache" }, req, 200, { "Cache-Control": "public, max-age=600" });
