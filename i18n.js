@@ -27,6 +27,7 @@
   /* ---------- rječnik ---------- */
   // početni ekran i forma
   a("Ne propusti", "Don't miss", "Verpasse nicht", "Не пропусти");
+  a("Put je dio odmora", "The journey is part of the holiday", "Die Reise gehört zum Urlaub", "Дорога — часть отдыха");
   a("ono između.", "what's in between.", "das Dazwischen.", "то, что между.");
   a("Otkrij skrivene dragulje, lokalne ukuse i mjesta vrijedna zaustavljanja — sve na tvojoj ruti.", "Discover hidden gems, local flavours and places worth stopping for — all along your route.", "Entdecke versteckte Juwelen, lokale Geschmäcker und Orte, die einen Halt wert sind – alles auf deiner Route.", "Открой скрытые жемчужины, местные вкусы и места, достойные остановки — всё на твоём маршруте.");
   a("Putujem od A do B.", "I'm travelling from A to B.", "Ich reise von A nach B.", "Я еду из пункта А в пункт Б.");
