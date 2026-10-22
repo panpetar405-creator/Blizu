@@ -147,6 +147,11 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .pbtn{position:relative;display:flex;align-items:center;justify-content:center;width:100%;margin-top:16px;padding:17px 52px;border-radius:18px;background:var(--g);color:#fff;font-weight:700;font-size:18px;box-shadow:0 4px 14px #B4472A40}.pbtn .i{position:absolute;right:22px;width:22px;height:22px;stroke-width:2.4}
 .mk{width:38px;height:38px;border-radius:50%;border:3px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0005}.mk .i{width:19px;height:19px;stroke-width:2.1;--do:0}
 .rd{width:12px;height:12px;border-radius:50%;background:#1b2a47;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}
+.leaflet-tile-pane{filter:saturate(.4) contrast(.94) brightness(1.05)}
+.leaflet-overlay-pane svg path{filter:drop-shadow(0 1px 3px #0003)}
+#map .mk{transition:transform .2s ease;box-shadow:0 2px 6px #0006}
+#map.zm .mk{transform:scale(.8)}#map.zl .mk{transform:scale(.6)}
+#map.zl .rd{transform:scale(.7)}
 .pin{position:relative;width:36px;height:46px;filter:drop-shadow(0 2px 3px #0004)}.pin svg{width:36px;height:46px;display:block}
 .pin span{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);background:#fff;border-radius:12px;padding:4px 12px;font:700 15px/1.2 system-ui,sans-serif;color:var(--tx);white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 6px #0003}.pin.dn span{bottom:auto;top:calc(100% + 2px)}
 .co{position:absolute;bottom:34px;background:#fff;border-radius:12px;padding:4px 10px;box-shadow:0 2px 10px #0003;white-space:nowrap;line-height:1.2}
@@ -426,7 +431,7 @@ const CYR={А:"A",Б:"B",В:"V",Г:"G",Д:"D",Ђ:"Đ",Е:"E",Ж:"Ž",З:"Z",И:"
 const tr=x=>typeof x=="string"&&/[\u0400-\u04FF]/.test(x)?x.replace(/[\u0400-\u04FF]/g,c=>{const u=c.toUpperCase(),m=CYR[u];return m?(c==u?m:m.toLowerCase()):c}):x;
 const MTK=window.BLIZU_MAPTILER_KEY||"";
 function tiles(at){return MTK?L.tileLayer("https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key="+encodeURIComponent(MTK),{maxZoom:19,tileSize:512,zoomOffset:-1,attribution:at?"© MapTiler © OpenStreetMap":""}):L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:at?"© OpenStreetMap":""})}
-function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).addTo(map);layer=L.layerGroup().addTo(map)}
+function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).addTo(map);layer=L.layerGroup().addTo(map);const zc=()=>{const z=map.getZoom(),c=map.getContainer().classList;c.toggle("zl",z<8);c.toggle("zm",z>=8&&z<11)};map.on("zoomend",zc);map.whenReady(zc)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
@@ -436,8 +441,8 @@ async function refresh(fit){
  const st=[...sel].map(i=>cm.get(i)).filter(Boolean).sort((a,b)=>a.f-b.f);S.st=st;
  try{rt=st.length?await route([[A.lat,A.lon],...st.map(s=>s.p),[B.lat,B.lon]]):base}catch(e){rt=base}
  layer.clearLayers();window.lyrReset&&lyrReset();
- L.polyline(rt.line,{color:"#fff",weight:10,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(layer);
- L.polyline(rt.line,{color:"#24506B",weight:6,lineCap:"round",lineJoin:"round"}).addTo(layer);
+ L.polyline(rt.line,{color:"#fff",weight:14,opacity:1,lineCap:"round",lineJoin:"round"}).addTo(layer);
+ L.polyline(rt.line,{color:"#1E4B6B",weight:8,lineCap:"round",lineJoin:"round"}).addTo(layer);
  const ic=(h,sz,an)=>L.divIcon({html:h,className:"",iconSize:sz,iconAnchor:an||[sz[0]/2,sz[1]/2]});
  const nearest=p=>{let d=1e9,q=rt.line[0];for(const x of rt.line){const k=(x[0]-p[0])**2+(x[1]-p[1])**2;if(k<d){d=k;q=x}}return q};
  const pin=(c,n,dn)=>ic(`<div class="pin${dn?" dn":""}"><svg viewBox="0 0 36 46"><path d="M18 45C18 45 3 29 3 17a15 15 0 0 1 30 0c0 12-15 28-15 28z" fill="${c}" stroke="#fff" stroke-width="2.5"/><circle cx="18" cy="17" r="5.5" fill="#fff"/></svg><span>${esc(n)}</span></div>`,[36,46],[18,45]);
@@ -445,7 +450,7 @@ async function refresh(fit){
  st.forEach(s=>{const q=nearest(s.p),k=CATS[s.c].c;L.polyline([q,s.p],{color:k,weight:2.5,opacity:.8,dashArray:"2 5",lineCap:"round"}).addTo(layer);L.marker(q,{icon:ic('<div class="rd"></div>',[12,12]),interactive:false}).addTo(layer)});
  // ime mjesta ide na stranu suprotnu od rute: ako ruta od pina vodi prema sjeveru, ime je ispod pina, inače iznad (da ne zaklanja stanice)
  const nl=rt.line.length,ia=rt.line[Math.min(nl-1,Math.floor(nl*.15))],ib=rt.line[Math.max(0,nl-1-Math.floor(nl*.15))];
- L.marker([A.lat,A.lon],{icon:pin("#5E6B3A",A.name,ia[0]>A.lat),zIndexOffset:900}).addTo(layer);L.marker([B.lat,B.lon],{icon:pin("#B4472A",B.name,ib[0]>B.lat),zIndexOffset:900}).addTo(layer);
+ L.marker([A.lat,A.lon],{icon:pin("#5E6B3A",A.name,ia[0]>A.lat),zIndexOffset:1500}).addTo(layer);L.marker([B.lat,B.lon],{icon:pin("#B4472A",B.name,ib[0]>B.lat),zIndexOffset:1500}).addTo(layer);
  st.forEach(s=>L.marker(s.p,{icon:ic(`<div class="mk" style="background:${CATS[s.c].c}">${CATS[s.c].ic}</div>`,[38,38]),zIndexOffset:1000}).on("click",()=>opn(s.id)).addTo(layer));
  const vis=st.reduce((a,s)=>a+s.v,0),tot=rt.dur/60+vis,km=rt.dist/1000;S.vis=vis;S.tot=tot;S.km=km;
  $("#pn").innerHTML=`<button class="sh1" onclick="go('pl')"><h2>Preporučeni plan</h2>${I("chevron-right")}</button>
