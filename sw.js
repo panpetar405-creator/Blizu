@@ -1,4 +1,4 @@
-const C = "blizu-2716cd93", T = "blizu-tiles-v1", MAXT = 800;
+const C = "blizu-bfb432b5", T = "blizu-tiles-v1", MAXT = 800;
 const SHELL = ["./", "index.html", "config.js", "curated.js", "manifest.json", "img/icon.svg", "privatnost.html", "uslovi.html", "i18n.js", "lib/blizu-lib.js"];
 const CDN = /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\//;
 const TILE = /^https:\/\/(tile\.openstreetmap\.org|api\.maptiler\.com)\//;
