@@ -770,7 +770,7 @@ function build(kind,els){var g=L.layerGroup(),seen=[],ms=[],M=MS[kind];
  function dec(){var m=g._dm;if(!m)return;var gap=56,kept=[],stp=[];
   try{(S.st||[]).forEach(function(s){stp.push(m.latLngToLayerPoint(s.p))});[A,B].forEach(function(x){if(x)stp.push(m.latLngToLayerPoint([x.lat,x.lon]))})}catch(e){}
   ms.forEach(function(k){var q=m.latLngToLayerPoint(k.getLatLng()),ok=!stp.some(function(z){return z.distanceTo(q)<46})&&!kept.some(function(z){return z.distanceTo(q)<gap});
-   if(ok)kept.push(q);if(ok&&!m.hasLayer(k))m.addLayer(k);else if(!ok&&m.hasLayer(k))m.removeLayer(k)})}
+   if(ok)kept.push(q);if(ok&&!m.hasLayer(k))m.addLayer(k);else if(!ok&&m.hasLayer(k))m.removeLayer(k)});g._vis=kept.length}
  g.onAdd=function(m){L.LayerGroup.prototype.onAdd.call(this,m);this._dm=m;m.on("zoomend moveend",dec);dec()};
  g.onRemove=function(m){m.off("zoomend moveend",dec);this._dm=null;L.LayerGroup.prototype.onRemove.call(this,m)};
  return g}
@@ -809,7 +809,7 @@ async function tg(kind){var c=LY[kind];if(c.busy)return;
  if(typeof rt==="undefined"||!rt||!rt.line||rt.line.length<2)return;
  c.busy=1;c.b.classList.add("busy");
  try{var key=rk();if(!c.g||c.k!==key){c.g=await load(kind);c.k=key}
-  c.g.addTo(map);c.on=1;c.b.classList.add("on");if(!c.g.getLayers().length)note(T(MS[kind].e))}
+  c.g.addTo(map);c.on=1;c.b.classList.add("on");if(!c.g.getLayers().length)note(T(MS[kind].e));else note(T(MS[kind].l)+": "+c.g.getLayers().length+" (prikazano "+(c.g._vis||0)+")")}
  catch(e){console.warn(e);note(T(ER)+" ["+String(e&&e.message||e).slice(0,60)+"]")}
  finally{c.busy=0;c.b.classList.remove("busy")}}
 window.lyrReset=function(){["fuel","toll"].forEach(function(k){var c=LY[k];if(c.g&&map)map.removeLayer(c.g);c.g=null;c.k="";c.on=0;c.b.classList.remove("on")});nt.hidden=true};
