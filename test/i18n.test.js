@@ -47,7 +47,7 @@ test("svi statični tekstovi iz index.html su prevedeni (regresija pri dodavanju
   html = html.slice(html.indexOf("<body")).replace(/<svg width="0"[\s\S]*?<\/svg>/, "").replace(/<script[\s\S]*?<\/script>/g, "");
   const texts = [...html.matchAll(/>([^<>{}]*[A-Za-zČĆŽŠĐčćžšđ][^<>{}]*)</g)].map((m) => m[1].trim()).filter(Boolean);
   const attrs = [...html.matchAll(/(?:placeholder|aria-label|title|alt)="([^"]+)"/g)].map((m) => m[1]);
-  const same = new Set(["Blizu", "km/h", "Profil"]); // isto u nekom jeziku
+  const same = new Set(["Mestigo", "km/h", "Profil"]); // isto u nekom jeziku
   const miss = [];
   for (const lang of ["en", "de", "ru"]) for (const x of new Set([...texts, ...attrs])) {
     if (same.has(x)) continue;
