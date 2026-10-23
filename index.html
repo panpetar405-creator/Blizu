@@ -152,6 +152,9 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 #map .mk{transition:transform .2s ease;box-shadow:0 2px 6px #0006}
 #map.zm .mk{transform:scale(.8)}#map.zl .mk{transform:scale(.6)}
 #map.zl .rd{transform:scale(.7)}
+#map .pin svg{position:absolute;left:50%;bottom:0;width:28px;height:36px;margin-left:-14px}
+#map .pin span{bottom:calc(100% - 6px);font-size:14px;padding:3px 10px}
+#map .pin.dn span{bottom:auto;top:calc(100% + 2px)}
 .pin{position:relative;width:36px;height:46px;filter:drop-shadow(0 2px 3px #0004)}.pin svg{width:36px;height:46px;display:block}
 .pin span{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);background:#fff;border-radius:12px;padding:4px 12px;font:700 15px/1.2 system-ui,sans-serif;color:var(--tx);white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 6px #0003}.pin.dn span{bottom:auto;top:calc(100% + 2px)}
 .co{position:absolute;bottom:34px;background:#fff;border-radius:12px;padding:4px 10px;box-shadow:0 2px 10px #0003;white-space:nowrap;line-height:1.2}
@@ -435,14 +438,14 @@ function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).a
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
-function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,90],paddingBottomRight:[118,h]})}
+function fitRoute(){const h=($(".sheet")?.offsetHeight||340)+70;map.invalidateSize();map.fitBounds(L.polyline(rt.line).getBounds(),{paddingTopLeft:[40,150],paddingBottomRight:[118,h]})}
 function locate(){if(!navigator.geolocation)return fitRoute();askGeo(()=>navigator.geolocation.getCurrentPosition(p=>map.setView([p.coords.latitude,p.coords.longitude],13),()=>fitRoute(),{timeout:6000}),fitRoute)}
 async function refresh(fit){
  const st=[...sel].map(i=>cm.get(i)).filter(Boolean).sort((a,b)=>a.f-b.f);S.st=st;
  try{rt=st.length?await route([[A.lat,A.lon],...st.map(s=>s.p),[B.lat,B.lon]]):base}catch(e){rt=base}
  layer.clearLayers();window.lyrReset&&lyrReset();
- L.polyline(rt.line,{color:"#fff",weight:14,opacity:1,lineCap:"round",lineJoin:"round"}).addTo(layer);
- L.polyline(rt.line,{color:"#1E4B6B",weight:8,lineCap:"round",lineJoin:"round"}).addTo(layer);
+ L.polyline(rt.line,{color:"#fff",weight:12,opacity:1,lineCap:"round",lineJoin:"round"}).addTo(layer);
+ L.polyline(rt.line,{color:"#1E4B6B",weight:7,lineCap:"round",lineJoin:"round"}).addTo(layer);
  const ic=(h,sz,an)=>L.divIcon({html:h,className:"",iconSize:sz,iconAnchor:an||[sz[0]/2,sz[1]/2]});
  const nearest=p=>{let d=1e9,q=rt.line[0];for(const x of rt.line){const k=(x[0]-p[0])**2+(x[1]-p[1])**2;if(k<d){d=k;q=x}}return q};
  const pin=(c,n,dn)=>ic(`<div class="pin${dn?" dn":""}"><svg viewBox="0 0 36 46"><path d="M18 45C18 45 3 29 3 17a15 15 0 0 1 30 0c0 12-15 28-15 28z" fill="${c}" stroke="#fff" stroke-width="2.5"/><circle cx="18" cy="17" r="5.5" fill="#fff"/></svg><span>${esc(n)}</span></div>`,[36,46],[18,45]);
