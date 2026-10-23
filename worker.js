@@ -39,7 +39,7 @@ function safeEq(a, b) { // poređenje tajni bez curenja kroz vrijeme izvršavanj
 // ---------- ograničenje broja zahtjeva ----------
 // Sa Cloudflare Rate Limiting bindingom (RL / RL_STRICT) ili, bez njega, približnim brojačem u memoriji izolata.
 // (Cache API ne radi na *.workers.dev, a KV bi trošio dnevnu kvotu upisa, pa se ne koriste za brojanje.)
-const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, along: 20, refresh: 5 }; // zahtjeva po IP adresi u minuti
+const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, along: 80, refresh: 5 }; // zahtjeva po IP adresi u minuti
 const STRICT = new Set(["walk", "enrich", "along", "refresh"]);
 const MEM = new Map();
 async function limited(env, req, bucket) {
@@ -170,7 +170,7 @@ async function alongFetch(cfg, pts) {
   const rad = cfg.r / 1000, pad = rad / 111 + 0.002;
   const lats = pts.map((p) => p[0]), lons = pts.map((p) => p[1]);
   const ext = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lons) - Math.min(...lons));
-  const span = Math.max(0.3, ext / 6), ch = [];
+  const span = Math.max(1, ext / 6), ch = [];
   let cur = [pts[0]];
   const rng = (c, i) => { const v = c.map((p) => p[i]); return Math.max(...v) - Math.min(...v); };
   for (let i = 1; i < pts.length; i++) { cur.push(pts[i]); if (rng(cur, 0) > span || rng(cur, 1) > span) { ch.push(cur); cur = [pts[i]]; } }
