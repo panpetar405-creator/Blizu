@@ -40,7 +40,15 @@
   a("Prevoz", "Transport", "Verkehrsmittel", "Транспорт");
   a("Datum putovanja", "Travel date", "Reisedatum", "Дата поездки");
   a("Polazak", "Departure", "Abfahrt", "Отправление");
-  a("Koliko dodatnog vremena imaš po stanici?", "How much extra time do you have per stop?", "Wie viel zusätzliche Zeit hast du pro Stopp?", "Сколько дополнительного времени у вас на каждую остановку?");
+  a("Koliko možeš skrenuti sa rute do jedne stanice?", "How long a detour can you take from the route per stop?", "Wie lang darf der Umweg von der Route pro Stopp sein?", "Насколько можно отклониться от маршрута ради одной остановки?");
+  a("To je dodatna vožnja do stanice i nazad. Vrijeme koje provedeš na stanici računa se posebno.", "This is the extra driving to a stop and back. Time spent at the stop is counted separately.", "Das ist die zusätzliche Fahrzeit zu einem Stopp und zurück. Die Zeit vor Ort wird separat gerechnet.", "Это дополнительная поездка до остановки и обратно. Время на самой остановке считается отдельно.");
+  a("skretanje", "detour", "Umweg", "объезд");
+  a("zadržavanje", "time at stops", "Aufenthalt", "время на остановках");
+  a("Šta ti je važnije?", "What matters more to you?", "Was ist dir wichtiger?", "Что для вас важнее?");
+  a("Stil mape", "Map style", "Kartenstil", "Стиль карты");
+  a("Teren", "Terrain", "Gelände", "Рельеф");
+  a("Satelit", "Satellite", "Satellit", "Спутник");
+  a("Standardna karta", "Standard map", "Standardkarte", "Стандартная карта");
   a("Šta želiš da doživiš?", "What do you want to experience?", "Was möchtest du erleben?", "Что вы хотите увидеть и попробовать?");
   a("Filteri (opciono)", "Filters (optional)", "Filter (optional)", "Фильтры (по желанию)");
   a("Filteri koriste oznake iz OpenStreetMap. Mjesta bez oznake mogu biti u redu, ali ih ne možemo potvrditi.", "Filters use tags from OpenStreetMap. Places without a tag may be fine, but we can't confirm them.", "Die Filter nutzen Angaben aus OpenStreetMap. Orte ohne Angabe können trotzdem passen, wir können es aber nicht bestätigen.", "Фильтры используют метки OpenStreetMap. Места без меток могут подойти, но подтвердить это мы не можем.");

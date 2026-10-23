@@ -149,6 +149,7 @@ body.tb #home,body.tb #fin{padding-bottom:calc(var(--tbh,76px) + 18px)}
 .rd{width:12px;height:12px;border-radius:50%;background:#1b2a47;border:2.5px solid #fff;box-shadow:0 1px 3px #0006}
 .leaflet-tile-pane{filter:saturate(1.12) contrast(1.06)}#map.sat .leaflet-tile-pane{filter:none}
 .leaflet-overlay-pane svg path{filter:drop-shadow(0 1px 3px #0003)}
+.box .bd{margin-top:10px;font-size:13px;color:var(--mu)}.box .bd b{font-weight:600}
 #map .mk{transition:transform .2s ease;box-shadow:0 2px 6px #0006}
 #map.zm .mk{transform:scale(.8)}#map.zl .mk{transform:scale(.6)}
 #map.zl .rd{transform:scale(.7)}
@@ -232,7 +233,7 @@ a.inf{color:var(--mu);text-decoration:none}
   <h3>Prevoz</h3><div class="chips" id="cm"></div>
   <h3>Datum putovanja</h3><div class="f" style="width:230px"><button type="button" class="pkv" id="d0b"></button><input type="hidden" id="d0"></div>
   <h3>Polazak</h3><div class="f" style="width:140px"><button type="button" class="pkv" id="t0b"></button><input type="hidden" id="t0" value="08:00"></div>
-  <h3>Koliko dodatnog vremena imaš po stanici?</h3><div class="chips" id="ce"></div>
+  <h3>Koliko možeš skrenuti sa rute do jedne stanice?</h3><div class="chips" id="ce"></div><p class="gsrc" style="margin-top:8px">To je dodatna vožnja do stanice i nazad. Vrijeme koje provedeš na stanici računa se posebno.</p>
   <h3>Šta ti je važnije?</h3><div class="chips" id="cp"></div>
   <h3>Šta želiš da doživiš?</h3><div class="chips cat" id="ci"></div>
   <h3>Filteri (opciono)</h3><div class="chips" id="cf"></div><p class="gsrc" style="margin-top:8px">Filteri koriste oznake iz OpenStreetMap. Mjesta bez oznake mogu biti u redu, ali ih ne možemo potvrditi.</p>
@@ -475,7 +476,7 @@ async function refresh(fit){
 function drawSel(){$("#selc").innerHTML=`<p class="sub">Najbolje opcije, stvarno dodatno vrijeme, trajanje posjete i navigacija.</p>${fbar()}${opts.filter(o=>okF(o)||sel.has(o.id)).map((o,i)=>card(o,i+1)).join("")}${dest.length?`<h3>Kad stigneš u ${esc(B.name)}</h3>${dest.map(o=>card(o)).join("")}`:""}${promoHtml()}<p style="color:var(--mu);font-size:12px;margin-top:8px">Vremena skretanja su procjena. Podaci: OpenStreetMap${GRID_UPD?" (baza osvježena "+fdt(GRID_UPD)+")":""}. Radno vrijeme provjeri prije dolaska.</p>`}
 function drawPl(){const st=S.st;
  try{store("last",{k:Date.now(),A,B,mode,extra,t0:$("#t0").value,d0:$("#d0").value,km:Math.round(S.km),stops:st.map(s=>({id:s.id,t:mt(s.t),c:s.c,p:s.p,v:s.v,est:s.est,d:s.d,f:s.f}))})}catch(e){}
- $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b>${$("#d0").value?`<small style="display:block;color:var(--mu)">${fdate($("#d0").value)}</small>`:""}<div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div></div>
+ $("#plc").innerHTML=`<div class="box"><b>${esc(A.name)} ${I("arrow-right")} ${esc(B.name)}</b>${$("#d0").value?`<small style="display:block;color:var(--mu)">${fdate($("#d0").value)}</small>`:""}<div class="stats" style="margin:8px 0 0"><div><b>${fmt(base.dur/60)}</b><small>vožnja</small></div><div><b>${fmt(Math.max(0,S.tot-base.dur/60))}</b><small>dodatno vrijeme</small></div><div><b>${st.length}</b><small>stanica</small></div></div>${st.length?`<div class="bd"><span>skretanje</span> <b>${fmt(Math.max(0,S.tot-base.dur/60-st.reduce((a,s)=>a+s.v,0)))}</b> · <span>zadržavanje</span> <b>${fmt(st.reduce((a,s)=>a+s.v,0))}</b></div>`:""}</div>
  <div id="wx"></div><div id="fer"></div><div class="tl" id="tl"></div><div id="aff"></div><h3 class="ah">Sačuvaj i podijeli</h3><div class="acts"><button class="act" id="svb" onclick="savePlan()">${actHtml("bookmark","Sačuvaj plan")}</button><button class="act" onclick="addToTrip()">${actHtml("plus",CT&&TR.find(t=>t.id==CT)?"Dodaj u „"+esc(TR.find(t=>t.id==CT).name)+"”":"Dodaj u putovanje")}</button><button class="act" onclick="sharePlan(this)">${actHtml("share","Podijeli link plana")}</button><button class="act" onclick="printPlan()">${actHtml("printer","Ispiši / sačuvaj PDF")}</button></div><h3 class="ah">Na putu</h3><a class="row" id="gm" target="_blank" rel="noopener"></a><div id="gmx"></div><button class="row" onclick="startNav()">${rowIn("locate","Praćenje uživo u aplikaciji","chevron-right")}</button><p class="gsrc">Praćenje u aplikaciji radi samo dok je ekran upaljen i aplikacija otvorena. Za vođenje uz zaključan ekran koristi Google Maps.</p>`;
  setMaps();tl();loadWx();aff()}
 // Google Maps URL dozvoljava najviše 9 međutačaka; duži planovi se dijele na uzastopne dijelove (kraj jednog = početak sljedećeg).
