@@ -434,7 +434,7 @@ const CYR={А:"A",Б:"B",В:"V",Г:"G",Д:"D",Ђ:"Đ",Е:"E",Ж:"Ž",З:"Z",И:"
 const tr=x=>typeof x=="string"&&/[\u0400-\u04FF]/.test(x)?x.replace(/[\u0400-\u04FF]/g,c=>{const u=c.toUpperCase(),m=CYR[u];return m?(c==u?m:m.toLowerCase()):c}):x;
 const MTK=window.BLIZU_MAPTILER_KEY||"";
 function tiles(at){return MTK?L.tileLayer("https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key="+encodeURIComponent(MTK),{maxZoom:19,tileSize:512,zoomOffset:-1,attribution:at?"© MapTiler © OpenStreetMap":""}):L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:at?"© OpenStreetMap":""})}
-function initMap(){if(map)return;map=L.map("map",{zoomControl:false});tiles(1).addTo(map);layer=L.layerGroup().addTo(map);const zc=()=>{const z=map.getZoom(),c=map.getContainer().classList;c.toggle("zl",z<8);c.toggle("zm",z>=8&&z<11)};map.on("zoomend",zc);map.whenReady(zc)}
+function initMap(){if(map)return;map=L.map("map",{zoomControl:false,zoomSnap:.25,zoomDelta:.5});tiles(1).addTo(map);layer=L.layerGroup().addTo(map);const zc=()=>{const z=map.getZoom(),c=map.getContainer().classList;c.toggle("zl",z<8);c.toggle("zm",z>=8&&z<11)};map.on("zoomend",zc);map.whenReady(zc)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
@@ -834,16 +834,16 @@ async function load(kind){var c=LY[kind],tol=c.tol,pts=rt.line.map(function(p){r
  var ck="ch_al_"+kind+"_"+rk();
  try{var h=JSON.parse(localStorage.getItem(ck));if(h&&Date.now()-h.t<216e5&&Array.isArray(h.e))return build(kind,h.e)}catch(x){}
  var els=await fetchEls(kind,s);
- try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e:slim(els)}))}catch(x){}
+ if(els.length)try{localStorage.setItem(ck,JSON.stringify({t:Date.now(),e:slim(els)}))}catch(x){}
  return build(kind,els)}
 async function tg(kind){var c=LY[kind];if(c.busy)return;
  if(c.on){c.on=0;if(c.g)map.removeLayer(c.g);c.b.classList.remove("on");return}
  if(typeof rt==="undefined"||!rt||!rt.line||rt.line.length<2)return;
- c.busy=1;c.b.classList.add("busy");if(!c.pp||c.ppk!==rk())note("Učitavam…");
+ c.busy=1;c.b.classList.add("busy");note("Učitavam…");
  try{var key=rk();if(!c.g||c.k!==key){if(!c.pp||c.ppk!==key){c.ppk=key;c.pp=load(kind)}var g0;try{g0=await c.pp}catch(e0){c.pp=null;throw e0}c.g=g0;c.k=key}
   c.g.addTo(map);c.on=1;c.b.classList.add("on");if(!c.g.getLayers().length)note(T(MS[kind].e));}
  catch(e){console.warn(e);note(T(ER)+" ["+String(e&&e.message||e).slice(0,60)+"]")}
- finally{c.busy=0;c.b.classList.remove("busy")}}
+ finally{c.busy=0;c.b.classList.remove("busy");if(nt.textContent==="Učitavam…")nt.hidden=true}}
 window.lyrReset=function(){["fuel","toll"].forEach(function(k){var c=LY[k];if(c.g&&map)map.removeLayer(c.g);c.on=0;c.b.classList.remove("on")});nt.hidden=true;clearTimeout(window._lyp);window._lyp=setTimeout(function(){window.lyrPre&&lyrPre()},1500)};
 // unaprijed učitavanje u pozadini: dok korisnik gleda plan, pumpe i rampe se već traže, pa su po dodiru odmah tu
 window.lyrPre=function(){if(typeof rt==="undefined"||!rt||!rt.line||rt.line.length<2)return;var key=rk();["fuel","toll"].forEach(function(k){var c=LY[k];if(c.busy||c.k===key||c.ppk===key)return;c.ppk=key;c.pp=load(k);c.pp.catch(function(){if(c.ppk===key){c.pp=null;c.ppk=""}})})};
