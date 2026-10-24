@@ -28,8 +28,8 @@ test.before(async () => {
 });
 test.after(() => { globalThis.fetch = realFetch; });
 
-const call = (p, { method = "GET", origin = O, ip = "1.1.1.1", headers = {}, env = {} } = {}) =>
-  W.fetch(new Request("https://w.test" + p, { method, headers: { ...(origin ? { Origin: origin } : {}), "CF-Connecting-IP": ip, ...headers } }), { PLACES: KV, GOOGLE_KEY: "k", REFRESH_TOKEN: "secret-token", ...env });
+const call = (p, { method = "GET", origin = O, ip = "1.1.1.1", headers = {}, env = {}, body } = {}) =>
+  W.fetch(new Request("https://w.test" + p, { method, body, headers: { ...(origin ? { Origin: origin } : {}), "CF-Connecting-IP": ip, ...headers } }), { PLACES: KV, GOOGLE_KEY: "k", REFRESH_TOKEN: "secret-token", ...env });
 const ref = (extra = {}) => ({ origin: null, headers: { Referer: O + "/" }, ...extra });
 
 test("Origin: bez njega i tuđi su 403, naš prolazi", async () => {
@@ -93,4 +93,26 @@ test("greške ne otkrivaju interne poruke bez DEBUG, imaju no-store", async () =
 test("LIVE_BBOX blokira uživo upite izvan područja; PUT je 405", async () => {
   assert.equal((await call("/api/places?lat=48.8&lng=2.3&r=1000", { ip: "10.0.0.1", env: { LIVE_BBOX: "40,13,47,24" } })).status, 422);
   assert.equal((await call("/api/places", { method: "PUT" })).status, 405);
+});
+
+test("/api/along: samo POST, ispravni parametri, tuđe porijeklo je 403", async () => {
+  const ok = JSON.stringify({ t: "fuel", pts: [[43.85, 18.41], [43.3, 17.8]] });
+  assert.equal((await call("/api/along", { method: "GET" })).status, 405);
+  assert.equal((await call("/api/along", { method: "POST", body: ok, origin: "https://evil.example" })).status, 403);
+  assert.equal((await call("/api/along", { method: "POST", body: "nije json", ip: "2.2.2.2" })).status, 400);
+  assert.equal((await call("/api/along", { method: "POST", body: JSON.stringify({ t: "x", pts: [[1, 1], [2, 2]] }), ip: "2.2.2.3" })).status, 400);
+  assert.equal((await call("/api/along", { method: "POST", body: JSON.stringify({ t: "toll", pts: [[43, 18]] }), ip: "2.2.2.4" })).status, 400);
+  assert.equal((await call("/api/along", { method: "POST", body: JSON.stringify({ t: "toll", pts: [[0, 0], [60, 60]] }), ip: "2.2.2.5" })).status, 400); // predugačka ruta
+});
+
+test("/api/along: rezultat iz keša se vraća bez poziva Overpass-a", async () => {
+  const pts = [[43.85, 18.41], [43.3, 17.8]];
+  const flat = pts.map((p) => p[0].toFixed(2) + "," + p[1].toFixed(2)).join(","); // isto zaokruživanje kao u workeru
+  let h = 2166136261; for (let i = 0; i < flat.length; i++) { h ^= flat.charCodeAt(i); h = Math.imul(h, 16777619); }
+  kv.set(`along:fuel:${(h >>> 0).toString(36)}`, JSON.stringify([{ type: "node", id: 1, lat: 43.5, lon: 18, tags: { name: "Test pumpa" } }]));
+  const r = await call("/api/along", { method: "POST", body: JSON.stringify({ t: "fuel", pts }), ip: "3.3.3.3" });
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.source, "cache");
+  assert.equal(j.elements[0].tags.name, "Test pumpa");
 });
