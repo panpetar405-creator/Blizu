@@ -326,7 +326,7 @@ function importData(inp){const f=inp.files&&inp.files[0];inp.value="";if(!f)retu
   const m=BlizuLib.mergeBackup({plans:PL,trips:TR,fav:FAV},r.data);PL=m.plans;TR=m.trips;FAV=m.fav;store("plans",PL);store("trips",TR);store("fav",FAV);if(cur=="prof")drawProf();
   alert("Uvezeno: "+m.added.plans+" planova, "+m.added.trips+" putovanja, "+m.added.fav+" favorita.")}).catch(()=>alert("Fajl nije ispravan Mestigo izvoz."))}
 function wipeData(){if(!confirm("Obrisati sve što Mestigo čuva na ovom uređaju (planove, putovanja, favorite, postavke i privremene podatke)?"))return;PL=[];FAV={};TR=[];IMGC={};
- try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(/^(plans|trips|fav|fil|imgc|last|mode|geo_ok|mapst)$|^(pd_|ch_)/.test(k))localStorage.removeItem(k)})}catch(e){}drawProf()}
+ try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(/^(plans|trips|fav|fil|imgc|last|mode|geo_ok|mapst|mapsv)$|^(pd_|ch_)/.test(k))localStorage.removeItem(k)})}catch(e){}drawProf()}
 function gps(){askGeo(gps0)}
 function gps0(){navigator.geolocation?.getCurrentPosition(p=>{const i=$("#fa");i.value=_t("Moja lokacija");i._o={name:"Moja lokacija",lat:p.coords.latitude,lon:p.coords.longitude}},()=>$("#err").textContent="Lokacija nije dozvoljena.")}
 async function resolve(i){const v=i.value.trim();if(!v)throw Error("Unesi polazište i odredište.");if(i._o&&i._o.name=="Moja lokacija"&&v==_t("Moja lokacija"))return i._o;if(i._s&&i._s[v])return i._s[v];const r=await geo(v);if(!r[0])throw Error("Ne mogu pronaći: "+v);return r[0]}
@@ -387,7 +387,7 @@ async function plan(){
   btn.textContent="Tražim adrese…";[A,B]=await Promise.all([resolve($("#fa")),resolve($("#fb"))]);A.name=tr(A.name);B.name=tr(B.name);const cats0=[...new Set([...want].flatMap(k=>CATS[k].q))],destP=point(+B.lat.toFixed(4),+B.lon.toFixed(4),2500,[...new Set([...cats0,"jesti"])]).catch(()=>null);
   btn.textContent="Računam rutu…";base=await route([[A.lat,A.lon],[B.lat,B.lon]]);
   const line=base.line,cum=[0];for(let i=1;i<line.length;i++)cum[i]=cum[i-1]+dk(line[i-1],line[i]);
-  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(14,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.min(25000,Math.round(rk*1000));
+  const D=cum.at(-1),spd=MODES[mode].spd,reach=Math.max(.3,extra*spd/162),rk=reach+1.5,n=Math.min(18,Math.max(1,Math.ceil(D/(2*rk)))),r=Math.min(25000,Math.round(Math.max(rk,D/(2*n))*1000));
   const cats=[...new Set([...want].flatMap(k=>CATS[k].q))],pts=[];
   for(let i=0;i<n;i++){const t=(i+.5)*D/n;let j=cum.findIndex(c=>c>=t);if(j<0)j=cum.length-1;pts.push(line[j])}
   btn.textContent="Tražim mjesta duž puta…";
@@ -417,7 +417,7 @@ async function plan(){
   dest.forEach(x=>cm.set(x.id,x));const all=[...cm.values()].filter(x=>!x.dst).sort((a,b)=>b.sc-a.sc);
   if(!all.length&&!dest.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
   // stanice se ravnomjerno rasporede duž puta: ruta se podijeli na jednake dionice i iz svake se uzme najbolje mjesto (razmak ≥ ~70% širine dionice)
-  const lo=Math.min(.4,buf/D),hi=Math.max(.6,1-buf*.9/D),K=Math.min(4,Math.max(2,Math.round(D/22))),W=(hi-lo)/K;
+  const lo=Math.min(.4,buf/D),hi=Math.max(.6,1-buf*.9/D),K=D<88?Math.max(2,Math.round(D/22)):Math.min(5,Math.max(4,Math.round(D/150))),MX=Math.max(2,Math.ceil(K/2)),W=(hi-lo)/K;
   // kvalitet: ocjene i radno vrijeme (Google, preko Workera) za 3 najbolja kandidata po dionici; traje najviše ~6,5 s, a ako podaci ne stignu, ostaje osnovna ocjena
   const opMin=(tx,m)=>{if(/24\s*(h|sat|hours)|otvoreno 24|open 24/i.test(tx))return true;if(/am|pm/i.test(tx))return null;const r=[...tx.matchAll(/(\d{1,2})[:.](\d{2})/g)].map(x=>+x[1]*60+ +x[2]);if(r.length<2)return null;m=((m%1440)+1440)%1440;for(let i=0;i+1<r.length;i+=2){let x=r[i],y=r[i+1];if(y<=x)y+=1440;if((m>=x&&m<=y)||(m+1440>=x&&m+1440<=y))return true}return false};
   const rankG=(o,e)=>{if(e.rating&&e.n){const bz=(e.n*e.rating+50*4.2)/(e.n+50);o.sc+=(bz-4.2)*5;o.g={r:e.rating,n:e.n}}
@@ -426,7 +426,9 @@ async function plan(){
    let q=0;const work=async()=>{while(q<cand.length){const o=cand[q++];try{let e=EN[o.id];if(e===undefined){const r=await fetch(`${API}/api/enrich?hl=${I18N.hl()}&name=${encodeURIComponent(o.t.name)}&lat=${o.p[0]}&lng=${o.p[1]}`,{signal:AbortSignal.timeout(5000)});if(!r.ok){if(r.status==403||r.status==429)q=1e9;continue}const j=await r.json();EN[o.id]=e=j.none?false:j}if(e)rankG(o,e)}catch(z){}}};
    await Promise.race([Promise.all([work(),work(),work(),work()]),new Promise(r=>setTimeout(r,6500))]);all.sort((a,b)=>b.sc-a.sc)}
   const pick=[],cc={};
-  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W,c=all.find(x=>!x.closed&&x.f>=a&&x.f<b&&(cc[x.c]||0)<2&&pick.every(p=>Math.abs(p.f-x.f)>=W*.7));if(c){pick.push(c);cc[c.c]=(cc[c.c]||0)+1}}
+  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W,c=all.find(x=>!x.closed&&x.f>=a&&x.f<b&&(cc[x.c]||0)<MX&&pick.every(p=>Math.abs(p.f-x.f)>=W*.7));if(c){pick.push(c);cc[c.c]=(cc[c.c]||0)+1}}
+  // druga runda: dionice bez stanice popunjavamo najboljim preostalim mjestom (blaži razmak, bez ograničenja po vrsti)
+  for(let i=0;i<K;i++){const a=lo+i*W,b=a+W;if(pick.some(p=>p.f>=a&&p.f<b))continue;const c=all.find(x=>!x.closed&&x.f>=a&&x.f<b&&pick.every(p=>Math.abs(p.f-x.f)>=W*.5));if(c)pick.push(c)}
   if(!pick.length&&all.length)pick.push(all[0]);
   sel=new Set(pick.map(c=>c.id));opts=[...new Set([...pick,...all.slice(0,14)])].sort((a,b)=>b.sc-a.sc);
   go("res");initMap();
@@ -440,13 +442,13 @@ const tr=x=>typeof x=="string"&&/[\u0400-\u04FF]/.test(x)?x.replace(/[\u0400-\u0
 const MTK=window.BLIZU_MAPTILER_KEY||"";
 const MST={out:["outdoor-v2","png"],sat:["hybrid","jpg"],std:["streets-v2","png"]};
 const mtUrl=(id,ext,r2)=>"https://api.maptiler.com/maps/"+id+"/{z}/{x}/{y}"+(r2?"@2x":"")+"."+ext+"?key="+encodeURIComponent(MTK);
-function curSt(){try{const v=localStorage.getItem("mapst");return MST[v]?v:"out"}catch(e){return"out"}}
+function curSt(){try{const v=localStorage.getItem("mapsv");return MST[v]?v:"std"}catch(e){return"std"}}
 function tiles(at,st){if(!MTK)return L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:at?"© OpenStreetMap":""});
  const d=MST[st||curSt()],r2=(window.devicePixelRatio||1)>1.4,tl=L.tileLayer(mtUrl(d[0],d[1],r2),{maxZoom:19,tileSize:512,zoomOffset:-1,attribution:at?"© MapTiler © OpenStreetMap":""});
  let bad=0,good=0,fb=0;tl.on("tileload",()=>{good++});tl.on("tileerror",()=>{if(++bad>=4&&!good&&!fb){fb=1;tl.setUrl(mtUrl("streets-v2","png",false))}});return tl}
 let baseL=null;
-function setBase(st){try{localStorage.setItem("mapst",st)}catch(e){}if(!map)return;if(baseL)map.removeLayer(baseL);baseL=tiles(1,st);baseL.addTo(map);baseL.bringToBack();map.getContainer().classList.toggle("sat",st==="sat");const b=document.getElementById("lys");if(b){b.classList.toggle("on",st==="sat");b.title=b.ariaLabel=({out:"Teren",sat:"Satelit",std:"Standardna karta"})[st]}}
-function initMap(){if(map)return;map=L.map("map",{zoomControl:false,zoomSnap:.25,zoomDelta:.5});setBase(curSt());document.getElementById("lys")?.addEventListener("click",()=>setBase({out:"sat",sat:"std",std:"out"}[curSt()]));layer=L.layerGroup().addTo(map);const zc=()=>{const z=map.getZoom(),c=map.getContainer().classList;c.toggle("zl",z<8);c.toggle("zm",z>=8&&z<11)};map.on("zoomend",zc);map.whenReady(zc)}
+function setBase(st){try{localStorage.setItem("mapsv",st)}catch(e){}if(!map)return;if(baseL)map.removeLayer(baseL);baseL=tiles(1,st);baseL.addTo(map);baseL.bringToBack();map.getContainer().classList.toggle("sat",st==="sat");const b=document.getElementById("lys");if(b){b.classList.toggle("on",st==="sat");b.title=b.ariaLabel=({out:"Teren",sat:"Satelit",std:"Standardna karta"})[st]}}
+function initMap(){if(map)return;map=L.map("map",{zoomControl:false,zoomSnap:.25,zoomDelta:.5});setBase(curSt());document.getElementById("lys")?.addEventListener("click",()=>setBase({std:"out",out:"sat",sat:"std"}[curSt()]));layer=L.layerGroup().addTo(map);const zc=()=>{const z=map.getZoom(),c=map.getContainer().classList;c.toggle("zl",z<8);c.toggle("zm",z>=8&&z<11)};map.on("zoomend",zc);map.whenReady(zc)}
 const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 let FAV=ld("fav",{}),PL=ld("plans",[]);
 const getP=id=>cm.get(id)||FAV[id],mt=t=>({name:t.name,cuisine:t.cuisine,image:t.image,wikimedia_commons:t.wikimedia_commons,wikidata:t.wikidata,description:t.description,opening_hours:t.opening_hours,phone:t.phone,fl:t.fl!=null?t.fl:flags(t)});
