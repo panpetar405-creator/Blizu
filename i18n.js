@@ -50,6 +50,8 @@
   a("Brzo", "Quick", "Schnell", "Быстро");
   a("Preporučeno", "Recommended", "Empfohlen", "Рекомендуется");
   a("Temeljno", "Thorough", "Gründlich", "Подробно");
+  a("Moji podaci", "My data", "Meine Daten", "Мои данные");
+  a("O aplikaciji", "About the app", "Über die App", "О приложении");
   a("Stil mape", "Map style", "Kartenstil", "Стиль карты");
   a("Teren", "Terrain", "Gelände", "Рельеф");
   a("Satelit", "Satellite", "Satellit", "Спутник");
