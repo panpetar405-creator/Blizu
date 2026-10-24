@@ -180,7 +180,7 @@ function planEvening(places) { return sequence(places, [
 
 /* ===== HTML ===== */
 const CSS = `:root{--navy:#062b3a;--teal:#12647a;--yellow:#ffc400;--cream:#f7f5f2;--ink:#13212a;--muted:#5f6e77}*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--cream)}
-header{background:var(--navy);color:#fff;padding:14px 18px}header a{color:#fff;text-decoration:none;font-weight:800;font-size:20px}header span{color:var(--yellow)}
+header{background:var(--navy);color:#fff;padding:14px 18px}header a{color:#fff;text-decoration:none;font-weight:800;font-size:20px;text-transform:lowercase}header span{color:var(--yellow)}
 main{max-width:760px;margin:0 auto;padding:18px}nav.bc{font-size:13px;color:var(--muted);margin-bottom:10px}nav.bc a{color:var(--teal)}h1{font-size:30px;line-height:1.15;margin:6px 0 10px;color:var(--navy)}h2{font-size:22px;margin:28px 0 10px;color:var(--navy)}
 .lead{font-size:18px;color:#2b3a43}.cta{display:inline-block;background:var(--yellow);color:#111;font-weight:800;padding:13px 22px;border-radius:999px;text-decoration:none;margin:14px 0}
 ol.plan{list-style:none;padding:0;margin:0}ol.plan li{background:#fff;border-radius:16px;padding:14px 16px;margin:0 0 10px;box-shadow:0 1px 4px #0001}ol.plan .t{font-weight:800;color:#b8860b}ol.plan .w{font-size:13px;color:var(--muted)}
