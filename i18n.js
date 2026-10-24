@@ -45,6 +45,11 @@
   a("skretanje", "detour", "Umweg", "объезд");
   a("zadržavanje", "time at stops", "Aufenthalt", "время на остановках");
   a("Šta ti je važnije?", "What matters more to you?", "Was ist dir wichtiger?", "Что для вас важнее?");
+  a("Koliko se zadržavaš na stanicama?", "How long do you stay at each stop?", "Wie lange bleibst du an den Stopps?", "Сколько времени вы проводите на остановках?");
+  a("Brzo skraćuje boravak na stanicama, a Temeljno ga produžava. Preporučeno je uobičajeno trajanje posjete za svaku vrstu mjesta.", "Quick shortens your time at stops and Thorough extends it. Recommended is the usual visit length for each type of place.", "Schnell verkürzt den Aufenthalt an den Stopps, Gründlich verlängert ihn. Empfohlen ist die übliche Besuchsdauer je nach Ortstyp.", "«Быстро» сокращает время на остановках, «Подробно» увеличивает его. «Рекомендуется» — обычная длительность посещения для каждого типа места.");
+  a("Brzo", "Quick", "Schnell", "Быстро");
+  a("Preporučeno", "Recommended", "Empfohlen", "Рекомендуется");
+  a("Temeljno", "Thorough", "Gründlich", "Подробно");
   a("Stil mape", "Map style", "Kartenstil", "Стиль карты");
   a("Teren", "Terrain", "Gelände", "Рельеф");
   a("Satelit", "Satellite", "Satellit", "Спутник");

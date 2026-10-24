@@ -234,6 +234,7 @@ a.inf{color:var(--mu);text-decoration:none}
   <h3>Datum putovanja</h3><div class="f" style="width:230px"><button type="button" class="pkv" id="d0b"></button><input type="hidden" id="d0"></div>
   <h3>Polazak</h3><div class="f" style="width:140px"><button type="button" class="pkv" id="t0b"></button><input type="hidden" id="t0" value="08:00"></div>
   <h3>Koliko možeš skrenuti sa rute do jedne stanice?</h3><div class="chips" id="ce"></div><p class="gsrc" style="margin-top:8px">To je dodatna vožnja do stanice i nazad. Vrijeme koje provedeš na stanici računa se posebno.</p>
+  <h3>Koliko se zadržavaš na stanicama?</h3><div class="chips" id="cd"></div><p class="gsrc" style="margin-top:8px">Brzo skraćuje boravak na stanicama, a Temeljno ga produžava. Preporučeno je uobičajeno trajanje posjete za svaku vrstu mjesta.</p>
   <h3>Šta ti je važnije?</h3><div class="chips" id="cp"></div>
   <h3>Šta želiš da doživiš?</h3><div class="chips cat" id="ci"></div>
   <h3>Filteri (opciono)</h3><div class="chips" id="cf"></div><p class="gsrc" style="margin-top:8px">Filteri koriste oznake iz OpenStreetMap. Mjesta bez oznake mogu biti u redu, ali ih ne možemo potvrditi.</p>
@@ -276,7 +277,8 @@ const I=(n,c)=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const MODES={car:{n:I("car")+" Auto",spd:40,gm:"driving"},bike:{n:I("bike")+" Bicikl",spd:15,gm:"bicycling"},foot:{n:I("walk")+" Pješice",spd:4.2,gm:"walking"}};
 const CATS={hrana:{n:"Lokalna hrana",ic:I("utensils"),c:"#B7800F",bg:"#FAEFD2",q:["jesti"],v:60},vid:{n:"Vidikovci",ic:I("mountain"),c:"#1F3A4D",bg:"#E1E9EE",q:["videti"],v:20},pri:{n:"Priroda",ic:I("leaf"),c:"#5E6B3A",bg:"#E8ECD9",q:["odmoriti"],v:45},kul:{n:"Kultura",ic:I("landmark"),c:"#8A5A7A",bg:"#F1E6EE",q:["videti","dogadjaji"],v:45},ist:{n:"Istorija",ic:I("castle"),c:"#B4472A",bg:"#fde4e8",q:["videti"],v:40}};
-let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}catch(e){return"car"}})(),extra=20,prio=2.5,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
+const DW={rec:1,quick:.6,deep:1.5},dv=b=>Math.max(10,Math.round(b*DW[dwell]/5)*5);
+let mode=(()=>{try{const m=localStorage.getItem("mode");return MODES[m]?m:"car"}catch(e){return"car"}})(),extra=20,dwell="rec",prio=2.5,want=new Set(["hrana","vid","pri"]),A,B,base,cm=new Map(),sel=new Set(),opts=[],dest=[],rt,map,layer,S={};
 
 const H=[],TABS=["home","saved","fav","prof","fin"];let cur="home";
 function fitTb(){const t=$("#tabs");if(t.offsetHeight)document.documentElement.style.setProperty("--tbh",t.offsetHeight+"px")}addEventListener("resize",fitTb);addEventListener("pageshow",fitTb);
@@ -287,6 +289,7 @@ function back(){show(H.pop()||"home")}
 function chips(el,items,isOn,fn,cls){el.innerHTML=items.map(([k,l])=>`<button class="ch ${isOn(k)?"on":""}" data-k="${k}" ${cls?`style="--c:${CATS[k].c};--bgc:${CATS[k].bg}"`:""}>${l}</button>`).join("");el.onclick=e=>{const b=e.target.closest("button");if(b){fn(b.dataset.k);chips(el,items,isOn,fn,cls)}}}
 chips($("#cm"),Object.entries(MODES).map(([k,v])=>[k,v.n]),k=>k==mode,k=>mode=k);
 chips($("#ce"),[10,20,30,45,60].map(m=>[m,m+" min"]),k=>k==extra,k=>extra=+k);
+chips($("#cd"),[["quick","Brzo"],["rec","Preporučeno"],["deep","Temeljno"]],k=>k==dwell,k=>dwell=k);
 chips($("#cp"),[["5","Kraće skretanje"],["2.5","Uravnoteženo"],["1.2","Zanimljivije mjesto"]],k=>+k==prio,k=>prio=+k);
 chips($("#ci"),Object.entries(CATS).map(([k,v])=>[k,v.ic+v.n]),k=>want.has(k),k=>want.has(k)?want.delete(k):want.add(k),1);
 
@@ -403,14 +406,14 @@ async function plan(){
   btn.textContent="Tražim mjesta na odredištu…";
   const dsel=await destP,dn=new Set(),dl=[];
   for(const el of dsel||[]){const t=el.tags||{};if(!t.name)continue;t.name=tr(t.name);const c=cls(t);if(!c||(c!="hrana"&&!want.has(c))||dn.has(t.name+c))continue;const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;const d=dk(p,[B.lat,B.lon]);if(d>2.5)continue;dn.add(t.name+c);
-   dl.push({id:el.type[0]+el.id,t,c,p,d,est:Math.max(1,Math.round(d*1.35/spd*60)),f:1+d/100,v:t.amenity=="cafe"?30:CATS[c].v,dst:1,sc:NT(t)-meal(c,t,s0+base.dur/60)-d*.3})}
+   dl.push({id:el.type[0]+el.id,t,c,p,d,est:Math.max(1,Math.round(d*1.35/spd*60)),f:1+d/100,v:dv(t.amenity=="cafe"?30:CATS[c].v),dst:1,sc:NT(t)-meal(c,t,s0+base.dur/60)-d*.3})}
   dl.sort((a,b)=>b.sc-a.sc);dest=[...dl.filter(x=>x.c=="hrana").slice(0,4),...dl.filter(x=>x.c!="hrana").slice(0,2)].sort((a,b)=>b.sc-a.sc);
   
   for(const el of els){const t=el.tags||{};if(!t.name)continue;const c=cls(t);if(!c||!want.has(c))continue;const id=el.type[0]+el.id;if(cm.has(id)||names.has(t.name+c))continue;
    const p=el.type=="node"?[el.lat,el.lon]:el.center?[el.center.lat,el.center.lon]:null;if(!p)continue;
    let d=1e9,bi=0;for(let i=0;i<line.length;i++){const x=dk(p,line[i]);if(x<d){d=x;bi=i}}if(d>reach)continue;const sk=cum[bi];if(sk<buf||D-sk<buf*.9||dk(p,[A.lat,A.lon])<buf*.8||dk(p,[B.lat,B.lon])<buf*.9)continue;
    const est=Math.max(2,Math.round(2*d*1.35/spd*60)),nt=(t.wikidata?2:0)+(t.wikimedia_commons||t.image?1.5:0)+(t.description?.5:0)+(t["name:en"]?.3:0)+(t.tourism=="attraction"?1:0)+(/castle|fort|ruins|archaeological_site/.test(t.historic)?1:0)+(t.amenity=="restaurant"?.5:0)+(t.cuisine?.5:0);
-   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,arr:s0+sk/D*base.dur/60,v:CATS[c].v,sc:nt-est/extra*prio-meal(c,t,s0+sk/D*base.dur/60)+fbonus(t)})}
+   names.add(t.name+c);cm.set(id,{id,t,c,p,d,est,f:cum[bi]/D,arr:s0+sk/D*base.dur/60,v:dv(CATS[c].v),sc:nt-est/extra*prio-meal(c,t,s0+sk/D*base.dur/60)+fbonus(t)})}
   dest.forEach(x=>cm.set(x.id,x));const all=[...cm.values()].filter(x=>!x.dst).sort((a,b)=>b.sc-a.sc);
   if(!all.length&&!dest.length)throw Error(fails?`Dio zahtjeva nije uspio (${fails}/${res.length}). Pokušaj ponovo za koji minut.`:"Nema pronađenih mjesta na ovoj ruti. Probaj više vremena ili druge interese.");
   // stanice se ravnomjerno rasporede duž puta: ruta se podijeli na jednake dionice i iz svake se uzme najbolje mjesto (razmak ≥ ~70% širine dionice)
