@@ -10,7 +10,7 @@ const O = "https://panpetar405-creator.github.io";
 let W;
 const kv = new Map();
 const KV = { get: async (k, t) => { const v = kv.get(k); return v == null ? null : t === "json" ? JSON.parse(v) : v; }, put: async (k, v) => { kv.set(k, String(v)); } };
-let googleCalls = 0;
+let googleCalls = 0, routeCalls = 0, lastRouteUrl = "", routeMode = "ok";
 const realFetch = globalThis.fetch;
 
 test.before(async () => {
@@ -23,6 +23,12 @@ test.before(async () => {
     u = String(u);
     if (u.includes("places:searchText")) { googleCalls++; return new Response(JSON.stringify({ places: [{ id: "x", displayName: { text: "Kafe Test" }, location: { latitude: 42.4, longitude: 18.7 }, rating: 4.5, userRatingCount: 10, photos: [{ name: "places/ABC/photos/DEF" }] }] }), { status: 200 }); }
     if (u.includes("/media")) { googleCalls++; return new Response("IMG", { status: 200, headers: { "Content-Type": "image/jpeg" } }); }
+    if (u.includes("/route/v1/")) {
+      routeCalls++; lastRouteUrl = u;
+      if (routeMode === "fail") return new Response("greška", { status: 500 });
+      if (routeMode === "noroute") return new Response(JSON.stringify({ code: "NoRoute", message: "x" }), { status: 400 });
+      return new Response(JSON.stringify({ code: "Ok", waypoints: [{}, {}], routes: [{ duration: 600, distance: 5000, geometry: { coordinates: [[18.77, 42.42], [18.84, 42.28]] }, legs: [{ duration: 600, steps: [] }] }, { duration: 1, distance: 1 }] }), { status: 200 });
+    }
     throw new Error("mreža blokirana u testu: " + u);
   };
 });
@@ -115,4 +121,57 @@ test("/api/along: rezultat iz keša se vraća bez poziva Overpass-a", async () =
   const j = await r.json();
   assert.equal(j.source, "cache");
   assert.equal(j.elements[0].tags.name, "Test pumpa");
+});
+
+test("/api/route: provjera ulaza, Origin i profil", async () => {
+  const q = "/api/route?m=car&pts=" + encodeURIComponent("42.42,18.77;42.28,18.84");
+  assert.equal((await call(q, { origin: "https://evil.example", ip: "9.1.0.1" })).status, 403);
+  assert.equal((await call(q, { origin: null, ip: "9.1.0.2" })).status, 403);
+  const bad = ["m=plane&pts=42.4,18.7;42.3,18.8", "m=car&pts=42.4,18.7", "m=car&pts=", "m=car&pts=95,18.7;42.3,18.8", "m=car&pts=42.4,200;42.3,18.8", "m=car&pts=a,b;c,d", "m=car&pts=42.4,18.7;60,18.8"];
+  for (const [i, b] of bad.entries()) assert.equal((await call("/api/route?" + b, { ip: "9.1.1." + i })).status, 400, b);
+});
+
+test("/api/route: vraća samo prvu rutu, profil i koordinate su u upitu, a ponovni upit ide iz keša", async () => {
+  routeMode = "ok"; routeCalls = 0;
+  const store = new Map();
+  globalThis.caches = { default: { match: async (r) => store.get(r.url) || null, put: async (r, v) => { store.set(r.url, v); } } };
+  const q = "/api/route?m=foot&pts=" + encodeURIComponent("42.42,18.77;42.28,18.84");
+  const r = await call(q, { ip: "9.2.0.1" });
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.code, "Ok");
+  assert.equal(j.routes.length, 1);
+  assert.equal(j.waypoints, undefined);
+  assert.match(lastRouteUrl, /routed-foot\/route\/v1\/driving\/18\.77000,42\.42000;18\.84000,42\.28000\?overview=full&geometries=geojson&steps=true$/);
+  assert.equal(routeCalls, 1);
+  const r2 = await call(q, { ip: "9.2.0.2" });
+  assert.equal((await r2.json()).routes.length, 1);
+  assert.equal(routeCalls, 1, "drugi isti upit mora doći iz keša");
+  globalThis.caches = { default: { match: async () => null, put: async () => {} } };
+});
+
+test("/api/route: ROUTE_URL zamjenjuje javni servis; nevaljan šablon se ignoriše", async () => {
+  routeMode = "ok";
+  const q = "/api/route?m=bike&pts=" + encodeURIComponent("42.41,18.71;42.29,18.81");
+  assert.equal((await call(q, { ip: "9.3.0.1", env: { ROUTE_URL: "https://osrm.example/route/v1/{profile}/{coords}" } })).status, 200);
+  assert.match(lastRouteUrl, /^https:\/\/osrm\.example\/route\/v1\/bike\/18\.71000,42\.41000;18\.81000,42\.29000\?overview=full/);
+  assert.equal((await call(q, { ip: "9.3.0.2", env: { ROUTE_URL: "http://nije-https/{coords}" } })).status, 200);
+  assert.match(lastRouteUrl, /^https:\/\/routing\.openstreetmap\.de\/routed-bike\//);
+});
+
+test("/api/route: 'nema rute' je 200 sa praznim rezultatom, kvar servisa je 502, a previše zahtjeva 429", async () => {
+  routeMode = "noroute";
+  const q = (n) => "/api/route?m=car&pts=" + encodeURIComponent("42.4" + n + ",18.7;42.3,18.8");
+  let r = await call(q(1), { ip: "9.4.0.1" });
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.equal(j.code, "NoRoute");
+  assert.deepEqual(j.routes, []);
+  routeMode = "fail";
+  r = await call(q(2), { ip: "9.4.0.2" });
+  assert.equal(r.status, 502);
+  assert.equal((await r.json()).error, "upstream");
+  routeMode = "ok";
+  let s; for (let i = 0; i < 62; i++) s = (await call(q(3), { ip: "9.4.0.3" })).status;
+  assert.equal(s, 429);
 });
