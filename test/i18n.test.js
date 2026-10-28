@@ -26,6 +26,12 @@ test("rečenice s brojevima, jedinicama i razdvajanjem po ' · '", () => {
   assert.equal(T("en", "Kiša do 60% oko 14:00. Za kišu su bolje stanice u zatvorenom."), "Chance of rain up to 60% around 14:00. Indoor stops are better for rain.");
 });
 
+test("poruka za grešku 429 je prevedena na sva tri jezika", () => {
+  const s = "Previše zahtjeva u kratkom vremenu. Sačekaj minut-dva pa pokušaj ponovo.";
+  for (const l of ["en", "de", "ru"]) assert.notEqual(T(l, s), s);
+  assert.equal(T("sr", s), s);
+});
+
 test("razmaci se čuvaju, nepoznat tekst i srpski ostaju netaknuti", () => {
   assert.equal(T("en", "  Nastavi  "), "  Continue  ");
   assert.equal(T("en", "Kafić Čaršija"), "Kafić Čaršija");
