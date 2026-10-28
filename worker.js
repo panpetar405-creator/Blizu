@@ -3,7 +3,7 @@
 // Potrebno: KV namespace vezan kao PLACES, secret REFRESH_TOKEN, secret GOOGLE_KEY (Places API New).
 // Opciono: secret ORS_KEY (OpenRouteService) za pešačke rute; bez njega se koristi javni OSRM foot server.
 // Sigurnost (sve opciono, vidi IMPLEMENTACIJA-PRVA-ITERACIJA.md):
-//   ALLOWED_ORIGINS  dodatni dozvoljeni izvori, odvojeni zarezom (npr. "https://blizu.me,https://www.blizu.me")
+//   ALLOWED_ORIGINS  dodatni dozvoljeni izvori, odvojeni zarezom (npr. "https://mestigo.me,https://www.mestigo.me")
 //   RL, RL_STRICT    Cloudflare "Rate Limiting" bindinzi (opšti i strogi); bez njih radi približno ograničenje u memoriji
 //   GOOGLE_DAILY_CAP najveći broj Google poziva dnevno (zasebno za podatke o mjestu i za fotografije); traži KV upise
 //   PHOTO_SIGN_KEY   tajna za potpis fotografija (ako nije postavljena, koristi se REFRESH_TOKEN)
@@ -137,7 +137,7 @@ async function ovpOne(u, q, ms, signal) {
   const host = u.replace(/^https:\/\//, "").split("/")[0].slice(0, 14);
   try {
     // Overpass serveri traže prepoznatljiv User-Agent; bez njega ih dio odbija zahtjeve iz Workera
-    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mestigo/1.0 (+https://github.com/panpetar405-creator/Blizu)", Accept: "application/json" }, signal: ac.signal });
+    const r = await fetch(u, { method: "POST", body: "data=" + encodeURIComponent(q), headers: { "Content-Type": "application/x-www-form-urlencoded", "User-Agent": "Mestigo/1.0 (+https://github.com/panpetar405-creator/Mestigo)", Accept: "application/json" }, signal: ac.signal });
     if (!r.ok) { addWhy(host + " " + r.status); return null; }
     const j = await r.json();
     // Overpass ponekad vrati 200 uz "remark" o grešci/timeout-u i prazan odgovor
