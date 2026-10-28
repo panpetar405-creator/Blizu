@@ -23,6 +23,10 @@ window.BLIZU_REPORT_MAIL = "";   // e-mail za prijave grešaka o mjestima (ako j
 // Za produkciju postavi na false kad provjeriš da vlastita baza pokriva tvoje područje.
 window.BLIZU_PUBLIC_OVERPASS = true;
 
+// Rute se traže preko Workera (/api/route). Ako Worker ne odgovori, aplikacija kao rezervu zove javni routing servis iz telefona.
+// Za produkciju postavi na false, a u Workeru podesi ROUTE_URL (vlastiti ili plaćeni OSRM-kompatibilan servis).
+window.BLIZU_PUBLIC_ROUTING = true;
+
 // Opciono: vlastita slika za određeno mjesto. Ključ = naziv malim slovima, bez kvačica (Babić -> "babic").
 window.BLIZU_IMG = { "babic": "img/babic.png" };
 

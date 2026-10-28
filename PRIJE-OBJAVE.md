@@ -37,7 +37,8 @@ Označavaj `[x]` kako ideš. Sve što zavisi od domena je na kraju, u dijelu „
 ## 3. Servisi za rute, pločice i pretragu
 
 - [ ] MapTiler ključ u `config.js` postoji; kad stigne domen, ograniči ga na taj domen
-- [ ] Odluka o servisu za rute (OpenRouteService, Valhalla ili vlastiti OSRM). Trenutno aplikacija zove `routing.openstreetmap.de` direktno, a to nije za produkciju.
+- [ ] Rute idu preko Workera (`/api/route`). Dok `ROUTE_URL` nije postavljen, Worker koristi javni servis `routing.openstreetmap.de`, što je samo za testiranje. Za produkciju izaberi servis koji vraća OSRM format (vlastiti OSRM, ili plaćeni servis sa OSRM-kompatibilnim API-jem; ORS ne vraća taj format) i u Worker varijablu `ROUTE_URL` upiši šablon, npr. `https://osrm.tvoj-domen.me/route/v1/{profile}/{coords}`. `{profile}` je `car`, `foot` ili `bike`, a `{coords}` su koordinate `lng,lat;lng,lat`. Provjeri da servis zaista ima profile za auto, pješke i bicikl.
+- [ ] Nakon što `ROUTE_URL` radi i provjeriš rute na telefonu: `window.BLIZU_PUBLIC_ROUTING = false` u `config.js`
 - [ ] Odluka o geocoderu: `GEOCODER_URL` (vlastiti Photon ili plaćeni servis istog GeoJSON oblika)
 - [ ] Baza mjesta pokriva Kotor, Budva, Herceg Novi (provjereno: `data/places` pokriva Crnu Goru)
 - [ ] Nakon testa na telefonu: `window.BLIZU_PUBLIC_OVERPASS = false` u `config.js`
@@ -81,6 +82,8 @@ Označavaj `[x]` kako ideš. Sve što zavisi od domena je na kraju, u dijelu „
 | „Obriši podatke" | Briše samo Mestigo podatke |
 | Mnogo brzih pretraga u minuti | Poruka „Previše zahtjeva u kratkom vremenu…" (greška 429) |
 | Ruta preko Kamenari–Lepetane | Plan prikazuje obavještenje o trajektu |
+| Rute za auto, pješke i bicikl | Sva tri načina daju liniju na mapi i upute za skretanje |
+| Isključi Worker (ili probaj sa pogrešnim `BLIZU_API`) dok je `BLIZU_PUBLIC_ROUTING=true` | Rute i dalje rade preko rezervnog puta; sa `false` pokazuje „Servis za rute trenutno ne radi" |
 | „Prijavi grešku" na mjestu | Otvori se e-mail s popunjenim podacima |
 
 ## 8. Poslije kupovine domena (ne sada)

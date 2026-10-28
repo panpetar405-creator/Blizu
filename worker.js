@@ -8,6 +8,7 @@
 //   GOOGLE_DAILY_CAP najveći broj Google poziva dnevno (zasebno za podatke o mjestu i za fotografije); traži KV upise
 //   PHOTO_SIGN_KEY   tajna za potpis fotografija (ako nije postavljena, koristi se REFRESH_TOKEN)
 //   LIVE_BBOX        "jug,zapad,sjever,istok": uživo Overpass samo unutar ovog pravougaonika
+//   ROUTE_URL        šablon OSRM-kompatibilnog servisa za rute sa {profile} i {coords} (vidi routeVia); bez njega javni FOSSGIS
 //   DEBUG            "1" vraća tehničke poruke grešaka klijentu (samo za razvoj)
 
 const CITIES = {
@@ -39,7 +40,7 @@ function safeEq(a, b) { // poređenje tajni bez curenja kroz vrijeme izvršavanj
 // ---------- ograničenje broja zahtjeva ----------
 // Sa Cloudflare Rate Limiting bindingom (RL / RL_STRICT) ili, bez njega, približnim brojačem u memoriji izolata.
 // (Cache API ne radi na *.workers.dev, a KV bi trošio dnevnu kvotu upisa, pa se ne koriste za brojanje.)
-const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, along: 80, refresh: 5 }; // zahtjeva po IP adresi u minuti
+const LIMITS = { places: 90, geocode: 60, photo: 90, walk: 30, enrich: 30, along: 80, route: 60, refresh: 5 }; // zahtjeva po IP adresi u minuti
 const STRICT = new Set(["walk", "enrich", "along", "refresh"]);
 const MEM = new Map();
 async function limited(env, req, bucket) {
@@ -304,6 +305,31 @@ async function walkLegs(env, pts) {
   return legs;
 }
 
+// ---------- rute (OSRM format) ----------
+// Aplikacija traži rute preko Workera, pa telefoni ne gađaju javni routing servis. Backend se bira sa ROUTE_URL:
+// šablon sa {profile} (car|foot|bike) i {coords} (lng,lat;lng,lat…), npr. "https://osrm.tvoj-domen.me/route/v1/{profile}/{coords}".
+// Mora vraćati OSRM JSON (geometries=geojson, steps=true). Bez ROUTE_URL koristi se javni FOSSGIS servis (samo za lagano testiranje).
+const ROUTE_DEFAULT = "https://routing.openstreetmap.de/routed-{profile}/route/v1/driving/{coords}";
+const ROUTE_PROFILES = new Set(["car", "foot", "bike"]);
+async function routeVia(env, profile, pts) {
+  const coords = pts.map((p) => p[1].toFixed(5) + "," + p[0].toFixed(5)).join(";");
+  const cache = typeof caches !== "undefined" ? caches.default : null;
+  const ck = new Request("https://route.cache/" + profile + "/" + coords);
+  try { const hit = cache && (await cache.match(ck)); if (hit) return await hit.json(); } catch (e) {}
+  const tpl = /^https:\/\/\S*\{coords\}/.test(env.ROUTE_URL || "") ? env.ROUTE_URL : ROUTE_DEFAULT;
+  const u = tpl.split("{profile}").join(profile).split("{coords}").join(coords) + (tpl.includes("?") ? "&" : "?") + "overview=full&geometries=geojson&steps=true";
+  const r = await fetch(u, { headers: { "User-Agent": "Mestigo/1.0 (+https://github.com/panpetar405-creator/Mestigo)", Accept: "application/json" }, signal: AbortSignal.timeout(15000) });
+  let j = null;
+  try { j = await r.json(); } catch (e) {}
+  // OSRM za "nema rute" vraća 400 sa code:"NoRoute"; to je valjan odgovor, ne greška servisa
+  if (!j || typeof j.code !== "string" || (!r.ok && j.code === "Ok")) throw new Error("route_upstream");
+  const out = { code: j.code, routes: (j.routes || []).slice(0, 1) };
+  if (j.code === "Ok" && out.routes.length) {
+    try { cache && (await cache.put(ck, new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=3600" } }))); } catch (e) {}
+  }
+  return out;
+}
+
 // Geokodiranje (pretraga adresa/mjesta). Podrazumijevano Photon (OSM podaci, dozvoljen autocomplete uz razumnu upotrebu);
 // za produkciju postavi env GEOCODER_URL na vlastiti Photon ili plaćeni servis istog GeoJSON oblika (npr. Geoapify/MapTiler).
 // Rezultati se keširaju u KV 7 dana, pa isti upit ne opterećuje vanjski servis.
@@ -375,6 +401,15 @@ export default {
       const okp = (p) => p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 && p.every(Number.isFinite);
       if (pts.length < 2 || pts.length > 15 || !pts.every(okp) || pts.some((p, i) => i && km(pts[i - 1], p) > 30)) return json({ error: "bad params" }, req, 400);
       try { return json({ legs: await walkLegs(env, pts) }, req, 200, { "Cache-Control": "public, max-age=3600" }); } catch (e) { return json({ error: "upstream" }, req, 502); }
+    }
+    if (url.pathname === "/api/route") {
+      if (!okOrigin(req)) return json({ error: "forbidden" }, req, 403);
+      if (await limited(env, req, "route")) return tooMany(req, "route");
+      const m = url.searchParams.get("m");
+      const pts = (url.searchParams.get("pts") || "").split(";").slice(0, 22).map((t) => t.split(",").map(Number));
+      const okp = (p) => p.length === 2 && Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180 && p.every(Number.isFinite);
+      if (!ROUTE_PROFILES.has(m) || pts.length < 2 || pts.length > 20 || !pts.every(okp) || pts.some((p, i) => i && km(pts[i - 1], p) > 1500)) return json({ error: "bad params" }, req, 400);
+      try { return json(await routeVia(env, m, pts), req, 200, { "Cache-Control": "private, max-age=300" }); } catch (e) { log("route_failed"); return json({ error: "upstream" }, req, 502); }
     }
     if (url.pathname === "/api/along") {
       if (req.method !== "POST") return json({ error: "method" }, req, 405, { Allow: "POST, OPTIONS" });
