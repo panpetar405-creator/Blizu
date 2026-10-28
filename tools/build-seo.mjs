@@ -72,7 +72,7 @@ const QS = 'nwr@[amenity~"^(restaurant|cafe|bar|pub|ice_cream|theatre|cinema|art
 async function fetchOverpass(c) {
   const A = `(around:${c.r},${c.lat},${c.lng})`;
   const q = `[out:json][timeout:60];(${QS.replace(/@/g, A)});out center tags 800;`;
-  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'MestigoSEO/1.0 (+https://github.com/panpetar405-creator/Blizu)' }, signal: AbortSignal.timeout(75000) })
+  const tryOne = (u) => fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': 'MestigoSEO/1.0 (+https://github.com/panpetar405-creator/Mestigo)' }, signal: AbortSignal.timeout(75000) })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`${new URL(u).host}: HTTP ${r.status}`)))).then((j) => (j.elements?.length ? j.elements : Promise.reject(new Error(`${new URL(u).host}: prazan odgovor`))))
     .catch((e) => Promise.reject(e.name === 'TimeoutError' ? new Error(`${new URL(u).host}: istekao rok`) : e));
   for (let attempt = 1; attempt <= 3; attempt++) {
